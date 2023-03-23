@@ -9,5 +9,4 @@ public class ChartomancyApplication {
     public static void main(String[] args) {
         SpringApplication.run(ChartomancyApplication.class, args);
     }
-
 }
