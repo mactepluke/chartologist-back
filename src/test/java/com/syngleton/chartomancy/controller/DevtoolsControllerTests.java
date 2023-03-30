@@ -24,7 +24,7 @@ class DevtoolsControllerTests {
     @Test
     @DisplayName("Launch shell endpoint")
     void load() throws Exception {
-        mockMvc.perform(get("/devtools//launch-shell"))
+        mockMvc.perform(get("/devtools/launch-shell"))
                 .andExpect(status().isOk());
     }
 }

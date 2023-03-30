@@ -32,3 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 /logs/
+/data/Bitfinex_BTCUSD_d.csv

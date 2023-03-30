@@ -37,5 +37,4 @@ public class DevtoolsController {
         return new ResponseEntity<>(true, OK);
     }
 
-
 }
