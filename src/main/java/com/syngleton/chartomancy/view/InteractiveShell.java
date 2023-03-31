@@ -40,6 +40,9 @@ public class InteractiveShell implements Runnable {
                 case 3 -> {
                     dataController.printGraph();
                 }
+                case 4 -> {
+                    patternController.create();
+                }
                 case 9 -> {
                     log.info("*** EXITING PROGRAM ***");
                     continueApp = false;
@@ -54,6 +57,7 @@ public class InteractiveShell implements Runnable {
         log.info("1 Load data file");
         log.info("2 Analyse loaded data");
         log.info("3 Print loaded data");
+        log.info("4 Create basic pattern");
         log.info("9 Exit program");
     }
 

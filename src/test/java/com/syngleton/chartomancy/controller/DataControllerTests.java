@@ -1,9 +1,7 @@
 package com.syngleton.chartomancy.controller;
 
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +18,18 @@ class DataControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+
+    @BeforeAll
+    void setUp() {
+        log.info("*** STARTING DATA CONTROLLER TESTS ***");
+    }
+
+    @AfterAll
+    void tearDown() {
+        log.info("*** ENDING DATA CONTROLLER TESTS ***");
+    }
+
 
     @Test
     @DisplayName("Load data endpoint")
