@@ -23,6 +23,17 @@ public final class Format {
         return (float) (round(number * op) / op);
     }
 
+    public static String cutString(String string, int length) {
+        if (string == null || string.isEmpty() || string.equals("null") || string.equals("undefined")) {
+            string = "";
+        }
+
+        if (string.length() > length) {
+            string = string.substring(0, length);
+        }
+        return string;
+    }
+
 
 
 }
