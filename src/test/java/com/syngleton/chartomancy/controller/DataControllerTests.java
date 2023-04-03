@@ -3,6 +3,7 @@ package com.syngleton.chartomancy.controller;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,6 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DataControllerTests {
+
+    @Value("${test_data_file_path}")
+    private String testDataFilePath;
 
     @Autowired
     private MockMvc mockMvc;
@@ -34,7 +38,7 @@ class DataControllerTests {
     @Test
     @DisplayName("Load data endpoint")
     void load() throws Exception {
-        mockMvc.perform(get("/data/load?path={id}", "FILE_PATH"))
+        mockMvc.perform(get("/data/load?path={id}", testDataFilePath))
                 .andExpect(status().isOk());
     }
 

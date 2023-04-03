@@ -1,11 +1,14 @@
 package com.syngleton.chartomancy.service;
 
+import com.syngleton.chartomancy.service.data.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @SpringBootTest
@@ -14,7 +17,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DataServiceTests {
 
-    private final static String TEST_DATA_FILE_PATH = "src/test/resources/testdata/Bitfinex_BTCUSD_TEST.csv";
+    @Value("${test_data_file_path}")
+    private String testDataFilePath;
 
     @Autowired
     DataService dataService;
@@ -28,11 +32,10 @@ class DataServiceTests {
     void tearDown() {
         log.info("*** ENDING DATA SERVICE TESTS ***");
     }
-//TODO Implement test
+
     @Test
-    @DisplayName("Loads test file.")
+    @DisplayName("Loads test file")
     void load() {
-        dataService.load(TEST_DATA_FILE_PATH);
-        fail();
+        assertTrue(dataService.load(testDataFilePath));
     }
 }

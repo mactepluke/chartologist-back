@@ -1,10 +1,12 @@
-package com.syngleton.chartomancy.service;
+package com.syngleton.chartomancy.service.data;
 
-import com.syngleton.chartomancy.model.Candle;
-import com.syngleton.chartomancy.model.Graph;
-import com.syngleton.chartomancy.model.Timeframe;
+import com.syngleton.chartomancy.model.data.Candle;
+import com.syngleton.chartomancy.model.data.Graph;
+import com.syngleton.chartomancy.model.data.Timeframe;
 import com.syngleton.chartomancy.util.Format;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -25,10 +27,12 @@ import static java.lang.Math.abs;
 @Service
 public class DataService {
 
+    @Getter
     private Graph graph = null;
-    private static final int FORMAT_HEADER_READING_ATTEMPTS = 3;
+    @Value("${reading_attempts}")
+    private int readingAttempts;
 
-    public void load(String path) {
+    public boolean load(String path) {
 
         log.info("Reading file: " + path + "...");
 
@@ -37,12 +41,14 @@ public class DataService {
         if (currentFormat != null) {
             graph = createGraph(path, currentFormat);
             log.info("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.name(), graph.symbol(), graph.timeframe());
+            return true;
         } else {
-            log.error("File format header not found (parsed the first {} lines without success). List of supported headers:", FORMAT_HEADER_READING_ATTEMPTS);
+            log.error("File format header not found (parsed the first {} lines without success). List of supported headers:", readingAttempts);
 
             for (CSVFormats csvReader : CSVFormats.values()) {
                 log.info("Format: {}, header: \"{}\"", csvReader, csvReader.formatHeader);
             }
+            return false;
         }
     }
 
@@ -77,7 +83,7 @@ public class DataService {
                         }
                     }
                 }
-            } while (line != null && count < FORMAT_HEADER_READING_ATTEMPTS);
+            } while (line != null && count < readingAttempts);
         } catch (IOException e) {
             e.printStackTrace();
         }

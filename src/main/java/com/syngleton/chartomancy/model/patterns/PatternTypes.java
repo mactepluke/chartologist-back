@@ -1,5 +1,6 @@
 package com.syngleton.chartomancy.model.patterns;
 
-public class PredictivePattern implements Pattern {
-
+public enum PatternTypes {
+    BASIC,
+    PREDICTIVE
 }

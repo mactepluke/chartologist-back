@@ -1,8 +1,15 @@
 package com.syngleton.chartomancy.model.patterns;
 
+import com.syngleton.chartomancy.model.data.Graph;
+import com.syngleton.chartomancy.model.data.Timeframe;
+
+import java.time.LocalDateTime;
+
 public class BasicPattern implements Pattern {
-    @Override
-    public void build() {
-        System.out.println("Build Basic Pattern.");
-    }
+
+    private Graph graph;
+    private short granularity;
+    private Timeframe timeframe;
+    private String name;
+    private LocalDateTime startDate;
 }
