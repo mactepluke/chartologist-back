@@ -56,6 +56,8 @@ public class DataController {
 
         HttpStatus status = OK;
 
+        log.info("Analyzing data.");
+
         return new ResponseEntity<>(true, status);
     }
 }

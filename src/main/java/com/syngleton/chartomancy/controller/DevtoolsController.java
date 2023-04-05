@@ -37,4 +37,14 @@ public class DevtoolsController {
         return new ResponseEntity<>(true, OK);
     }
 
+    //http://localhost:8080/devtools/run-script
+    @GetMapping("/run-script")
+    public ResponseEntity<Boolean> runScript() {
+
+        Thread scriptRunner = new Thread(new ScriptRunner(dataController, patternController));
+        scriptRunner.start();
+
+        return new ResponseEntity<>(true, OK);
+    }
+
 }

@@ -4,7 +4,6 @@ import com.syngleton.chartomancy.model.data.Graph;
 import com.syngleton.chartomancy.model.patterns.PatternTypes;
 import lombok.*;
 
-//TODO Paramétrer cette classe avec mon lecteur de fichier .properties maison
 @ToString
 public final class PatternParams {
 
@@ -13,6 +12,8 @@ public final class PatternParams {
     private final Graph graph;
     @Getter
     private final PatternTypes patternType;
+    @Getter
+    private final Autoconfig autoconfig;
     @Getter
     private final String name;
     @Getter
@@ -26,14 +27,24 @@ public final class PatternParams {
         this.name = builder.name;
         this.granularity = builder.granularity;
         this.length = builder.length;
+        this.autoconfig = builder.autoconfig;
+    }
+
+    public enum Autoconfig {
+        NONE,
+        MINIMIZE,
+        MAXIMIZE,
+        USE_DEFAULTS,
+        BYPASS_SAFETY_CHECK
     }
 
     public static class Builder {
 
         private Graph graph = null;
         private PatternTypes patternType = PatternTypes.BASIC;
+        private Autoconfig autoconfig = Autoconfig.NONE;
         private String name = "";
-        private int granularity;
+        private int granularity =1;
         private int length;
 
 
@@ -55,13 +66,17 @@ public final class PatternParams {
         }
 
         public Builder granularity(int granularity) {
-
             this.granularity = granularity;
             return this;
         }
 
         public Builder length(int length) {
             this.length = length;
+            return this;
+        }
+
+        public Builder strategy(Autoconfig autoconfig) {
+            this.autoconfig = autoconfig;
             return this;
         }
 

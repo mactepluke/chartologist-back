@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.model.patterns;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public record PixelatedCandle(ArrayList<CandlePixel> candle, short volume) {
+public record PixelatedCandle(List<CandlePixel> candle, int volume) {
 }
