@@ -35,26 +35,29 @@ public final class PatternParams {
         MINIMIZE,
         MAXIMIZE,
         USE_DEFAULTS,
-        BYPASS_SAFETY_CHECK
+        BYPASS_SAFETY_CHECK,
+        TEST
     }
 
     public static class Builder {
-
         private Graph graph = null;
         private PatternTypes patternType = PatternTypes.BASIC;
         private Autoconfig autoconfig = Autoconfig.NONE;
-        private String name = "";
+        private String name = "No Name";
         private int granularity =1;
         private int length;
 
-
         public Builder patternType(PatternTypes patternType) {
-            this.patternType = patternType;
+            if (patternType != null) {
+                this.patternType = patternType;
+            }
             return this;
         }
 
         public Builder graph(Graph graph) {
-            this.graph = graph;
+            if (graph != null) {
+                this.graph = graph;
+            }
             return this;
         }
 
@@ -76,14 +79,13 @@ public final class PatternParams {
         }
 
         public Builder strategy(Autoconfig autoconfig) {
-            this.autoconfig = autoconfig;
+            if (autoconfig != null) {
+                this.autoconfig = autoconfig;
+            }
             return this;
         }
-
         public PatternParams build() {
             return new PatternParams(this);
         }
-
-
     }
 }

@@ -34,6 +34,23 @@ public final class Format {
         return string;
     }
 
+    public static int streamlineInt(int number, int min, int max)    {
 
+        if (number < min)   {
+            number = min;
+        }
+
+        if (number > max)   {
+            number = max;
+        }
+        return number;
+    }
+
+    public static int setIntIfZero(int value, int newValue)  {
+        if (value == 0) {
+            value = newValue;
+        }
+        return value;
+    }
 
 }

@@ -2,9 +2,9 @@ package com.syngleton.chartomancy.service.patterns;
 
 import com.syngleton.chartomancy.model.data.Candle;
 import com.syngleton.chartomancy.model.patterns.BasicPattern;
-import com.syngleton.chartomancy.model.patterns.CandlePixel;
 import com.syngleton.chartomancy.model.patterns.Pattern;
 import com.syngleton.chartomancy.model.patterns.PixelatedCandle;
+import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,9 @@ public class PatternFactory {
     private static final int DEFAULT_GRANULARITY = 100;
     private static final int DEFAULT_PATTERN_LENGTH = 50;
     private static final int MIN_PATTERNS_PER_GRAPH = 10;
+    private static final int TEST_GRANULARITY = 50;
+    private static final int TEST_PATTERN_LENGTH = 20;
+    private static final int TEST_MIN_PATTERN_PER_GRAPH = 4;
 
 
     @Value("${min_granularity}")
@@ -43,6 +46,13 @@ public class PatternFactory {
     private int defaultPatternLength;
     @Value("${min_patterns_per_graph}")
     private int minPatternsPerGraph;
+    @Value("${test_granularity}")
+    private int testGranularity;
+    @Value("${test_pattern_length}")
+    private int testPatternLength;
+    @Value("${test_min_patterns_per_graph}")
+    private int testMinPatternsPerGraph;
+
 
     public List<Pattern> create(PatternParams.Builder paramsInput) {
 
@@ -65,21 +75,14 @@ public class PatternFactory {
     }
 
     private void initializeCheckVariables() {
-        if (minGranularity == 0) {
-            minGranularity = MIN_GRANULARITY;
-        }
-        if (maxGranularity == 0) {
-            maxGranularity = MAX_GRANULARITY;
-        }
-        if (minPatternLength == 0) {
-            minPatternLength = MIN_PATTERN_LENGTH;
-        }
-        if (maxPatternLength == 0) {
-            maxPatternLength = MAX_PATTERN_LENGTH;
-        }
-        if (minPatternsPerGraph == 0) {
-            minPatternsPerGraph = MIN_PATTERNS_PER_GRAPH;
-        }
+        minGranularity = Format.setIntIfZero(minGranularity, MIN_GRANULARITY);
+        maxGranularity = Format.setIntIfZero(maxGranularity, MAX_GRANULARITY);
+        minPatternLength = Format.setIntIfZero(minPatternLength, MIN_PATTERN_LENGTH);
+        maxPatternLength = Format.setIntIfZero(maxPatternLength, MAX_PATTERN_LENGTH);
+        minPatternsPerGraph = Format.setIntIfZero(minPatternsPerGraph, MIN_PATTERNS_PER_GRAPH);
+        testGranularity = Format.setIntIfZero(testGranularity, TEST_GRANULARITY);
+        testPatternLength = Format.setIntIfZero(testPatternLength, TEST_PATTERN_LENGTH);
+        testMinPatternsPerGraph = Format.setIntIfZero(testMinPatternsPerGraph, TEST_MIN_PATTERN_PER_GRAPH);
     }
 
     private PatternParams configParams(PatternParams.Builder paramsInput) {
@@ -87,26 +90,19 @@ public class PatternFactory {
         PatternParams initialParams = paramsInput.build();
 
         switch (initialParams.getAutoconfig()) {
-            case NONE -> {
-                if (initialParams.getGranularity() < minGranularity) {
-                    paramsInput = paramsInput.granularity(minGranularity);
-                }
-                if (initialParams.getGranularity() > maxGranularity) {
-                    paramsInput = paramsInput.granularity(maxGranularity);
-                }
-                if (initialParams.getLength() < minPatternLength) {
-                    paramsInput = paramsInput.length(minPatternLength);
-                }
-                if (initialParams.getLength() > maxPatternLength) {
-                    paramsInput = paramsInput.length(maxPatternLength);
-                }
-            }
+            case NONE ->
+                    paramsInput = paramsInput.granularity(Format.streamlineInt(initialParams.getGranularity(), minGranularity, maxGranularity))
+                            .length(Format.streamlineInt(initialParams.getLength(), minPatternLength, maxPatternLength));
             case USE_DEFAULTS -> {
                 if (defaultGranularity == 0) {
                     defaultGranularity = DEFAULT_GRANULARITY;
+                } else {
+                    defaultGranularity = Format.streamlineInt(defaultGranularity, minGranularity, maxGranularity);
                 }
                 if (defaultPatternLength == 0) {
                     defaultPatternLength = DEFAULT_PATTERN_LENGTH;
+                } else {
+                    defaultPatternLength = Format.streamlineInt(defaultPatternLength, minPatternLength, maxPatternLength);
                 }
                 paramsInput = paramsInput.granularity(defaultGranularity)
                         .length(defaultPatternLength);
@@ -114,11 +110,16 @@ public class PatternFactory {
             case MINIMIZE -> paramsInput = paramsInput.length(minPatternLength).granularity(minGranularity);
             case MAXIMIZE -> paramsInput = paramsInput.length(maxPatternLength).granularity(maxGranularity);
             case BYPASS_SAFETY_CHECK -> log.warn("!! Using raw parameters from input: NOT CHECKED FOR SAFETY !!");
+            case TEST -> {
+                log.info("Using test parameters for pattern generation (set up in config file)");
+                paramsInput = paramsInput.length(Format.streamlineInt(testPatternLength, minPatternLength, maxPatternLength))
+                        .granularity(Format.streamlineInt(testGranularity, minPatternLength, maxPatternLength));
+                minPatternsPerGraph = testMinPatternsPerGraph;
+            }
             default -> log.error("Could not define parameters configuration strategy.");
         }
         return paramsInput.build();
     }
-
 
     private List<Pattern> generateBasicPatterns(PatternParams patternParams) {
 
@@ -165,33 +166,44 @@ public class PatternFactory {
             highest = Math.max(highest, candle.high());
         }
 
-        int divider = round( (highest - lowest) / granularity);
+        int divider = round((highest - lowest) / granularity);
 
         List<PixelatedCandle> pixelatedCandles = new ArrayList<>();
 
+
         for (Candle candle : candles) {
-            List<CandlePixel> candlePixels = new ArrayList<>();
+            byte[] candlePixels = new byte[granularity];
 
             int open = round((candle.open() - lowest) / divider);
             int high = round((candle.high() - lowest) / divider);
             int low = round((candle.low() - lowest) / divider);
             int close = round((candle.close() - lowest) / divider);
 
+            open = Format.streamlineInt(open, 0, granularity);
+            high = Format.streamlineInt(high, 0, granularity);
+            low = Format.streamlineInt(low, 0, granularity);
+            close = Format.streamlineInt(close, 0, granularity);
 
+
+            //Marking an empty pixel
             for (int i = 0; i < low; i++) {
-                candlePixels.add(CandlePixel.EMPTY);
+                candlePixels[i] = 0;
             }
+            //Marking a wick pixel
             for (int i = low; i < Math.min(open, close); i++) {
-                candlePixels.add(CandlePixel.WICK);
+                candlePixels[i] = 1;
             }
+            //Marking a body pixel
             for (int i = Math.min(open, close); i < Math.max(open, close); i++) {
-                candlePixels.add(CandlePixel.BODY);
+                candlePixels[i] = 2;
             }
+            //Marking a wick pixel
             for (int i = Math.max(open, close); i < high; i++) {
-                candlePixels.add(CandlePixel.WICK);
+                candlePixels[i] = 1;
             }
+            //Marking an empty pixel
             for (int i = high; i < granularity; i++) {
-                candlePixels.add(CandlePixel.EMPTY);
+                candlePixels[i] = 0;
             }
             pixelatedCandles.add(new PixelatedCandle(candlePixels, (round(candle.volume() / divider))));
         }

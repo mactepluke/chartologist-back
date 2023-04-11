@@ -44,4 +44,25 @@ class PatternControllerTests {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @DisplayName("Print patterns endpoint")
+    void printPatterns() throws Exception {
+
+        when(patternService.printPatterns()).thenReturn(true);
+
+        mockMvc.perform(get("/pattern/print-patterns"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Print patterns list endpoint")
+    void printPatternsList() throws Exception {
+
+        when(patternService.printPatternsList()).thenReturn(true);
+
+        mockMvc.perform(get("/pattern/print-patterns-list"))
+                .andExpect(status().isOk());
+    }
+
+
 }

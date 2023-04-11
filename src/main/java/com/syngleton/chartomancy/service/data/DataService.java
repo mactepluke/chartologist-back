@@ -52,7 +52,7 @@ public class DataService {
         }
     }
 
-    public void printGraph() {
+    public boolean printGraph() {
 
         if (graph != null) {
             log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.name(), graph.symbol(), graph.timeframe());
@@ -60,8 +60,10 @@ public class DataService {
             for (Candle candle : graph.candles()) {
                 log.info("{} -> {}", i++, candle.toString());
             }
+            return true;
         } else {
             log.info("Cannot print graph: no data have been loaded.");
+            return false;
         }
     }
 

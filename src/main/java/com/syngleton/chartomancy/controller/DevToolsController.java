@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.view.InteractiveShell;
+import com.syngleton.chartomancy.service.devtools.DevToolsService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -15,36 +15,36 @@ import static org.springframework.http.HttpStatus.OK;
 @RestController
 @RequestMapping("/devtools")
 @Scope("request")
-public class DevtoolsController {
+public class DevToolsController {
 
+    private final DevToolsService devToolsService;
     private final DataController dataController;
     private final PatternController patternController;
 
     @Autowired
-    public DevtoolsController(DataController dataController,
-                              PatternController patternController) {
+    public DevToolsController(DataController dataController,
+                           PatternController patternController, DevToolsService devToolsService) {
         this.dataController = dataController;
         this.patternController = patternController;
+        this.devToolsService = devToolsService;
     }
 
     //http://localhost:8080/devtools/launch-shell
     @GetMapping("/launch-shell")
     public ResponseEntity<Boolean> launchShell() {
 
-        Thread interactiveShell = new Thread(new InteractiveShell(dataController, patternController));
-        interactiveShell.start();
+        Boolean result = devToolsService.launchShell(dataController, patternController);
 
-        return new ResponseEntity<>(true, OK);
+        return new ResponseEntity<>(result, OK);
     }
 
     //http://localhost:8080/devtools/run-script
     @GetMapping("/run-script")
     public ResponseEntity<Boolean> runScript() {
 
-        Thread scriptRunner = new Thread(new ScriptRunner(dataController, patternController));
-        scriptRunner.start();
+        Boolean result = devToolsService.runScript(dataController, patternController);
 
-        return new ResponseEntity<>(true, OK);
+        return new ResponseEntity<>(result, OK);
     }
 
 }

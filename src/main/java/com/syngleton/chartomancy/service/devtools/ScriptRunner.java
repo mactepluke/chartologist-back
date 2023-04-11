@@ -1,5 +1,7 @@
-package com.syngleton.chartomancy.controller;
+package com.syngleton.chartomancy.service.devtools;
 
+import com.syngleton.chartomancy.controller.DataController;
+import com.syngleton.chartomancy.controller.PatternController;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2

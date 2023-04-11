@@ -35,13 +35,15 @@ public class PatternService {
         return (!patterns.isEmpty());
     }
 
-    public void printPatterns() {
+    public boolean printPatterns() {
         if (patterns != null) {
             for (Pattern pattern : patterns) {
                 printPattern(pattern);
             }
+            return true;
         } else {
             log.info("Cannot print patterns: no patterns have been created.");
+            return false;
         }
     }
 
@@ -54,11 +56,11 @@ public class PatternService {
             StringBuilder line = new StringBuilder();
 
             for (PixelatedCandle pixelatedCandle : pattern.getPixelatedCandles()) {
-                String point = "";
-                switch (pixelatedCandle.candle().get(i - 1)) {
-                    case EMPTY -> point = " ";
-                    case WICK -> point = "|";
-                    case BODY -> point = "H";
+                String point;
+                switch (pixelatedCandle.candle()[i - 1]) {
+                    case 1 -> point = "|";
+                    case 2 -> point = "H";
+                    default -> point = " ";
                 }
                 line.append(point);
             }
@@ -69,13 +71,15 @@ public class PatternService {
         }
     }
 
-    public void printPatternsList() {
+    public boolean printPatternsList() {
         if (patterns != null) {
             for (Pattern pattern : patterns) {
                 log.info(pattern.toString());
             }
+            return true;
         } else {
             log.info("Cannot print patterns list: no patterns have been created.");
+            return false;
         }
     }
 }
