@@ -59,6 +59,8 @@ public class PatternService {
                 switch (pixelatedCandle.candle()[i - 1]) {
                     case 1 -> point = "|";
                     case 2 -> point = "H";
+                    case 3 -> point = "O";
+                    case 4 -> point = "C";
                     default -> point = " ";
                 }
                 line.append(point);

@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.service.patterns;
 
-import com.syngleton.chartomancy.dto.PatternSettingsDTO;
+import com.syngleton.chartomancy.model.patterns.PatternSettingsDTO;
 import com.syngleton.chartomancy.model.data.Graph;
 import com.syngleton.chartomancy.model.patterns.PatternTypes;
 import lombok.*;
@@ -21,6 +21,8 @@ public class PatternSettings {
     private final int granularity;
     @Getter
     private final int length;
+    @Getter
+    private final int span;
 
     public enum Autoconfig {
         NONE,
@@ -38,6 +40,7 @@ public class PatternSettings {
         this.granularity = builder.granularity;
         this.length = builder.length;
         this.autoconfig = builder.autoconfig;
+        this.span = builder.span;
     }
 
     public static class Builder {
@@ -45,7 +48,8 @@ public class PatternSettings {
         private PatternTypes patternType = PatternTypes.BASIC;
         private Autoconfig autoconfig = Autoconfig.NONE;
         private String name = "No Name";
-        private int granularity =1;
+        private int granularity = 1;
+        private int span = 1;
         private int length;
 
         public Builder patternType(PatternTypes patternType) {
@@ -62,6 +66,8 @@ public class PatternSettings {
                 this.autoconfig = patternSettingsDTO.autoconfig();
                 this.granularity = patternSettingsDTO.granularity();
                 this.length = patternSettingsDTO.length();
+                this.name = patternSettingsDTO.name();
+                this.span = patternSettingsDTO.span();
             }
             return this;
         }
@@ -82,6 +88,11 @@ public class PatternSettings {
 
         public Builder granularity(int granularity) {
             this.granularity = granularity;
+            return this;
+        }
+
+        public Builder span(int span) {
+            this.span = span;
             return this;
         }
 

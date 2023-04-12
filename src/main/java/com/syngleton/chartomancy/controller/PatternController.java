@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.dto.PatternSettingsDTO;
+import com.syngleton.chartomancy.model.patterns.PatternSettingsDTO;
 import com.syngleton.chartomancy.service.patterns.PatternService;
 import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
@@ -36,10 +36,8 @@ public class PatternController {
     public ResponseEntity<Boolean> create(@RequestBody PatternSettingsDTO settingsInputDTO) {
 
         HttpStatus status;
-        PatternSettings.Builder settingsInput = new PatternSettings.Builder();
 
-        log.debug(settingsInputDTO);
-        if (patternService.create(settingsInput.map(settingsInputDTO)))    {
+        if (patternService.create(new PatternSettings.Builder().map(settingsInputDTO)))    {
             log.info("Successfully created patterns.");
             status = OK;
         } else {

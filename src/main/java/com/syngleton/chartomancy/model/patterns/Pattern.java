@@ -12,6 +12,7 @@ import java.util.List;
 public abstract class Pattern  {
     @ToString.Exclude
     private List<PixelatedCandle> pixelatedCandles;
+    private PatternTypes patternType;
     private int granularity;
     private int length;
     private Timeframe timeframe;

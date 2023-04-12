@@ -2,7 +2,7 @@ package com.syngleton.chartomancy.view;
 
 import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
-import com.syngleton.chartomancy.dto.PatternSettingsDTO;
+import com.syngleton.chartomancy.model.patterns.PatternSettingsDTO;
 import com.syngleton.chartomancy.model.patterns.PatternTypes;
 import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
@@ -38,8 +38,9 @@ public class InteractiveShell implements Runnable {
                 case 1 -> log.info(dataController.load("./data/Bitfinex_BTCUSD_d.csv"));
                 case 2 -> log.info(dataController.analyse());
                 case 3 -> dataController.printGraph();
-                case 4 -> createMenu();
-                case 5 -> patternController.printPatterns();
+                case 4 -> createMenu(PatternTypes.BASIC);
+                case 5 -> createMenu(PatternTypes.PREDICTIVE);
+                case 6 -> patternController.printPatterns();
                 case 9 -> {
                     log.info("*** EXITING PROGRAM ***");
                     continueApp = false;
@@ -54,8 +55,9 @@ public class InteractiveShell implements Runnable {
         log.info("1 Load data file");
         log.info("2 Analyse loaded data");
         log.info("3 Print loaded data");
-        log.info("4 Create basic patterns");
-        log.info("5 Print basic pattern");
+        log.info("4 Create BASIC patterns");
+        log.info("5 Create PREDICTIVE patterns");
+        log.info("6 Print patterns");
         log.info("9 Exit program");
     }
 
@@ -74,33 +76,12 @@ public class InteractiveShell implements Runnable {
         return input;
     }
 
-    private void createMenu() {
-        PatternTypes chosenType = null;
+    private void createMenu(PatternTypes chosenType) {
         PatternSettings.Autoconfig chosenConfigStrategy = null;
         int granularity = 0;
         int length = 0;
 
         boolean choiceMade;
-
-        log.info("*** SELECT A PATTERN TYPE ***");
-        log.info("1 Basic");
-        log.info("2 Predictive");
-
-        choiceMade = false;
-
-        while (!choiceMade) {
-            int option = readSelection();
-            choiceMade = true;
-
-            switch (option) {
-                case 1 -> chosenType = PatternTypes.BASIC;
-                case 2 -> chosenType = PatternTypes.PREDICTIVE;
-                default -> {
-                    log.info(UNSUPPORTED_OPTION);
-                    choiceMade = false;
-                }
-            }
-        }
 
         log.info("*** SELECT A CONFIGURATION STRATEGY ***");
         log.info("1 Use default settings");
@@ -139,7 +120,7 @@ public class InteractiveShell implements Runnable {
                 }
             }
         }
-        patternController.create(new PatternSettingsDTO(chosenType, chosenConfigStrategy, granularity, length));
+        patternController.create(new PatternSettingsDTO(chosenType, chosenConfigStrategy, granularity, length, "Interactive Shell"));
     }
 
 }
