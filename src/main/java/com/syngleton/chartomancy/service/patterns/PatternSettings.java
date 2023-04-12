@@ -1,11 +1,12 @@
 package com.syngleton.chartomancy.service.patterns;
 
+import com.syngleton.chartomancy.dto.PatternSettingsDTO;
 import com.syngleton.chartomancy.model.data.Graph;
 import com.syngleton.chartomancy.model.patterns.PatternTypes;
 import lombok.*;
 
 @ToString
-public final class PatternParams {
+public class PatternSettings {
 
     @ToString.Exclude
     @Getter
@@ -21,15 +22,6 @@ public final class PatternParams {
     @Getter
     private final int length;
 
-    private PatternParams(Builder builder) {
-        this.graph = builder.graph;
-        this.patternType = builder.patternType;
-        this.name = builder.name;
-        this.granularity = builder.granularity;
-        this.length = builder.length;
-        this.autoconfig = builder.autoconfig;
-    }
-
     public enum Autoconfig {
         NONE,
         MINIMIZE,
@@ -37,6 +29,15 @@ public final class PatternParams {
         USE_DEFAULTS,
         BYPASS_SAFETY_CHECK,
         TEST
+    }
+
+    private PatternSettings(Builder builder) {
+        this.graph = builder.graph;
+        this.patternType = builder.patternType;
+        this.name = builder.name;
+        this.granularity = builder.granularity;
+        this.length = builder.length;
+        this.autoconfig = builder.autoconfig;
     }
 
     public static class Builder {
@@ -50,6 +51,17 @@ public final class PatternParams {
         public Builder patternType(PatternTypes patternType) {
             if (patternType != null) {
                 this.patternType = patternType;
+            }
+            return this;
+        }
+
+        public Builder map(PatternSettingsDTO patternSettingsDTO)   {
+
+            if (patternSettingsDTO != null) {
+                this.patternType = patternSettingsDTO.patternType();
+                this.autoconfig = patternSettingsDTO.autoconfig();
+                this.granularity = patternSettingsDTO.granularity();
+                this.length = patternSettingsDTO.length();
             }
             return this;
         }
@@ -78,14 +90,14 @@ public final class PatternParams {
             return this;
         }
 
-        public Builder strategy(Autoconfig autoconfig) {
+        public Builder autoconfig(Autoconfig autoconfig) {
             if (autoconfig != null) {
                 this.autoconfig = autoconfig;
             }
             return this;
         }
-        public PatternParams build() {
-            return new PatternParams(this);
+        public PatternSettings build() {
+            return new PatternSettings(this);
         }
     }
 }

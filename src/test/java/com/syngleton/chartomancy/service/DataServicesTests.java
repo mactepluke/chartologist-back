@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class DataServiceTests {
+class DataServicesTests {
 
     @Value("${test_data_file_path}")
     private String testDataFilePath;

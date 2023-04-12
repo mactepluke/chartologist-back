@@ -25,13 +25,12 @@ public class PatternService {
         this.dataService = dataService;
     }
 
-    public boolean create() {
-        PatternParams.Builder paramsInput = new PatternParams.Builder();
+    public List<Pattern> getPatterns() {
+        return patterns;
+    }
 
-        patterns = patternFactory.create(paramsInput
-                .graph(dataService.getGraph())
-                .strategy(PatternParams.Autoconfig.USE_DEFAULTS));
-
+    public boolean create(PatternSettings.Builder settingsInput) {
+        patterns = patternFactory.create(settingsInput.graph(dataService.getGraph()));
         return (!patterns.isEmpty());
     }
 

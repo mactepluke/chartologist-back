@@ -2,6 +2,9 @@ package com.syngleton.chartomancy.view;
 
 import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
+import com.syngleton.chartomancy.dto.PatternSettingsDTO;
+import com.syngleton.chartomancy.model.patterns.PatternTypes;
+import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.Scanner;
@@ -11,6 +14,7 @@ public class InteractiveShell implements Runnable {
 
     private final DataController dataController;
     private final PatternController patternController;
+    private static final String UNSUPPORTED_OPTION = "Unsupported option. Please enter a number corresponding to the provided menu.";
 
     public InteractiveShell(DataController dataController,
                             PatternController patternController) {
@@ -34,11 +38,13 @@ public class InteractiveShell implements Runnable {
                 case 1 -> log.info(dataController.load("./data/Bitfinex_BTCUSD_d.csv"));
                 case 2 -> log.info(dataController.analyse());
                 case 3 -> dataController.printGraph();
-                case 4 -> patternController.create();
+                case 4 -> createMenu();
                 case 5 -> patternController.printPatterns();
-                case 9 -> {log.info("*** EXITING PROGRAM ***");
-                    continueApp = false;}
-                default -> log.info("Unsupported option. Please enter a number corresponding to the provided menu.");
+                case 9 -> {
+                    log.info("*** EXITING PROGRAM ***");
+                    continueApp = false;
+                }
+                default -> log.info(UNSUPPORTED_OPTION);
             }
         }
     }
@@ -53,15 +59,87 @@ public class InteractiveShell implements Runnable {
         log.info("9 Exit program");
     }
 
-    public int readSelection() {
+    private int readSelection() {
         Scanner scan = new Scanner(System.in);
         int input = -1;
 
-        try {
-            input = Integer.parseInt(scan.nextLine());
-        } catch (Exception e) {
-            log.error("Error reading input. Please enter valid number.");
+        while (input == -1) {
+            log.info("Reading input:");
+            try {
+                input = Integer.parseInt(scan.nextLine());
+            } catch (Exception e) {
+                log.error("Error reading input. Please enter valid number.");
+            }
         }
         return input;
     }
+
+    private void createMenu() {
+        PatternTypes chosenType = null;
+        PatternSettings.Autoconfig chosenConfigStrategy = null;
+        int granularity = 0;
+        int length = 0;
+
+        boolean choiceMade;
+
+        log.info("*** SELECT A PATTERN TYPE ***");
+        log.info("1 Basic");
+        log.info("2 Predictive");
+
+        choiceMade = false;
+
+        while (!choiceMade) {
+            int option = readSelection();
+            choiceMade = true;
+
+            switch (option) {
+                case 1 -> chosenType = PatternTypes.BASIC;
+                case 2 -> chosenType = PatternTypes.PREDICTIVE;
+                default -> {
+                    log.info(UNSUPPORTED_OPTION);
+                    choiceMade = false;
+                }
+            }
+        }
+
+        log.info("*** SELECT A CONFIGURATION STRATEGY ***");
+        log.info("1 Use default settings");
+        log.info("2 Minimize pattern length and granularity");
+        log.info("3 Maximize pattern length and granularity");
+        log.info("4 Select pattern length and granularity with safety check");
+        log.info("5 Select pattern length and granularity without safety check (!!NOT RECOMMENDED!!");
+
+        choiceMade = false;
+
+        while (!choiceMade) {
+            int option = readSelection();
+            choiceMade = true;
+
+            switch (option) {
+                case 1 -> chosenConfigStrategy = PatternSettings.Autoconfig.USE_DEFAULTS;
+                case 2 -> chosenConfigStrategy = PatternSettings.Autoconfig.MINIMIZE;
+                case 3 -> chosenConfigStrategy = PatternSettings.Autoconfig.MAXIMIZE;
+                case 4 -> {
+                    log.info("*** SELECT A GRANULARITY ***");
+                    granularity = readSelection();
+                    log.info("*** SELECT A LENGTH ***");
+                    length = readSelection();
+                    chosenConfigStrategy = PatternSettings.Autoconfig.NONE;
+                }
+                case 5 -> {
+                    log.info("*** SELECT A GRANULARITY ***");
+                    granularity = readSelection();
+                    log.info("*** SELECT A LENGTH ***");
+                    length = readSelection();
+                    chosenConfigStrategy = PatternSettings.Autoconfig.BYPASS_SAFETY_CHECK;
+                }
+                default -> {
+                    log.info(UNSUPPORTED_OPTION);
+                    choiceMade = false;
+                }
+            }
+        }
+        patternController.create(new PatternSettingsDTO(chosenType, chosenConfigStrategy, granularity, length));
+    }
+
 }

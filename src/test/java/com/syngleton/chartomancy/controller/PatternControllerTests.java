@@ -1,14 +1,17 @@
 package com.syngleton.chartomancy.controller;
 
 import com.syngleton.chartomancy.service.patterns.PatternService;
+import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,9 +41,12 @@ class PatternControllerTests {
     @DisplayName("Create pattern endpoint")
     void create() throws Exception {
 
-        when(patternService.create()).thenReturn(true);
+        when(patternService.create(any(PatternSettings.Builder.class))).thenReturn(true);
 
-        mockMvc.perform(get("/pattern/create"))
+        mockMvc.perform(get("/pattern/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"autoconfig\":\"TEST\",\"patternType\":\"BASIC\",\"name\":\"Test name\"}")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
@@ -63,6 +69,4 @@ class PatternControllerTests {
         mockMvc.perform(get("/pattern/print-patterns-list"))
                 .andExpect(status().isOk());
     }
-
-
 }

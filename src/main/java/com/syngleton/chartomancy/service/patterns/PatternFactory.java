@@ -54,18 +54,18 @@ public class PatternFactory {
     private int testMinPatternsPerGraph;
 
 
-    public List<Pattern> create(PatternParams.Builder paramsInput) {
+    public List<Pattern> create(PatternSettings.Builder paramsInput) {
 
         initializeCheckVariables();
 
-        PatternParams patternParams = configParams(paramsInput);
+        PatternSettings patternSettings = configParams(paramsInput);
 
-        switch (patternParams.getPatternType()) {
+        switch (patternSettings.getPatternType()) {
             case BASIC -> {
-                return generateBasicPatterns(patternParams);
+                return generateBasicPatterns(patternSettings);
             }
             case PREDICTIVE -> {
-                return generatePredictivePatterns(patternParams);
+                return generatePredictivePatterns(patternSettings);
             }
             default -> {
                 log.error("Undefined pattern type.");
@@ -85,9 +85,9 @@ public class PatternFactory {
         testMinPatternsPerGraph = Format.setIntIfZero(testMinPatternsPerGraph, TEST_MIN_PATTERN_PER_GRAPH);
     }
 
-    private PatternParams configParams(PatternParams.Builder paramsInput) {
+    private PatternSettings configParams(PatternSettings.Builder paramsInput) {
 
-        PatternParams initialParams = paramsInput.build();
+        PatternSettings initialParams = paramsInput.build();
 
         switch (initialParams.getAutoconfig()) {
             case NONE ->
@@ -121,37 +121,37 @@ public class PatternFactory {
         return paramsInput.build();
     }
 
-    private List<Pattern> generateBasicPatterns(PatternParams patternParams) {
+    private List<Pattern> generateBasicPatterns(PatternSettings patternSettings) {
 
         List<Pattern> patterns = new ArrayList<>();
 
-        if (patternParams.getGraph() != null
-                && patternParams.getGraph().candles() != null
-                && patternParams.getLength() > 0
-                && patternParams.getGraph().candles().size() / patternParams.getLength() > minPatternsPerGraph) {
-            log.info("Generating basic patterns with parameters: {}", patternParams.toString());
+        if (patternSettings.getGraph() != null
+                && patternSettings.getGraph().candles() != null
+                && patternSettings.getLength() > 0
+                && patternSettings.getGraph().candles().size() / patternSettings.getLength() > minPatternsPerGraph) {
+            log.info("Generating basic patterns with parameters: {}", patternSettings.toString());
 
-            List<List<Candle>> graphChunks = partition(patternParams.getGraph().candles(), patternParams.getLength());
+            List<List<Candle>> graphChunks = partition(patternSettings.getGraph().candles(), patternSettings.getLength());
 
             int patternCount = 0;
 
             for (List<Candle> graphChunk : graphChunks) {
-                if (graphChunk.size() >= patternParams.getLength()) {
+                if (graphChunk.size() >= patternSettings.getLength()) {
 
-                    List<PixelatedCandle> pixelatedChunk = pixelateCandles(graphChunk, patternParams.getGranularity());
+                    List<PixelatedCandle> pixelatedChunk = pixelateCandles(graphChunk, patternSettings.getGranularity());
                     BasicPattern basicPattern = new BasicPattern();
                     basicPattern.setPixelatedCandles(pixelatedChunk);
-                    basicPattern.setGranularity(patternParams.getGranularity());
-                    basicPattern.setLength(patternParams.getLength());
-                    basicPattern.setTimeframe(patternParams.getGraph().timeframe());
+                    basicPattern.setGranularity(patternSettings.getGranularity());
+                    basicPattern.setLength(patternSettings.getLength());
+                    basicPattern.setTimeframe(patternSettings.getGraph().timeframe());
                     basicPattern.setStartDate(graphChunk.get(0).dateTime());
-                    basicPattern.setName(patternParams.getName() + "#" + ++patternCount);
+                    basicPattern.setName(patternSettings.getName() + "#" + ++patternCount);
 
                     patterns.add(basicPattern);
                 }
             }
         } else {
-            log.error("Could not use those pattern parameters (or the graph may be empty): {}", patternParams.toString());
+            log.error("Could not use those pattern parameters (or the graph may be empty): {}", patternSettings.toString());
         }
         return patterns;
     }
@@ -211,7 +211,7 @@ public class PatternFactory {
     }
 
     //TODO Implement predictive patterns generation
-    private List<Pattern> generatePredictivePatterns(PatternParams patternParams) {
+    private List<Pattern> generatePredictivePatterns(PatternSettings patternSettings) {
 
         log.debug("Predictive pattern generation not yet implemented.");
         return new ArrayList<>();

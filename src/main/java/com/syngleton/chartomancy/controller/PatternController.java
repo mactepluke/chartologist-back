@@ -1,12 +1,16 @@
 package com.syngleton.chartomancy.controller;
 
+import com.syngleton.chartomancy.dto.PatternSettingsDTO;
 import com.syngleton.chartomancy.service.patterns.PatternService;
+import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,12 +32,14 @@ public class PatternController {
 
 
     //http://localhost:8080/pattern/create
-    @GetMapping("/create")
-    public ResponseEntity<Boolean> create() {
+    @GetMapping(path="/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Boolean> create(@RequestBody PatternSettingsDTO settingsInputDTO) {
 
         HttpStatus status;
+        PatternSettings.Builder settingsInput = new PatternSettings.Builder();
 
-        if (patternService.create())    {
+        log.debug(settingsInputDTO);
+        if (patternService.create(settingsInput.map(settingsInputDTO)))    {
             log.info("Successfully created patterns.");
             status = OK;
         } else {
