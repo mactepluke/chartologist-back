@@ -1,7 +1,9 @@
-package com.syngleton.chartomancy.service.patterns;
+package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.model.patterns.Pattern;
-import com.syngleton.chartomancy.model.patterns.PixelatedCandle;
+import com.syngleton.chartomancy.factory.PatternFactory;
+import com.syngleton.chartomancy.factory.PatternSettings;
+import com.syngleton.chartomancy.model.Pattern;
+import com.syngleton.chartomancy.model.PixelatedCandle;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

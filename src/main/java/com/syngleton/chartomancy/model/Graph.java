@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model.dataloading;
+package com.syngleton.chartomancy.model;
 
 import java.util.List;
 

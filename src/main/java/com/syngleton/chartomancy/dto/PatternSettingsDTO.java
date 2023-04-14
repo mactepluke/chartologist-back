@@ -1,8 +1,8 @@
 package com.syngleton.chartomancy.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.syngleton.chartomancy.model.patterns.PatternType;
-import com.syngleton.chartomancy.service.patterns.PatternSettings;
+import com.syngleton.chartomancy.model.PatternType;
+import com.syngleton.chartomancy.factory.PatternSettings;
 
 public record PatternSettingsDTO(
         @JsonProperty PatternType patternType,

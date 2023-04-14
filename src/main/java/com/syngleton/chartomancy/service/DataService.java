@@ -1,8 +1,8 @@
-package com.syngleton.chartomancy.service.dataloading;
+package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.model.dataloading.Candle;
-import com.syngleton.chartomancy.model.dataloading.Graph;
-import com.syngleton.chartomancy.model.dataloading.Timeframe;
+import com.syngleton.chartomancy.model.Candle;
+import com.syngleton.chartomancy.model.Graph;
+import com.syngleton.chartomancy.model.Timeframe;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;

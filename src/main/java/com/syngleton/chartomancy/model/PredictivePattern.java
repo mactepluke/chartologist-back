@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model.patterns;
+package com.syngleton.chartomancy.model;
 
 import com.syngleton.chartomancy.analytics.ComputationData;
 import lombok.*;

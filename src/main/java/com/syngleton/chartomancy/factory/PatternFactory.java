@@ -1,9 +1,9 @@
-package com.syngleton.chartomancy.service.patterns;
+package com.syngleton.chartomancy.factory;
 
-import com.syngleton.chartomancy.model.dataloading.Candle;
-import com.syngleton.chartomancy.model.patterns.*;
+import com.syngleton.chartomancy.model.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import static java.lang.Math.round;
 import static org.apache.commons.collections4.ListUtils.partition;
 
 @Log4j2
-@Service
+@Component
 public class PatternFactory {
 
     private static final int MIN_GRANULARITY = 10;

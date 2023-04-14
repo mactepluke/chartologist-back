@@ -1,7 +1,9 @@
-package com.syngleton.chartomancy.devtools;
+package com.syngleton.chartomancy.service;
 
 import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
+import com.syngleton.chartomancy.view.InteractiveShell;
+import com.syngleton.chartomancy.view.ScriptRunner;
 import com.syngleton.chartomancy.model.User;
 import org.springframework.stereotype.Service;
 

@@ -1,11 +1,11 @@
-package com.syngleton.chartomancy.devtools;
+package com.syngleton.chartomancy.view;
 
 import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
 import com.syngleton.chartomancy.model.User;
 import com.syngleton.chartomancy.dto.PatternSettingsDTO;
-import com.syngleton.chartomancy.model.patterns.PatternType;
-import com.syngleton.chartomancy.service.patterns.PatternSettings;
+import com.syngleton.chartomancy.model.PatternType;
+import com.syngleton.chartomancy.factory.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.Scanner;

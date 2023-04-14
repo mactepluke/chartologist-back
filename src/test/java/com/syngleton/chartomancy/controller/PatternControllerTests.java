@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.service.patterns.PatternService;
+import com.syngleton.chartomancy.service.PatternService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

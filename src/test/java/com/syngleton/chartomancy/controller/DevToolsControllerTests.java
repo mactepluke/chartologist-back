@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.devtools.DevToolsService;
+import com.syngleton.chartomancy.service.DevToolsService;
 import com.syngleton.chartomancy.model.User;
 import com.syngleton.chartomancy.service.UserService;
 import lombok.extern.log4j.Log4j2;

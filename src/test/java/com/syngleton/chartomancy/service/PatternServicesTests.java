@@ -1,13 +1,11 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.model.dataloading.Candle;
-import com.syngleton.chartomancy.model.dataloading.Graph;
-import com.syngleton.chartomancy.model.dataloading.Timeframe;
-import com.syngleton.chartomancy.model.patterns.Pattern;
-import com.syngleton.chartomancy.model.patterns.PatternType;
-import com.syngleton.chartomancy.service.dataloading.DataService;
-import com.syngleton.chartomancy.service.patterns.PatternService;
-import com.syngleton.chartomancy.service.patterns.PatternSettings;
+import com.syngleton.chartomancy.model.Candle;
+import com.syngleton.chartomancy.model.Graph;
+import com.syngleton.chartomancy.model.Timeframe;
+import com.syngleton.chartomancy.model.Pattern;
+import com.syngleton.chartomancy.model.PatternType;
+import com.syngleton.chartomancy.factory.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

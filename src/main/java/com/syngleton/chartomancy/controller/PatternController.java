@@ -1,10 +1,10 @@
 package com.syngleton.chartomancy.controller;
 
 import com.syngleton.chartomancy.model.User;
-import com.syngleton.chartomancy.model.patterns.Pattern;
+import com.syngleton.chartomancy.model.Pattern;
 import com.syngleton.chartomancy.dto.PatternSettingsDTO;
-import com.syngleton.chartomancy.service.patterns.PatternService;
-import com.syngleton.chartomancy.service.patterns.PatternSettings;
+import com.syngleton.chartomancy.service.PatternService;
+import com.syngleton.chartomancy.factory.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;

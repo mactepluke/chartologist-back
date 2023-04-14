@@ -1,6 +1,5 @@
-package com.syngleton.chartomancy.model.patterns;
+package com.syngleton.chartomancy.model;
 
-import com.syngleton.chartomancy.model.dataloading.Timeframe;
 import lombok.Data;
 import lombok.ToString;
 

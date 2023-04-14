@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model.patterns;
+package com.syngleton.chartomancy.model;
 
 public enum PatternType {
     BASIC,
