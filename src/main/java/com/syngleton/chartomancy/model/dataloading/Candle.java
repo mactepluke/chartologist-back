@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model.data;
+package com.syngleton.chartomancy.model.dataloading;
 
 import java.time.LocalDateTime;
 

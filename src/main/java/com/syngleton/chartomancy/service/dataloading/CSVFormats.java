@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.service.data;
+package com.syngleton.chartomancy.service.dataloading;
 
 public enum CSVFormats {
     CRYPTO_DATA_DOWNLOAD(

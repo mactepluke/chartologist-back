@@ -1,8 +1,10 @@
 package com.syngleton.chartomancy.service.patterns;
 
+import com.syngleton.chartomancy.data.GenericData;
+import com.syngleton.chartomancy.model.dataloading.Graph;
 import com.syngleton.chartomancy.model.patterns.Pattern;
 import com.syngleton.chartomancy.model.patterns.PixelatedCandle;
-import com.syngleton.chartomancy.service.data.DataService;
+import com.syngleton.chartomancy.service.dataloading.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +16,6 @@ import java.util.List;
 @Service
 public class PatternService {
 
-    private List<Pattern> patterns = new ArrayList<>();
     private final PatternFactory patternFactory;
     private final DataService dataService;
 
@@ -25,16 +26,11 @@ public class PatternService {
         this.dataService = dataService;
     }
 
-    public List<Pattern> getPatterns() {
-        return patterns;
+    public List<Pattern> create(PatternSettings.Builder settingsInput) {
+        return patternFactory.create(settingsInput);
     }
 
-    public boolean create(PatternSettings.Builder settingsInput) {
-        patterns = patternFactory.create(settingsInput.graph(dataService.getGraph()));
-        return (!patterns.isEmpty());
-    }
-
-    public boolean printPatterns() {
+    public boolean printPatterns(List<Pattern> patterns) {
         if (patterns != null) {
             for (Pattern pattern : patterns) {
                 printPattern(pattern);
@@ -72,7 +68,7 @@ public class PatternService {
         }
     }
 
-    public boolean printPatternsList() {
+    public boolean printPatternsList(List<Pattern> patterns) {
         if (patterns != null) {
             for (Pattern pattern : patterns) {
                 log.info(pattern.toString());

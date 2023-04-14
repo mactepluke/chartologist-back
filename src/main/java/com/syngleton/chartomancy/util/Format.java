@@ -53,4 +53,16 @@ public final class Format {
         return value;
     }
 
+    public static String trimToMax(String string, int maxLength) {
+
+        if (string == null || string.isEmpty() || string.equals("null") || string.equals("undefined")) {
+            string = "";
+        }
+
+        if (string.length() > maxLength) {
+            string = string.substring(0, maxLength);
+        }
+        return string;
+    }
+
 }

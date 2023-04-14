@@ -1,10 +1,9 @@
-package com.syngleton.chartomancy.service.data;
+package com.syngleton.chartomancy.service.dataloading;
 
-import com.syngleton.chartomancy.model.data.Candle;
-import com.syngleton.chartomancy.model.data.Graph;
-import com.syngleton.chartomancy.model.data.Timeframe;
+import com.syngleton.chartomancy.model.dataloading.Candle;
+import com.syngleton.chartomancy.model.dataloading.Graph;
+import com.syngleton.chartomancy.model.dataloading.Timeframe;
 import com.syngleton.chartomancy.util.Format;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,12 +26,12 @@ import static java.lang.Math.abs;
 @Service
 public class DataService {
 
-    @Getter
-    private Graph graph = null;
     @Value("${reading_attempts}")
     private int readingAttempts;
 
-    public boolean load(String path) {
+    public Graph load(String path) {
+
+        Graph graph;
 
         log.info("Reading file: " + path + "...");
 
@@ -40,22 +39,28 @@ public class DataService {
 
         if (currentFormat != null) {
             graph = createGraph(path, currentFormat);
-            log.info("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.name(), graph.symbol(), graph.timeframe());
-            return true;
+            log.info("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
+                    graph.name(),
+                    graph.symbol(),
+                    graph.timeframe());
+            return graph;
         } else {
             log.error("File format header not found (parsed the first {} lines without success). List of supported headers:", readingAttempts);
 
             for (CSVFormats csvReader : CSVFormats.values()) {
                 log.info("Format: {}, header: \"{}\"", csvReader, csvReader.formatHeader);
             }
-            return false;
+            return null;
         }
     }
 
-    public boolean printGraph() {
+    public boolean printGraph(Graph graph) {
 
         if (graph != null) {
-            log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.name(), graph.symbol(), graph.timeframe());
+            log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
+                    graph.name(),
+                    graph.symbol(),
+                    graph.timeframe());
             int i = 1;
             for (Candle candle : graph.candles()) {
                 log.info("{} -> {}", i++, candle.toString());

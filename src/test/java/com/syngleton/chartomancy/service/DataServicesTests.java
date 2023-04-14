@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.service.data.DataService;
+import com.syngleton.chartomancy.service.dataloading.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @Log4j2
@@ -35,6 +35,6 @@ class DataServicesTests {
     @Test
     @DisplayName("Loads test file")
     void load() {
-        assertTrue(dataService.load(testDataFilePath));
+        assertNotNull(dataService.load(testDataFilePath));
     }
 }

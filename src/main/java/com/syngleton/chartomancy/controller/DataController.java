@@ -1,6 +1,7 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.service.data.DataService;
+import com.syngleton.chartomancy.model.dataloading.Graph;
+import com.syngleton.chartomancy.service.dataloading.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.OK;
 
 
 @Log4j2
@@ -30,22 +31,23 @@ public class DataController {
 
     //http://localhost:8080/data/load?path=<path>
     @GetMapping("/load")
-    public ResponseEntity<Boolean> load(@RequestParam String path) {
+    public ResponseEntity<Graph> load(@RequestParam String path) {
 
         HttpStatus status = OK;
+        Graph graph;
 
-        dataService.load(path);
+        graph = dataService.load(path);
 
-        return new ResponseEntity<>(true, status);
+        return new ResponseEntity<>(graph, status);
     }
 
     //http://localhost:8080/data/print-graph
     @GetMapping("/print-graph")
-    public HttpStatus printGraph() {
+    public HttpStatus printGraph(Graph graph) {
 
         HttpStatus status = OK;
 
-        dataService.printGraph();
+        dataService.printGraph(graph);
 
         return status;
     }

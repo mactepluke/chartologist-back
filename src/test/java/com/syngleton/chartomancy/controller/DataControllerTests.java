@@ -1,6 +1,7 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.service.data.DataService;
+import com.syngleton.chartomancy.model.dataloading.Graph;
+import com.syngleton.chartomancy.service.dataloading.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ class DataControllerTests {
     private MockMvc mockMvc;
     @MockBean
     private DataService dataService;
+    private Graph graph;
 
 
     @BeforeAll
@@ -44,7 +46,7 @@ class DataControllerTests {
     @DisplayName("Load data endpoint")
     void load() throws Exception {
 
-        when(dataService.load(testDataFilePath)).thenReturn(true);
+        when(dataService.load(testDataFilePath)).thenReturn(graph);
 
         mockMvc.perform(get("/data/load?path={id}", testDataFilePath))
                 .andExpect(status().isOk());
@@ -54,7 +56,7 @@ class DataControllerTests {
     @DisplayName("Launch print graph endpoint")
     void printGraph() throws Exception {
 
-        when(dataService.printGraph()).thenReturn(true);
+        when(dataService.printGraph(graph)).thenReturn(true);
 
         mockMvc.perform(get("/data/print-graph"))
                 .andExpect(status().isOk());

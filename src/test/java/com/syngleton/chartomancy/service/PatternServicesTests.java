@@ -1,9 +1,11 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.model.data.Candle;
-import com.syngleton.chartomancy.model.data.Graph;
-import com.syngleton.chartomancy.model.data.Timeframe;
-import com.syngleton.chartomancy.service.data.DataService;
+import com.syngleton.chartomancy.model.dataloading.Candle;
+import com.syngleton.chartomancy.model.dataloading.Graph;
+import com.syngleton.chartomancy.model.dataloading.Timeframe;
+import com.syngleton.chartomancy.model.patterns.Pattern;
+import com.syngleton.chartomancy.model.patterns.PatternTypes;
+import com.syngleton.chartomancy.service.dataloading.DataService;
 import com.syngleton.chartomancy.service.patterns.PatternService;
 import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
@@ -20,8 +22,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
 @Log4j2
@@ -41,6 +42,8 @@ class PatternServicesTests {
     PatternService patternService;
     @MockBean
     DataService dataService;
+    /*@MockBean
+    PatternFactory patternFactory;*/
 
     @BeforeAll
     void setUp() {
@@ -75,13 +78,15 @@ class PatternServicesTests {
     @DisplayName("Create patterns from mock graph")
     void create() {
 
-        when(dataService.getGraph()).thenReturn(mockGraph);
+        List<Pattern> patterns;
 
-        PatternSettings.Builder testSettings = new PatternSettings.Builder();
+        PatternSettings.Builder testSettings = new PatternSettings.Builder()
+                .autoconfig(PatternSettings.Autoconfig.TEST)
+                .graph(mockGraph)
+                .patternType(PatternTypes.BASIC);
+        patterns = patternService.create(testSettings);
 
-        testSettings = testSettings.autoconfig(PatternSettings.Autoconfig.TEST);
-
-        assertTrue(patternService.create(testSettings));
-        assertEquals( TEST_GRAPH_LENGTH / testSettings.build().getLength(), patternService.getPatterns().size());
+        assertFalse(patterns.isEmpty());
+        assertEquals( TEST_GRAPH_LENGTH / testSettings.build().getLength(), patterns.size());
     }
 }

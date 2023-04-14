@@ -1,5 +1,9 @@
 package com.syngleton.chartomancy.controller;
 
+import com.syngleton.chartomancy.data.GenericData;
+import com.syngleton.chartomancy.model.User;
+import com.syngleton.chartomancy.model.dataloading.Graph;
+import com.syngleton.chartomancy.model.patterns.Pattern;
 import com.syngleton.chartomancy.model.patterns.PatternSettingsDTO;
 import com.syngleton.chartomancy.service.patterns.PatternService;
 import com.syngleton.chartomancy.service.patterns.PatternSettings;
@@ -9,10 +13,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -30,14 +33,20 @@ public class PatternController {
         this.patternService = patternService;
     }
 
-
+//TODO implement user scope pattern creation
     //http://localhost:8080/pattern/create
-    @GetMapping(path="/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Boolean> create(@RequestBody PatternSettingsDTO settingsInputDTO) {
+    @GetMapping(path="/create/{user}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO, User user) {
 
         HttpStatus status;
+        List<Pattern> patterns;
 
-        if (patternService.create(new PatternSettings.Builder().map(settingsInputDTO)))    {
+        if (user == null)   {
+            user = new User();
+        }
+        patterns = patternService.create(new PatternSettings.Builder().map(settingsInputDTO).graph(user.getGenericData().getGraph()));
+
+        if (patterns != null)    {
             log.info("Successfully created patterns.");
             status = OK;
         } else {
@@ -45,27 +54,27 @@ public class PatternController {
             status = NO_CONTENT;
         }
 
-        return new ResponseEntity<>(true, status);
+        return new ResponseEntity<>(patterns, status);
     }
 
     //http://localhost:8080/pattern/print-patterns
     @GetMapping("/print-patterns")
-    public HttpStatus printPatterns() {
+    public HttpStatus printPatterns(List<Pattern> patterns) {
 
         HttpStatus status = OK;
 
-        patternService.printPatterns();
+        patternService.printPatterns(patterns);
 
         return status;
     }
 
     //http://localhost:8080/pattern/print-patterns
     @GetMapping("/print-patterns-list")
-    public HttpStatus printPatternsList() {
+    public HttpStatus printPatternsList(List<Pattern> patterns) {
 
         HttpStatus status = OK;
 
-        patternService.printPatternsList();
+        patternService.printPatternsList(patterns);
 
         return status;
     }

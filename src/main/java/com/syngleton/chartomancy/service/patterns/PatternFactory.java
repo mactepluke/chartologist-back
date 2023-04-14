@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.service.patterns;
 
-import com.syngleton.chartomancy.model.data.Candle;
+import com.syngleton.chartomancy.model.dataloading.Candle;
 import com.syngleton.chartomancy.model.patterns.*;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
@@ -62,7 +62,6 @@ public class PatternFactory {
 
 
     public List<Pattern> create(PatternSettings.Builder paramsInput) {
-
         initializeCheckVariables();
 
         PatternSettings patternSettings = configParams(paramsInput);

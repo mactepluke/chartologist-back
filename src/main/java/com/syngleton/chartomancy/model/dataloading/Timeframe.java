@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model.data;
+package com.syngleton.chartomancy.model.dataloading;
 
 public enum Timeframe {
     UNKNOWN(-1),
