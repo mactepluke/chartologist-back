@@ -1,6 +1,8 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.service.devtools.DevToolsService;
+import com.syngleton.chartomancy.devtools.DevToolsService;
+import com.syngleton.chartomancy.model.User;
+import com.syngleton.chartomancy.service.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -21,10 +24,16 @@ class DevToolsControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private DataController dataController;
+    @Autowired
+    private PatternController patternController;
     @MockBean
     private DevToolsService devToolsService;
-    private DataController dataController;
-    private PatternController patternController;
+    @MockBean
+    private User devToolsUser;
+    @MockBean
+    private UserService userService;
 
     @BeforeAll
     void setUp() {
@@ -40,9 +49,10 @@ class DevToolsControllerTests {
     @DisplayName("Launch shell endpoint")
     void launchShell() throws Exception {
 
-        when(devToolsService.launchShell(dataController, patternController)).thenReturn(true);
+        when(devToolsService.launchShell(dataController, patternController, devToolsUser)).thenReturn(true);
+        when(userService.matches(eq("testPassword"), any())).thenReturn(true);
 
-        mockMvc.perform(get("/devtools/launch-shell"))
+        mockMvc.perform(get("/devtools/launch-shell/{password}", "testPassword"))
                 .andExpect(status().isOk());
     }
 
@@ -50,9 +60,11 @@ class DevToolsControllerTests {
     @DisplayName("Run script endpoint")
     void runScript() throws Exception {
 
-        when(devToolsService.runScript(dataController, patternController)).thenReturn(true);
+        when(devToolsService.runScript(dataController, patternController, devToolsUser)).thenReturn(true);
+        when(userService.matches(eq("testPassword"), any())).thenReturn(true);
 
-        mockMvc.perform(get("/devtools/launch-shell"))
+
+        mockMvc.perform(get("/devtools/run-script/{password}", "testPassword"))
                 .andExpect(status().isOk());
     }
 }

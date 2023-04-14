@@ -1,5 +1,7 @@
 package com.syngleton.chartomancy.configuration;
 
+import com.syngleton.chartomancy.data.GenericData;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,7 @@ import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+@Log4j2
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -31,6 +34,10 @@ public class SecurityConfig {
     private String password;
     @Value("${role}")
     private String role;
+    @Value("${devtools_email}")
+    private String devToolsEmail;
+    @Value("${devtools_password}")
+    private String devToolsPassword;
 
     @Value("#{'${web.cors.allowed-origins}'.split(',')}")
     private List<String> allowedOrigins;
@@ -79,5 +86,17 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public com.syngleton.chartomancy.model.User devToolsUser()   {
+
+        com.syngleton.chartomancy.model.User devToolsUser = new com.syngleton.chartomancy.model.User();
+
+        devToolsUser.setEmail(devToolsEmail);
+        devToolsUser.setPassword(passwordEncoder().encode(devToolsPassword));
+        devToolsUser.setGenericData(new GenericData());
+
+        return devToolsUser;
     }
 }

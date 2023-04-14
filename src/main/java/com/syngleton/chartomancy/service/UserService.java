@@ -3,6 +3,7 @@ package com.syngleton.chartomancy.service;
 import com.syngleton.chartomancy.model.User;
 import com.syngleton.chartomancy.service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,10 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository)  {
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder)  {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -25,7 +29,7 @@ public class UserService {
         if (user == null)    {
             user = new User();
             user.setEmail(email);
-            user.setPassword(password);
+            user.setPassword(encode(password));
             user = userRepository.save(user);
         } else if (!user.isEnabled()) {
             user.setEnabled(true);
@@ -42,7 +46,7 @@ public class UserService {
 
         if (user != null)    {
             user.setEmail(newUser.getEmail());
-            user.setPassword(newUser.getPassword());
+            user.setPassword(encode(newUser.getPassword()));
             user.setFirstName(newUser.getFirstName());
             user.setLastName(newUser.getLastName());
             user = userRepository.save(user);
@@ -60,5 +64,13 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getByEmailAndEnabled(String email) {
         return userRepository.findByEmailAndEnabled(email, true);
+    }
+
+    public String encode(String password)   {
+        return passwordEncoder.encode(password);
+    }
+
+    public boolean matches(String plain, String encoded)   {
+        return passwordEncoder.matches(plain, encoded);
     }
 }

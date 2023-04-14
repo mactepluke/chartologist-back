@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.view;
+package com.syngleton.chartomancy.devtools;
 
 import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
@@ -6,8 +6,11 @@ import com.syngleton.chartomancy.data.GenericData;
 import com.syngleton.chartomancy.model.User;
 import com.syngleton.chartomancy.model.patterns.PatternSettingsDTO;
 import com.syngleton.chartomancy.model.patterns.PatternTypes;
+import com.syngleton.chartomancy.service.dataloading.DataService;
+import com.syngleton.chartomancy.service.patterns.PatternFactory;
 import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Scanner;
 
@@ -16,15 +19,15 @@ public class InteractiveShell implements Runnable {
 
     private final DataController dataController;
     private final PatternController patternController;
-    private final User user;
+    private final User devToolsUser;
     private static final String UNSUPPORTED_OPTION = "Unsupported option. Please enter a number corresponding to the provided menu.";
 
     public InteractiveShell(DataController dataController,
-                            PatternController patternController) {
+                            PatternController patternController,
+                            User devToolsUser) {
         this.dataController = dataController;
         this.patternController = patternController;
-        this.user = new User();
-        this.user.setGenericData(new GenericData());
+        this.devToolsUser = devToolsUser;
     }
 
     @Override
@@ -40,12 +43,12 @@ public class InteractiveShell implements Runnable {
             loadMenu();
             int option = readSelection();
             switch (option) {
-                case 1 -> user.getGenericData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
+                case 1 -> devToolsUser.getGenericData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
                 case 2 -> log.info(dataController.analyse());
-                case 3 -> dataController.printGraph(user.getGenericData().getGraph());
+                case 3 -> dataController.printGraph(devToolsUser.getGenericData().getGraph());
                 case 4 -> createMenu(PatternTypes.BASIC);
                 case 5 -> createMenu(PatternTypes.PREDICTIVE);
-                case 6 -> patternController.printPatterns(user.getGenericData().getPatterns());
+                case 6 -> patternController.printPatterns(devToolsUser.getGenericData().getPatterns());
                 case 9 -> {
                     log.info("*** EXITING PROGRAM ***");
                     continueApp = false;
@@ -125,15 +128,15 @@ public class InteractiveShell implements Runnable {
                 }
             }
         }
-        user.getGenericData().setPatterns(
-        patternController.create(new PatternSettingsDTO(
-                        chosenType,
-                        chosenConfigStrategy,
-                        granularity,
-                        length,
-                        "Interactive Shell"),
-                user
-        ).getBody());
+        devToolsUser.getGenericData().setPatterns(
+                patternController.create(new PatternSettingsDTO(
+                                chosenType,
+                                chosenConfigStrategy,
+                                granularity,
+                                length,
+                                "Interactive Shell"),
+                        devToolsUser
+                ).getBody());
     }
 
 }

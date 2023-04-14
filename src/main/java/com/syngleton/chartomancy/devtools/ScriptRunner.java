@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.service.devtools;
+package com.syngleton.chartomancy.devtools;
 
 import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
@@ -14,25 +14,26 @@ public class ScriptRunner implements Runnable {
 
     private final DataController dataController;
     private final PatternController patternController;
-    private final User user;
+    private final User devToolsuser;
 
     public ScriptRunner(DataController dataController,
-                        PatternController patternController) {
+                        PatternController patternController,
+                        User devToolsuser) {
         this.dataController = dataController;
         this.patternController = patternController;
-        this.user = new User();
+        this.devToolsuser = devToolsuser;
     }
 
     @Override
     public void run() {
         log.info("*** SCRIPT LAUNCHED ***");
-        user.setGenericData(new GenericData());
-        user.getGenericData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
-        user.getGenericData().setPatterns(
+        devToolsuser.setGenericData(new GenericData());
+        devToolsuser.getGenericData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
+        devToolsuser.getGenericData().setPatterns(
                 patternController.create(new PatternSettingsDTO(PatternTypes.BASIC,
                 PatternSettings.Autoconfig.USE_DEFAULTS, "Script Runner"),
-                user
+                        devToolsuser
         ).getBody());
-        patternController.printPatterns(user.getGenericData().getPatterns());
+        patternController.printPatterns(devToolsuser.getGenericData().getPatterns());
     }
 }

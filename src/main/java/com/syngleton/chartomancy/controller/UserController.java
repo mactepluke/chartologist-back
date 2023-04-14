@@ -3,11 +3,13 @@ package com.syngleton.chartomancy.controller;
 import com.syngleton.chartomancy.model.User;
 import com.syngleton.chartomancy.service.UserService;
 import com.syngleton.chartomancy.util.Format;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.*;
@@ -16,7 +18,7 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequestMapping("/user")
 @Scope("request")
-public class UserController extends BasicController {
+public class UserController extends CrudController {
 
     private final UserService userService;
 
@@ -33,8 +35,8 @@ public class UserController extends BasicController {
         User pmbUser = null;
         String email = requestedUser.getEmail().toLowerCase();
         String password = requestedUser.getPassword();
-        requestedUser.setFirstName(Format.trimToMax(requestedUser.getFirstName(), USER_NAME));
-        requestedUser.setLastName(Format.trimToMax(requestedUser.getLastName(), USER_NAME));
+        requestedUser.setFirstName(Format.trimToMax(requestedUser.getFirstName(), USER_NAME_MAX_LENGTH));
+        requestedUser.setLastName(Format.trimToMax(requestedUser.getLastName(), USER_NAME_MAX_LENGTH));
 
         acknowledgeRequest("Create user", email);
 
@@ -73,7 +75,7 @@ public class UserController extends BasicController {
                 log.error("No user found with email: {}", email);
                 status = NO_CONTENT;
             } else {
-                if (user.getPassword().equals(password)) {
+                if (user.getPassword().equals(userService.encode(password))) {
                     log.info("Login request successful.");
                     status = OK;
                 } else {
@@ -85,7 +87,6 @@ public class UserController extends BasicController {
         } else {
             status = BAD_REQUEST;
         }
-
         return new ResponseEntity<>(user, status);
     }
 
@@ -127,8 +128,8 @@ public class UserController extends BasicController {
 
         if (emailIsValid(email) && passwordIsValid(editedUser.getPassword())) {
 
-            editedUser.setFirstName(Format.trimToMax(editedUser.getFirstName(), USER_NAME));
-            editedUser.setLastName(Format.trimToMax(editedUser.getLastName(), USER_NAME));
+            editedUser.setFirstName(Format.trimToMax(editedUser.getFirstName(), USER_NAME_MAX_LENGTH));
+            editedUser.setLastName(Format.trimToMax(editedUser.getLastName(), USER_NAME_MAX_LENGTH));
 
             user = userService.update(email, editedUser);
 

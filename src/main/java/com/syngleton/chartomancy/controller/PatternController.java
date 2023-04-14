@@ -36,7 +36,7 @@ public class PatternController {
 //TODO implement user scope pattern creation
     //http://localhost:8080/pattern/create
     @GetMapping(path="/create/{user}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO, User user) {
+    public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO, @RequestBody User user) {
 
         HttpStatus status;
         List<Pattern> patterns;
