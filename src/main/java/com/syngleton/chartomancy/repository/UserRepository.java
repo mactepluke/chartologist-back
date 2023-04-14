@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.service.repository;
+package com.syngleton.chartomancy.repository;
 
 import com.syngleton.chartomancy.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.service.dataloading;
 
-public enum CSVFormats {
+public enum CSVFormat {
     CRYPTO_DATA_DOWNLOAD(
             "unix,date,symbol,open,high,low,close,Volume ...,Volume ...",
             ",",
@@ -24,15 +24,15 @@ public enum CSVFormats {
     public final int volumePosition;
 
 
-    CSVFormats(String formatHeader,
-               String delimiter,
-               int unixPosition,
-               int symbolPosition,
-               int openPosition,
-               int highPosition,
-               int lowPosition,
-               int closePosition,
-               int volumePosition
+    CSVFormat(String formatHeader,
+              String delimiter,
+              int unixPosition,
+              int symbolPosition,
+              int openPosition,
+              int highPosition,
+              int lowPosition,
+              int closePosition,
+              int volumePosition
     ) {
         this.formatHeader = formatHeader;
         this.delimiter = delimiter;

@@ -4,7 +4,7 @@ import com.syngleton.chartomancy.model.dataloading.Candle;
 import com.syngleton.chartomancy.model.dataloading.Graph;
 import com.syngleton.chartomancy.model.dataloading.Timeframe;
 import com.syngleton.chartomancy.model.patterns.Pattern;
-import com.syngleton.chartomancy.model.patterns.PatternTypes;
+import com.syngleton.chartomancy.model.patterns.PatternType;
 import com.syngleton.chartomancy.service.dataloading.DataService;
 import com.syngleton.chartomancy.service.patterns.PatternService;
 import com.syngleton.chartomancy.service.patterns.PatternSettings;
@@ -83,7 +83,7 @@ class PatternServicesTests {
         PatternSettings.Builder testSettings = new PatternSettings.Builder()
                 .autoconfig(PatternSettings.Autoconfig.TEST)
                 .graph(mockGraph)
-                .patternType(PatternTypes.BASIC);
+                .patternType(PatternType.BASIC);
         patterns = patternService.create(testSettings);
 
         assertFalse(patterns.isEmpty());

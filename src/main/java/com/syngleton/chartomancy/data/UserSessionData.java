@@ -8,9 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class GenericData {
+public class UserSessionData {
 
     private Graph graph = null;
     private List<Pattern> patterns = new ArrayList<>();
-
 }

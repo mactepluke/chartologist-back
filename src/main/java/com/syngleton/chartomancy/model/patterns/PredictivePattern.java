@@ -1,13 +1,16 @@
 package com.syngleton.chartomancy.model.patterns;
 
+import com.syngleton.chartomancy.analytics.ComputationData;
 import lombok.*;
+
+import java.util.List;
 
 @ToString
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class PredictivePattern extends BasicPattern {
-    private int span;
     private int scope;
-    private int deltaPercent;
-    private boolean up;
+    private byte pricePrediction;
+    private byte efficiency;
+    private List<ComputationData> computationsHistory;
 }

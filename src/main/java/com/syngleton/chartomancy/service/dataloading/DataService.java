@@ -35,7 +35,7 @@ public class DataService {
 
         log.info("Reading file: " + path + "...");
 
-        CSVFormats currentFormat = readFileFormat(path);
+        CSVFormat currentFormat = readFileFormat(path);
 
         if (currentFormat != null) {
             graph = createGraph(path, currentFormat);
@@ -47,7 +47,7 @@ public class DataService {
         } else {
             log.error("File format header not found (parsed the first {} lines without success). List of supported headers:", readingAttempts);
 
-            for (CSVFormats csvReader : CSVFormats.values()) {
+            for (CSVFormat csvReader : CSVFormat.values()) {
                 log.info("Format: {}, header: \"{}\"", csvReader, csvReader.formatHeader);
             }
             return null;
@@ -72,9 +72,9 @@ public class DataService {
         }
     }
 
-    private CSVFormats readFileFormat(String path)  {
+    private CSVFormat readFileFormat(String path)  {
 
-        CSVFormats csvFormat = null;
+        CSVFormat csvFormat = null;
         String line;
         int count = 0;
 
@@ -83,7 +83,7 @@ public class DataService {
                 line = reader.readLine();
                 if (line != null) {
                     count++;
-                    for (CSVFormats format : CSVFormats.values()) {
+                    for (CSVFormat format : CSVFormat.values()) {
 
                         if (line.matches(format.formatHeader)) {
                             csvFormat = format;
@@ -97,7 +97,7 @@ public class DataService {
         return csvFormat;
     }
 
-    private Graph createGraph(String path, CSVFormats csvFormat) {
+    private Graph createGraph(String path, CSVFormat csvFormat) {
         String line;
         List<Candle> candles = new ArrayList<>();
         String symbol = null;

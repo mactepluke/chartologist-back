@@ -2,7 +2,6 @@ package com.syngleton.chartomancy.service.patterns;
 
 import com.syngleton.chartomancy.model.dataloading.Candle;
 import com.syngleton.chartomancy.model.patterns.*;
-import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -11,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.syngleton.chartomancy.util.Format.setIntIfZero;
+import static com.syngleton.chartomancy.util.Format.streamlineInt;
 import static java.lang.Math.round;
 import static org.apache.commons.collections4.ListUtils.partition;
 
@@ -27,10 +28,12 @@ public class PatternFactory {
     private static final int MIN_PATTERNS_PER_GRAPH = 10;
     private static final int TEST_GRANULARITY = 50;
     private static final int TEST_PATTERN_LENGTH = 20;
-    private static final int TEST_SPAN = 10;
+    private static final int TEST_SCOPE = 2;
     private static final int TEST_MIN_PATTERN_PER_GRAPH = 4;
-    private static final int DEFAULT_SPAN = 60;
-    private static final int MIN_SPAN = 5;
+    private static final int DEFAULT_SCOPE = 60;
+    private static final int MIN_SCOPE = 1;
+    private static final int MAX_SCOPE = 250;
+
 
 
     @Value("${min_granularity}")
@@ -51,14 +54,16 @@ public class PatternFactory {
     private int testGranularity;
     @Value("${test_pattern_length}")
     private int testPatternLength;
-    @Value("${test_span}")
-    private int testSpan;
+    @Value("${test_scope}")
+    private int testScope;
     @Value("${test_min_patterns_per_graph}")
     private int testMinPatternsPerGraph;
-    @Value("${default_span}")
-    private int defaultSpan;
-    @Value("${min_span}")
-    private int minSpan;
+    @Value("${default_scope}")
+    private int defaultScope;
+    @Value("${min_scope}")
+    private int minScope;
+    @Value("${max_scope}")
+    private int maxScope;
 
 
     public List<Pattern> create(PatternSettings.Builder paramsInput) {
@@ -81,17 +86,18 @@ public class PatternFactory {
     }
 
     private void initializeCheckVariables() {
-        minGranularity = Format.setIntIfZero(minGranularity, MIN_GRANULARITY);
-        maxGranularity = Format.setIntIfZero(maxGranularity, MAX_GRANULARITY);
-        minPatternLength = Format.setIntIfZero(minPatternLength, MIN_PATTERN_LENGTH);
-        maxPatternLength = Format.setIntIfZero(maxPatternLength, MAX_PATTERN_LENGTH);
-        minPatternsPerGraph = Format.setIntIfZero(minPatternsPerGraph, MIN_PATTERNS_PER_GRAPH);
-        testGranularity = Format.setIntIfZero(testGranularity, TEST_GRANULARITY);
-        testPatternLength = Format.setIntIfZero(testPatternLength, TEST_PATTERN_LENGTH);
-        testSpan = Format.setIntIfZero(testSpan, TEST_SPAN);
-        testMinPatternsPerGraph = Format.setIntIfZero(testMinPatternsPerGraph, TEST_MIN_PATTERN_PER_GRAPH);
-        defaultSpan = Format.setIntIfZero(defaultSpan, DEFAULT_SPAN);
-        minSpan = Format.setIntIfZero(minSpan, MIN_SPAN);
+        minGranularity = setIntIfZero(minGranularity, MIN_GRANULARITY);
+        maxGranularity = setIntIfZero(maxGranularity, MAX_GRANULARITY);
+        minPatternLength = setIntIfZero(minPatternLength, MIN_PATTERN_LENGTH);
+        maxPatternLength = setIntIfZero(maxPatternLength, MAX_PATTERN_LENGTH);
+        minPatternsPerGraph = setIntIfZero(minPatternsPerGraph, MIN_PATTERNS_PER_GRAPH);
+        testGranularity = setIntIfZero(testGranularity, TEST_GRANULARITY);
+        testPatternLength = setIntIfZero(testPatternLength, TEST_PATTERN_LENGTH);
+        testScope = setIntIfZero(testScope, TEST_SCOPE);
+        testMinPatternsPerGraph = setIntIfZero(testMinPatternsPerGraph, TEST_MIN_PATTERN_PER_GRAPH);
+        defaultScope = setIntIfZero(defaultScope, DEFAULT_SCOPE);
+        minScope = setIntIfZero(minScope, MIN_SCOPE);
+        maxScope = setIntIfZero(minScope, MAX_SCOPE);
     }
 
     private PatternSettings configParams(PatternSettings.Builder paramsInput) {
@@ -99,22 +105,20 @@ public class PatternFactory {
         PatternSettings initialParams = paramsInput.build();
 
         switch (initialParams.getAutoconfig()) {
-            case NONE -> {
-                int length = Format.streamlineInt(initialParams.getLength(), minPatternLength, maxPatternLength);
+            case NONE ->
                 paramsInput = paramsInput
-                        .granularity(Format.streamlineInt(initialParams.getGranularity(), minGranularity, maxGranularity))
-                        .length(length)
-                        .span(Format.streamlineInt(initialParams.getSpan(), Math.min(length - 1, MIN_SPAN), length - 1));
-            }
+                        .granularity(streamlineInt(initialParams.getGranularity(), minGranularity, maxGranularity))
+                        .length(streamlineInt(initialParams.getLength(), minPatternLength, maxPatternLength))
+                        .scope(streamlineInt(initialParams.getScope(), minScope, maxScope));
             case USE_DEFAULTS -> {
                 defaultGranularity = defaultGranularity == 0 ?
-                        DEFAULT_GRANULARITY : (Format.streamlineInt(defaultGranularity, minGranularity, maxGranularity));
+                        DEFAULT_GRANULARITY : (streamlineInt(defaultGranularity, minGranularity, maxGranularity));
 
                 defaultPatternLength = defaultPatternLength == 0 ?
-                        DEFAULT_PATTERN_LENGTH : Format.streamlineInt(defaultPatternLength, minPatternLength, maxPatternLength);
+                        DEFAULT_PATTERN_LENGTH : streamlineInt(defaultPatternLength, minPatternLength, maxPatternLength);
 
-                defaultSpan = defaultSpan == 0 ?
-                        Math.min(defaultPatternLength - 1, DEFAULT_SPAN) : Format.streamlineInt(defaultSpan, Math.min(defaultPatternLength - 1, MIN_SPAN), initialParams.getLength() - 1);
+                defaultScope = defaultScope == 0 ?
+                        DEFAULT_SCOPE : streamlineInt(defaultScope, minScope, maxScope);
 
                 paramsInput = paramsInput
                         .granularity(defaultGranularity)
@@ -123,20 +127,18 @@ public class PatternFactory {
             case MINIMIZE -> paramsInput = paramsInput
                     .length(minPatternLength)
                     .granularity(minGranularity)
-                    .span(Math.min(minPatternLength - 1, MIN_SPAN));
+                    .scope(minScope);
             case MAXIMIZE -> paramsInput = paramsInput
                     .length(maxPatternLength)
                     .granularity(maxGranularity)
-                    .span(maxPatternLength - 1);
+                    .scope(maxScope);
             case BYPASS_SAFETY_CHECK -> log.warn("!! Using raw parameters from input: NOT CHECKED FOR SAFETY !!");
             case TEST -> {
                 log.info("Using test parameters for pattern generation (set up in config file)");
-
-                int length = Format.streamlineInt(testPatternLength, minPatternLength, maxPatternLength);
                 paramsInput = paramsInput
-                        .length(length)
-                        .granularity(Format.streamlineInt(testGranularity, minPatternLength, maxPatternLength))
-                        .span(Format.streamlineInt(testSpan, Math.min(length - 1, MIN_SPAN), length - 1));
+                        .length(streamlineInt(testPatternLength, minPatternLength, maxPatternLength))
+                        .granularity(streamlineInt(testGranularity, minPatternLength, maxPatternLength))
+                        .scope(streamlineInt(testScope, minScope, maxScope));
                 minPatternsPerGraph = testMinPatternsPerGraph;
             }
             default -> log.error("Could not define parameters configuration strategy.");
@@ -169,7 +171,7 @@ public class PatternFactory {
                     basicPattern.setTimeframe(patternSettings.getGraph().timeframe());
                     basicPattern.setStartDate(graphChunk.get(0).dateTime());
                     basicPattern.setName(patternSettings.getName() + "#" + ++patternCount);
-                    basicPattern.setPatternType(PatternTypes.BASIC);
+                    basicPattern.setPatternType(PatternType.BASIC);
 
                     patterns.add(basicPattern);
                 }
@@ -203,10 +205,10 @@ public class PatternFactory {
             int low = round((candle.low() - lowest) / divider);
             int close = round((candle.close() - lowest) / divider);
 
-            open = Format.streamlineInt(open, 0, granularity);
-            high = Format.streamlineInt(high, 0, granularity);
-            low = Format.streamlineInt(low, 0, granularity);
-            close = Format.streamlineInt(close, 0, granularity);
+            open = streamlineInt(open, 0, granularity);
+            high = streamlineInt(high, 0, granularity);
+            low = streamlineInt(low, 0, granularity);
+            close = streamlineInt(close, 0, granularity);
 
 
             //Marking an empty pixel with 0
@@ -260,9 +262,8 @@ public class PatternFactory {
             predictivePattern.setTimeframe(pattern.getTimeframe());
             predictivePattern.setName(pattern.getName());
             predictivePattern.setStartDate(pattern.getStartDate());
-            predictivePattern.setPatternType(PatternTypes.PREDICTIVE);
-            predictivePattern.setSpan(patternSettings.getSpan());
-            predictivePattern.setScope(pattern.getLength() - patternSettings.getSpan());
+            predictivePattern.setPatternType(PatternType.PREDICTIVE);
+            predictivePattern.setScope(patternSettings.getScope());
 
             predictivePatterns.add(computeEfficiency(predictivePattern));
         }
@@ -271,11 +272,6 @@ public class PatternFactory {
 
     //TODO Implement this method and move to "analytics" package
     private PredictivePattern computeEfficiency(PredictivePattern pattern)  {
-        int pivotPointCloseValue;
-        int scopeCumulatedVolume;
-
-        PixelatedCandle pivotCandle = pattern.getPixelatedCandles().get(pattern.getSpan() - 1);
-        PixelatedCandle priceResultCandle = pattern.getPixelatedCandles().get(pattern.getSpan() + pattern.getScope() - 1);
 
         //TODO Create a GranularCandle class and a method that generates them from PixelCandles
 /*

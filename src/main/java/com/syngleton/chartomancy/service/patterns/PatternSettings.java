@@ -1,8 +1,8 @@
 package com.syngleton.chartomancy.service.patterns;
 
-import com.syngleton.chartomancy.model.patterns.PatternSettingsDTO;
+import com.syngleton.chartomancy.dto.PatternSettingsDTO;
 import com.syngleton.chartomancy.model.dataloading.Graph;
-import com.syngleton.chartomancy.model.patterns.PatternTypes;
+import com.syngleton.chartomancy.model.patterns.PatternType;
 import lombok.*;
 
 @ToString
@@ -12,7 +12,7 @@ public class PatternSettings {
     @Getter
     private final Graph graph;
     @Getter
-    private final PatternTypes patternType;
+    private final PatternType patternType;
     @Getter
     private final Autoconfig autoconfig;
     @Getter
@@ -22,7 +22,7 @@ public class PatternSettings {
     @Getter
     private final int length;
     @Getter
-    private final int span;
+    private final int scope;
 
     public enum Autoconfig {
         NONE,
@@ -40,19 +40,19 @@ public class PatternSettings {
         this.granularity = builder.granularity;
         this.length = builder.length;
         this.autoconfig = builder.autoconfig;
-        this.span = builder.span;
+        this.scope = builder.scope;
     }
 
     public static class Builder {
         private Graph graph = null;
-        private PatternTypes patternType = PatternTypes.BASIC;
+        private PatternType patternType = PatternType.BASIC;
         private Autoconfig autoconfig = Autoconfig.NONE;
         private String name = "No Name";
         private int granularity = 1;
-        private int span = 1;
+        private int scope = 1;
         private int length;
 
-        public Builder patternType(PatternTypes patternType) {
+        public Builder patternType(PatternType patternType) {
             if (patternType != null) {
                 this.patternType = patternType;
             }
@@ -67,7 +67,7 @@ public class PatternSettings {
                 this.granularity = patternSettingsDTO.granularity();
                 this.length = patternSettingsDTO.length();
                 this.name = patternSettingsDTO.name();
-                this.span = patternSettingsDTO.span();
+                this.scope = patternSettingsDTO.scope();
             }
             return this;
         }
@@ -91,8 +91,8 @@ public class PatternSettings {
             return this;
         }
 
-        public Builder span(int span) {
-            this.span = span;
+        public Builder scope(int scope) {
+            this.scope = scope;
             return this;
         }
 

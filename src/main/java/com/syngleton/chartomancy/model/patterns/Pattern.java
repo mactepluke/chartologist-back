@@ -12,7 +12,7 @@ import java.util.List;
 public class Pattern  {
     @ToString.Exclude
     private List<PixelatedCandle> pixelatedCandles;
-    private PatternTypes patternType;
+    private PatternType patternType;
     private int granularity;
     private int length;
     private Timeframe timeframe;

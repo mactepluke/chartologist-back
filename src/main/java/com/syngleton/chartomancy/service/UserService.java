@@ -1,7 +1,7 @@
 package com.syngleton.chartomancy.service;
 
 import com.syngleton.chartomancy.model.User;
-import com.syngleton.chartomancy.service.repository.UserRepository;
+import com.syngleton.chartomancy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,10 +1,7 @@
 package com.syngleton.chartomancy.service.patterns;
 
-import com.syngleton.chartomancy.data.GenericData;
-import com.syngleton.chartomancy.model.dataloading.Graph;
 import com.syngleton.chartomancy.model.patterns.Pattern;
 import com.syngleton.chartomancy.model.patterns.PixelatedCandle;
-import com.syngleton.chartomancy.service.dataloading.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,13 +14,10 @@ import java.util.List;
 public class PatternService {
 
     private final PatternFactory patternFactory;
-    private final DataService dataService;
 
     @Autowired
-    public PatternService(PatternFactory patternFactory,
-                          DataService dataService) {
+    public PatternService(PatternFactory patternFactory) {
         this.patternFactory = patternFactory;
-        this.dataService = dataService;
     }
 
     public List<Pattern> create(PatternSettings.Builder settingsInput) {

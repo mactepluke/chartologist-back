@@ -1,10 +1,8 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.data.GenericData;
 import com.syngleton.chartomancy.model.User;
-import com.syngleton.chartomancy.model.dataloading.Graph;
 import com.syngleton.chartomancy.model.patterns.Pattern;
-import com.syngleton.chartomancy.model.patterns.PatternSettingsDTO;
+import com.syngleton.chartomancy.dto.PatternSettingsDTO;
 import com.syngleton.chartomancy.service.patterns.PatternService;
 import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
@@ -35,23 +33,21 @@ public class PatternController {
 
 //TODO implement user scope pattern creation
     //http://localhost:8080/pattern/create
-    @GetMapping(path="/create/{user}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO, @RequestBody User user) {
+    @GetMapping(path="/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO, User user) {
 
-        HttpStatus status;
-        List<Pattern> patterns;
+        HttpStatus status = NO_CONTENT;
+        List<Pattern> patterns = null;
 
-        if (user == null)   {
-            user = new User();
+        if (user != null && user.getUserSessionData() != null && user.getUserSessionData().getGraph() != null) {
+            patterns = patternService.create(new PatternSettings.Builder().map(settingsInputDTO).graph(user.getUserSessionData().getGraph()));
         }
-        patterns = patternService.create(new PatternSettings.Builder().map(settingsInputDTO).graph(user.getGenericData().getGraph()));
 
         if (patterns != null)    {
             log.info("Successfully created patterns.");
             status = OK;
         } else {
             log.warn("Could not create patterns.");
-            status = NO_CONTENT;
         }
 
         return new ResponseEntity<>(patterns, status);
@@ -59,23 +55,38 @@ public class PatternController {
 
     //http://localhost:8080/pattern/print-patterns
     @GetMapping("/print-patterns")
-    public HttpStatus printPatterns(List<Pattern> patterns) {
+    public ResponseEntity<Boolean> printPatterns(User user) {
 
-        HttpStatus status = OK;
+        HttpStatus status = NO_CONTENT;
+        boolean result = false;
 
-        patternService.printPatterns(patterns);
-
-        return status;
+        if (user != null && user.getUserSessionData() != null && user.getUserSessionData().getPatterns() != null) {
+            if (patternService.printPatterns(user.getUserSessionData().getPatterns())) {
+                status = OK;
+                result = true;
+            } else {
+                log.warn("Could not print patterns.");
+            }
+        }
+        return new ResponseEntity<>(result, status);
     }
 
     //http://localhost:8080/pattern/print-patterns
     @GetMapping("/print-patterns-list")
-    public HttpStatus printPatternsList(List<Pattern> patterns) {
+    public ResponseEntity<Boolean> printPatternsList(User user) {
 
-        HttpStatus status = OK;
+        HttpStatus status = NO_CONTENT;
+        boolean result = false;
 
-        patternService.printPatternsList(patterns);
 
-        return status;
+        if (user != null && user.getUserSessionData() != null && user.getUserSessionData().getPatterns() != null) {
+            if (patternService.printPatternsList(user.getUserSessionData().getPatterns())) {
+                status = OK;
+                result = true;
+            } else {
+                log.warn("Could not print patterns.");
+            }
+        }
+        return new ResponseEntity<>(result, status);
     }
 }

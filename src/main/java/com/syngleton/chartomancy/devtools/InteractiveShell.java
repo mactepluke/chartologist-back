@@ -2,15 +2,11 @@ package com.syngleton.chartomancy.devtools;
 
 import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
-import com.syngleton.chartomancy.data.GenericData;
 import com.syngleton.chartomancy.model.User;
-import com.syngleton.chartomancy.model.patterns.PatternSettingsDTO;
-import com.syngleton.chartomancy.model.patterns.PatternTypes;
-import com.syngleton.chartomancy.service.dataloading.DataService;
-import com.syngleton.chartomancy.service.patterns.PatternFactory;
+import com.syngleton.chartomancy.dto.PatternSettingsDTO;
+import com.syngleton.chartomancy.model.patterns.PatternType;
 import com.syngleton.chartomancy.service.patterns.PatternSettings;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Scanner;
 
@@ -43,12 +39,12 @@ public class InteractiveShell implements Runnable {
             loadMenu();
             int option = readSelection();
             switch (option) {
-                case 1 -> devToolsUser.getGenericData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
+                case 1 -> devToolsUser.getUserSessionData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
                 case 2 -> log.info(dataController.analyse());
-                case 3 -> dataController.printGraph(devToolsUser.getGenericData().getGraph());
-                case 4 -> createMenu(PatternTypes.BASIC);
-                case 5 -> createMenu(PatternTypes.PREDICTIVE);
-                case 6 -> patternController.printPatterns(devToolsUser.getGenericData().getPatterns());
+                case 3 -> dataController.printGraph(devToolsUser.getUserSessionData().getGraph());
+                case 4 -> createMenu(PatternType.BASIC);
+                case 5 -> createMenu(PatternType.PREDICTIVE);
+                case 6 -> patternController.printPatterns(devToolsUser);
                 case 9 -> {
                     log.info("*** EXITING PROGRAM ***");
                     continueApp = false;
@@ -84,7 +80,7 @@ public class InteractiveShell implements Runnable {
         return input;
     }
 
-    private void createMenu(PatternTypes chosenType) {
+    private void createMenu(PatternType chosenType) {
         PatternSettings.Autoconfig chosenConfigStrategy = null;
         int granularity = 0;
         int length = 0;
@@ -128,7 +124,7 @@ public class InteractiveShell implements Runnable {
                 }
             }
         }
-        devToolsUser.getGenericData().setPatterns(
+        devToolsUser.getUserSessionData().setPatterns(
                 patternController.create(new PatternSettingsDTO(
                                 chosenType,
                                 chosenConfigStrategy,

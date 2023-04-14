@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.model;
 
-import com.syngleton.chartomancy.data.GenericData;
+import com.syngleton.chartomancy.data.UserSessionData;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,7 +47,8 @@ public class User {
     @Column(name = "ENABLED")
     boolean enabled;
     @Transient
+    @ToString.Exclude
     @Getter
     @Setter
-    private GenericData genericData;
+    private UserSessionData userSessionData;
 }

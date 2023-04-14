@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.configuration;
 
-import com.syngleton.chartomancy.data.GenericData;
+import com.syngleton.chartomancy.data.UserSessionData;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -95,7 +95,7 @@ public class SecurityConfig {
 
         devToolsUser.setEmail(devToolsEmail);
         devToolsUser.setPassword(passwordEncoder().encode(devToolsPassword));
-        devToolsUser.setGenericData(new GenericData());
+        devToolsUser.setUserSessionData(new UserSessionData());
 
         return devToolsUser;
     }
