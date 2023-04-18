@@ -1,11 +1,8 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.model.Candle;
-import com.syngleton.chartomancy.model.Graph;
-import com.syngleton.chartomancy.model.Timeframe;
-import com.syngleton.chartomancy.model.Pattern;
-import com.syngleton.chartomancy.model.PatternType;
+import com.syngleton.chartomancy.model.*;
 import com.syngleton.chartomancy.factory.PatternSettings;
+import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Log4j2
@@ -28,20 +24,23 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PatternServicesTests {
 
-    private final static int TEST_GRAPH_LENGTH = 100;
+    private final static int TEST_GRAPH_LENGTH = 3000;
     private final static int TEST_GRAPH_STARTING_DATETIME = 1666051200;
     private final static Timeframe TEST_TIMEFRAME = Timeframe.DAY;
-    private final static int TEST_STARTING_OPEN = 1500;
+    private final static int TEST_STARTING_OPEN = 2000;
+    private final static int MINIMUM_VALUE = 400;
+    private final static int MAXIMUM_VALUE = 5000;
     private final static float VARIABILITY_COEF = 300;
 
     private Graph mockGraph;
+    private List<Pattern> patterns;
+    private List<Pattern> patternsToPrint;
+    private PatternSettings.Builder testSettings;
 
     @Autowired
     PatternService patternService;
     @MockBean
     DataService dataService;
-    /*@MockBean
-    PatternFactory patternFactory;*/
 
     @BeforeAll
     void setUp() {
@@ -54,37 +53,71 @@ class PatternServicesTests {
             boolean direction = rd.nextBoolean();
             float open = (i == 0) ? TEST_STARTING_OPEN : mockCandles.get(i - 1).close();
             float close = (direction) ? open + span : open - span;
-            float high = (float) ((direction) ? close + Math.random() * VARIABILITY_COEF : open + Math.random() * VARIABILITY_COEF);
-            float low = (float) ((direction) ? open - Math.random() * VARIABILITY_COEF : close - Math.random() * VARIABILITY_COEF);
+            float high = (float) ((direction) ? close + Math.random() * VARIABILITY_COEF / 2 : open + Math.random() * VARIABILITY_COEF / 2);
+            float low = (float) ((direction) ? open - Math.random() * VARIABILITY_COEF / 2 : close - Math.random() * VARIABILITY_COEF / 2);
             float volume = (float) Math.random() * VARIABILITY_COEF * TEST_STARTING_OPEN;
 
-            mockCandles.add(new Candle(
-                    LocalDateTime.ofEpochSecond(TEST_GRAPH_STARTING_DATETIME + TEST_TIMEFRAME.durationInSeconds * i, 0, ZoneOffset.UTC),
-                    open, high, Math.min(low, 0), Math.min(close, 0), volume
-            ));
+            Candle candle = new Candle(
+                    LocalDateTime.ofEpochSecond(
+                            TEST_GRAPH_STARTING_DATETIME + TEST_TIMEFRAME.durationInSeconds * i,
+                            0,
+                            ZoneOffset.UTC),
+                    Format.streamlineFloat(open, MINIMUM_VALUE, MAXIMUM_VALUE),
+                    Format.streamlineFloat(high, MINIMUM_VALUE, MAXIMUM_VALUE),
+                    Format.streamlineFloat(low, MINIMUM_VALUE, MAXIMUM_VALUE),
+                    Format.streamlineFloat(close, MINIMUM_VALUE, MAXIMUM_VALUE),
+                    volume
+            );
+            mockCandles.add(candle);
         }
 
         mockGraph = new Graph("Mock graph", "MOCKSYMBOL", TEST_TIMEFRAME, mockCandles);
+
+        testSettings = new PatternSettings.Builder()
+                .autoconfig(PatternSettings.Autoconfig.TEST)
+                .graph(mockGraph);
     }
 
     @AfterAll
     void tearDown() {
+        log.trace(patternService.generatePatternsToPrint(patternsToPrint));
         log.info("*** ENDING PATTERN SERVICE TESTS ***");
     }
 
     @Test
-    @DisplayName("Create patterns from mock graph")
-    void create() {
+    @DisplayName("[UNIT] Create basic patterns from mock graph")
+    void createBasicPatternsTest() {
 
-        List<Pattern> patterns;
-
-        PatternSettings.Builder testSettings = new PatternSettings.Builder()
-                .autoconfig(PatternSettings.Autoconfig.TEST)
-                .graph(mockGraph)
-                .patternType(PatternType.BASIC);
-        patterns = patternService.create(testSettings);
+        patterns = patternService.create(testSettings.patternType(PatternType.BASIC));
 
         assertFalse(patterns.isEmpty());
-        assertEquals( TEST_GRAPH_LENGTH / testSettings.build().getLength(), patterns.size());
+        assertEquals(TEST_GRAPH_LENGTH / testSettings.build().getLength(), patterns.size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Create predictive patterns from mock graph")
+    void createPredictivePatternsTest() {
+
+        patterns = patternService.create(testSettings.patternType(PatternType.PREDICTIVE));
+
+        assertFalse(patterns.isEmpty());
+        assertEquals(TEST_GRAPH_LENGTH / testSettings.build().getLength(), patterns.size());
+    }
+
+    @Test
+    @DisplayName("[IT] Compute patterns from created predictive patterns")
+    void computePatternsIntegrationTest() {
+
+        patterns = patternService.create(testSettings.patternType(PatternType.PREDICTIVE));
+        patterns = patternService.compute(patterns, mockGraph);
+
+        assertFalse(patterns.isEmpty());
+
+        for (Pattern pattern : patterns) {
+            assertEquals(1, ((PredictivePattern) pattern).getComputationsHistory().size());
+            assertEquals(mockGraph.candles().size() - pattern.getLength() - ((PredictivePattern) pattern).getScope(),
+                    ((PredictivePattern) pattern).getComputationsHistory().get(0).getComputations());
+        }
+        patternsToPrint = patterns;
     }
 }

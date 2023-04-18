@@ -45,6 +45,7 @@ public class InteractiveShell implements Runnable {
                 case 4 -> createMenu(PatternType.BASIC);
                 case 5 -> createMenu(PatternType.PREDICTIVE);
                 case 6 -> patternController.printPatterns(devToolsUser);
+                case 7 -> devToolsUser.getUserSessionData().setPatterns(patternController.compute(devToolsUser).getBody());
                 case 9 -> {
                     log.info("*** EXITING PROGRAM ***");
                     continueApp = false;
@@ -62,6 +63,7 @@ public class InteractiveShell implements Runnable {
         log.info("4 Create BASIC patterns");
         log.info("5 Create PREDICTIVE patterns");
         log.info("6 Print patterns");
+        log.info("7 Compute patterns");
         log.info("9 Exit program");
     }
 

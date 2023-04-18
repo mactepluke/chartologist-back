@@ -32,7 +32,7 @@ class DataServicesTests {
     }
 
     @Test
-    @DisplayName("Loads test file")
+    @DisplayName("[UNIT] Loads test file")
     void load() {
         assertNotNull(dataService.load(testDataFilePath));
     }

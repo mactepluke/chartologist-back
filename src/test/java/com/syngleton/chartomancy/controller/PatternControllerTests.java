@@ -10,8 +10,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,8 +21,6 @@ class PatternControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
-    @MockBean
-    private PatternService patternService;
 
     @BeforeAll
     void setUp() {
@@ -37,8 +33,8 @@ class PatternControllerTests {
     }
 
     @Test
-    @DisplayName("Create pattern endpoint")
-    void create() throws Exception {
+    @DisplayName("[UNIT] Create pattern endpoint")
+    void createTest() throws Exception {
 
         mockMvc.perform(get("/pattern/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -49,22 +45,27 @@ class PatternControllerTests {
     }
 
     @Test
-    @DisplayName("Print patterns endpoint")
-    void printPatterns() throws Exception {
-
-        //when(patternService.printPatterns(any())).thenReturn(true);
+    @DisplayName("[UNIT] Print patterns endpoint")
+    void printPatternsTest() throws Exception {
 
         mockMvc.perform(get("/pattern/print-patterns"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("Print patterns list endpoint")
-    void printPatternsList() throws Exception {
-
-        when(patternService.printPatternsList(any())).thenReturn(true);
+    @DisplayName("[UNIT] Print patterns list endpoint")
+    void printPatternsListTest() throws Exception {
 
         mockMvc.perform(get("/pattern/print-patterns-list"))
+                .andExpect(status().isNoContent());
+    }
+
+    //http://localhost:8080/pattern/compute
+    @Test
+    @DisplayName("[UNIT] Compute user data")
+    void computeTest() throws Exception {
+
+        mockMvc.perform(get("/pattern/compute"))
                 .andExpect(status().isNoContent());
     }
 }

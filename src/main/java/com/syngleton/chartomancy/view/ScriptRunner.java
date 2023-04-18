@@ -14,26 +14,27 @@ public class ScriptRunner implements Runnable {
 
     private final DataController dataController;
     private final PatternController patternController;
-    private final User devToolsuser;
+    private final User devToolsUser;
 
     public ScriptRunner(DataController dataController,
                         PatternController patternController,
-                        User devToolsuser) {
+                        User devToolsUser) {
         this.dataController = dataController;
         this.patternController = patternController;
-        this.devToolsuser = devToolsuser;
+        this.devToolsUser = devToolsUser;
     }
 
     @Override
     public void run() {
         log.info("*** SCRIPT LAUNCHED ***");
-        devToolsuser.setUserSessionData(new UserSessionData());
-        devToolsuser.getUserSessionData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
-        devToolsuser.getUserSessionData().setPatterns(
-                patternController.create(new PatternSettingsDTO(PatternType.BASIC,
+        devToolsUser.setUserSessionData(new UserSessionData());
+        devToolsUser.getUserSessionData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
+        devToolsUser.getUserSessionData().setPatterns(
+                patternController.create(new PatternSettingsDTO(PatternType.PREDICTIVE,
                 PatternSettings.Autoconfig.USE_DEFAULTS, "Script Runner"),
-                        devToolsuser
+                        devToolsUser
         ).getBody());
-        patternController.printPatterns(devToolsuser);
+        devToolsUser.getUserSessionData().setPatterns(patternController.compute(devToolsUser).getBody());
+        patternController.printPatterns(devToolsUser);
     }
 }

@@ -31,9 +31,9 @@ public class PatternController {
         this.patternService = patternService;
     }
 
-//TODO implement user scope pattern creation
+    //TODO implement user scope pattern creation
     //http://localhost:8080/pattern/create
-    @GetMapping(path="/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO, User user) {
 
         HttpStatus status = NO_CONTENT;
@@ -43,7 +43,7 @@ public class PatternController {
             patterns = patternService.create(new PatternSettings.Builder().map(settingsInputDTO).graph(user.getUserSessionData().getGraph()));
         }
 
-        if (patterns != null)    {
+        if (patterns != null) {
             log.info("Successfully created patterns.");
             status = OK;
         } else {
@@ -89,4 +89,29 @@ public class PatternController {
         }
         return new ResponseEntity<>(result, status);
     }
+
+    //http://localhost:8080/pattern/compute
+    @GetMapping("/compute")
+    public ResponseEntity<List<Pattern>> compute(User user) {
+
+        HttpStatus status = NO_CONTENT;
+        List<Pattern> patterns = null;
+
+        if (user != null
+                && user.getUserSessionData() != null
+                && user.getUserSessionData().getPatterns() != null
+                && user.getUserSessionData().getGraph() != null) {
+
+            patterns = patternService.compute(user.getUserSessionData().getPatterns(), user.getUserSessionData().getGraph());
+            if (patterns != null) {
+                status = OK;
+            } else {
+                log.warn("Could not compute patterns.");
+            }
+
+        }
+        return new ResponseEntity<>(patterns, status);
+    }
+
+
 }

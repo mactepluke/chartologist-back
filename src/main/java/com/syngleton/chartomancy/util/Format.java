@@ -1,7 +1,10 @@
 package com.syngleton.chartomancy.util;
 
+import lombok.extern.log4j.Log4j2;
+
 import static java.lang.Math.round;
 
+@Log4j2
 public final class Format {
 
     private Format() throws IllegalAccessException {
@@ -34,7 +37,20 @@ public final class Format {
         return string;
     }
 
+
     public static int streamlineInt(int number, int min, int max)    {
+
+        if (number < min)   {
+            number = min;
+        }
+
+        if (number > max)   {
+            number = max;
+        }
+        return number;
+    }
+
+    public static float streamlineFloat(float number, float min, float max)    {
 
         if (number < min)   {
             number = min;
@@ -63,6 +79,32 @@ public final class Format {
             string = string.substring(0, maxLength);
         }
         return string;
+    }
+
+    public static byte bytePositivePercentage(int part, int total) {
+
+        int number = round(((float) part / total) * 100);
+
+        if (number < 0)   {
+            number = 0;
+        }
+        if (number > 100)   {
+            number = 100;
+        }
+        return (byte) number;
+    }
+
+    public static byte byteRelativePercentage(int part, int total) {
+
+        int number = round(((float) part / total) * 100);
+
+        if (number < -100)   {
+            number = -100;
+        }
+        if (number > 100)   {
+            number = 100;
+        }
+        return (byte) number;
     }
 
 }

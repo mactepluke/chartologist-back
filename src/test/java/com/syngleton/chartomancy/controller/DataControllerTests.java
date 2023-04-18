@@ -28,7 +28,6 @@ class DataControllerTests {
     private MockMvc mockMvc;
     @MockBean
     private DataService dataService;
-    private Graph graph;
 
 
     @BeforeAll
@@ -43,28 +42,28 @@ class DataControllerTests {
 
 
     @Test
-    @DisplayName("Load data endpoint")
-    void load() throws Exception {
+    @DisplayName("[UNIT] Load data endpoint")
+    void loadTest() throws Exception {
 
-        when(dataService.load(testDataFilePath)).thenReturn(graph);
+        when(dataService.load(testDataFilePath)).thenReturn(null);
 
         mockMvc.perform(get("/data/load?path={id}", testDataFilePath))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("Launch print graph endpoint")
-    void printGraph() throws Exception {
+    @DisplayName("[UNIT] Launch print graph endpoint")
+    void printGraphTest() throws Exception {
 
-        when(dataService.printGraph(graph)).thenReturn(true);
+        when(dataService.printGraph(null)).thenReturn(true);
 
         mockMvc.perform(get("/data/print-graph"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("Launch analyse endpoint")
-    void analyse() throws Exception {
+    @DisplayName("[UNIT] Launch analyse endpoint")
+    void analyseTest() throws Exception {
         mockMvc.perform(get("/data/analyse"))
                 .andExpect(status().isOk());
     }

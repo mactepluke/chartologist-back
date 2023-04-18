@@ -46,8 +46,8 @@ class DevToolsControllerTests {
     }
 
     @Test
-    @DisplayName("Launch shell endpoint")
-    void launchShell() throws Exception {
+    @DisplayName("[UNIT] Launch shell endpoint")
+    void launchShellTest() throws Exception {
 
         when(devToolsService.launchShell(dataController, patternController, devToolsUser)).thenReturn(true);
         when(userService.matches(eq("testPassword"), any())).thenReturn(true);
@@ -57,8 +57,8 @@ class DevToolsControllerTests {
     }
 
     @Test
-    @DisplayName("Run script endpoint")
-    void runScript() throws Exception {
+    @DisplayName("[UNIT] Run script endpoint")
+    void runScriptTest() throws Exception {
 
         when(devToolsService.runScript(dataController, patternController, devToolsUser)).thenReturn(true);
         when(userService.matches(eq("testPassword"), any())).thenReturn(true);

@@ -8,7 +8,7 @@ import java.util.List;
 
 @ToString
 @Data
-public class Pattern  {
+public abstract class Pattern {
     @ToString.Exclude
     private List<PixelatedCandle> pixelatedCandles;
     private PatternType patternType;

@@ -1,14 +1,15 @@
 package com.syngleton.chartomancy.service;
 
+import com.syngleton.chartomancy.analytics.PatternComputer;
 import com.syngleton.chartomancy.factory.PatternFactory;
 import com.syngleton.chartomancy.factory.PatternSettings;
+import com.syngleton.chartomancy.model.Graph;
 import com.syngleton.chartomancy.model.Pattern;
 import com.syngleton.chartomancy.model.PixelatedCandle;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
@@ -16,35 +17,59 @@ import java.util.List;
 public class PatternService {
 
     private final PatternFactory patternFactory;
+    private final PatternComputer patternComputer;
+    private static final String NEW_LINE = System.getProperty("line.separator");
 
     @Autowired
-    public PatternService(PatternFactory patternFactory) {
+    public PatternService(PatternFactory patternFactory,
+                          PatternComputer patternComputer) {
         this.patternFactory = patternFactory;
+        this.patternComputer = patternComputer;
     }
 
     public List<Pattern> create(PatternSettings.Builder settingsInput) {
         return patternFactory.create(settingsInput);
     }
 
+    public List<Pattern> compute(List<Pattern> patterns, Graph graph)  {
+        return patternComputer.computeBasicIterationPattern(patterns, graph);
+    }
+
     public boolean printPatterns(List<Pattern> patterns) {
-        if (patterns != null) {
-            for (Pattern pattern : patterns) {
-                printPattern(pattern);
-            }
+
+        String patternsToPrint = generatePatternsToPrint(patterns);
+
+        if (!patternsToPrint.isEmpty()) {
+                log.info(patternsToPrint);
             return true;
         } else {
-            log.info("Cannot print patterns: no patterns have been created.");
+            log.info("Cannot print patterns: list is empty.");
             return false;
         }
     }
 
-    private void printPattern(Pattern pattern) {
-        log.info(pattern.toString());
+    public String generatePatternsToPrint(List<Pattern> patterns)  {
+       StringBuilder patternsBuilder = new StringBuilder();
 
-        List<StringBuilder> lines = new ArrayList<>();
+        if (patterns != null) {
+            for (Pattern pattern : patterns) {
+                patternsBuilder.append(generatePatternToPrint(pattern));
+                patternsBuilder.append(NEW_LINE);
+
+            }
+        }
+       return patternsBuilder.toString();
+    }
+
+    private String generatePatternToPrint(Pattern pattern) {
+
+        StringBuilder patternsBuilder = new StringBuilder();
+
+        patternsBuilder.append(pattern.toString());
+        patternsBuilder.append(NEW_LINE);
+        patternsBuilder.append(NEW_LINE);
 
         for (int i = pattern.getGranularity(); i > 0; i--) {
-            StringBuilder line = new StringBuilder();
 
             for (PixelatedCandle pixelatedCandle : pattern.getPixelatedCandles()) {
                 String point;
@@ -55,13 +80,11 @@ public class PatternService {
                     case 4 -> point = "C";
                     default -> point = " ";
                 }
-                line.append(point);
+                patternsBuilder.append(point);
             }
-            lines.add(line);
+            patternsBuilder.append(NEW_LINE);
         }
-        for (StringBuilder line : lines)    {
-            log.info(line.toString());
-        }
+        return patternsBuilder.toString();
     }
 
     public boolean printPatternsList(List<Pattern> patterns) {
