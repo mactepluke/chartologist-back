@@ -1,6 +1,8 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.model.User;
+import com.syngleton.chartomancy.analytics.ComputationSettings;
+import com.syngleton.chartomancy.data.AppData;
+import com.syngleton.chartomancy.dto.ComputationSettingsDTO;
 import com.syngleton.chartomancy.model.Pattern;
 import com.syngleton.chartomancy.dto.PatternSettingsDTO;
 import com.syngleton.chartomancy.service.PatternService;
@@ -25,22 +27,29 @@ import static org.springframework.http.HttpStatus.OK;
 public class PatternController {
 
     private final PatternService patternService;
+    private final AppData appData;
 
     @Autowired
-    public PatternController(PatternService patternService) {
+    public PatternController(PatternService patternService,
+                             AppData appData) {
         this.patternService = patternService;
+        this.appData = appData;
     }
 
-    //TODO implement user scope pattern creation
+    //TODO implement multiple patterns/graph creation
     //http://localhost:8080/pattern/create
     @GetMapping(path = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO, User user) {
+    public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO) {
 
         HttpStatus status = NO_CONTENT;
         List<Pattern> patterns = null;
 
-        if (user != null && user.getUserSessionData() != null && user.getUserSessionData().getGraph() != null) {
-            patterns = patternService.create(new PatternSettings.Builder().map(settingsInputDTO).graph(user.getUserSessionData().getGraph()));
+        if (settingsInputDTO != null
+                && appData.getGraphs() != null
+                && !appData.getGraphs().isEmpty()) {
+            patterns = patternService.create(new PatternSettings.Builder()
+                    .map(settingsInputDTO)
+                    .graph(appData.getGraphs().get(0)));
         }
 
         if (patterns != null) {
@@ -55,54 +64,62 @@ public class PatternController {
 
     //http://localhost:8080/pattern/print-patterns
     @GetMapping("/print-patterns")
-    public ResponseEntity<Boolean> printPatterns(User user) {
+    public ResponseEntity<Boolean> printAppDataPatterns() {
 
         HttpStatus status = NO_CONTENT;
         boolean result = false;
 
-        if (user != null && user.getUserSessionData() != null && user.getUserSessionData().getPatterns() != null) {
-            if (patternService.printPatterns(user.getUserSessionData().getPatterns())) {
-                status = OK;
-                result = true;
-            } else {
-                log.warn("Could not print patterns.");
+        if ((appData.getPatternsList() != null) && (!appData.getPatternsList().isEmpty())) {
+
+            for (List<Pattern> patterns : appData.getPatternsList()) {
+                patternService.printPatterns(patterns);
             }
+            status = OK;
+            result = true;
+        } else {
+            log.warn("Could not print patterns.");
         }
         return new ResponseEntity<>(result, status);
     }
 
     //http://localhost:8080/pattern/print-patterns
     @GetMapping("/print-patterns-list")
-    public ResponseEntity<Boolean> printPatternsList(User user) {
+    public ResponseEntity<Boolean> printAppDataPatternsList() {
 
         HttpStatus status = NO_CONTENT;
         boolean result = false;
 
+        if ((appData.getPatternsList() != null) && (!appData.getPatternsList().isEmpty())) {
 
-        if (user != null && user.getUserSessionData() != null && user.getUserSessionData().getPatterns() != null) {
-            if (patternService.printPatternsList(user.getUserSessionData().getPatterns())) {
-                status = OK;
-                result = true;
-            } else {
-                log.warn("Could not print patterns.");
+            for (List<Pattern> patterns : appData.getPatternsList()) {
+                patternService.printPatternsList(patterns);
             }
+            status = OK;
+            result = true;
+        } else {
+            log.warn("Could not print patterns list.");
         }
         return new ResponseEntity<>(result, status);
     }
 
+    //TODO aggregate computation by matching ChartObject types
     //http://localhost:8080/pattern/compute
     @GetMapping("/compute")
-    public ResponseEntity<List<Pattern>> compute(User user) {
+    public ResponseEntity<List<Pattern>> compute(@RequestBody ComputationSettingsDTO settingsInputDTO) {
 
         HttpStatus status = NO_CONTENT;
         List<Pattern> patterns = null;
 
-        if (user != null
-                && user.getUserSessionData() != null
-                && user.getUserSessionData().getPatterns() != null
-                && user.getUserSessionData().getGraph() != null) {
+        if (settingsInputDTO != null
+                && appData.getPatternsList() != null
+                && !appData.getPatternsList().isEmpty()
+                && appData.getGraphs() != null
+                && !appData.getGraphs().isEmpty()) {
 
-            patterns = patternService.compute(user.getUserSessionData().getPatterns(), user.getUserSessionData().getGraph());
+            patterns = patternService.compute(new ComputationSettings.Builder()
+                    .map(settingsInputDTO)
+                    .graph(appData.getGraphs().get(0))
+                    .patterns(appData.getPatternsList().get(0)));
             if (patterns != null) {
                 status = OK;
             } else {

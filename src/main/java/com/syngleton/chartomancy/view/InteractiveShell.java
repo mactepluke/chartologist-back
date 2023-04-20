@@ -2,12 +2,13 @@ package com.syngleton.chartomancy.view;
 
 import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
-import com.syngleton.chartomancy.model.User;
-import com.syngleton.chartomancy.dto.PatternSettingsDTO;
+import com.syngleton.chartomancy.data.AppData;
+import com.syngleton.chartomancy.dto.ComputationSettingsDTO;
 import com.syngleton.chartomancy.model.PatternType;
 import com.syngleton.chartomancy.factory.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 @Log4j2
@@ -15,15 +16,15 @@ public class InteractiveShell implements Runnable {
 
     private final DataController dataController;
     private final PatternController patternController;
-    private final User devToolsUser;
+    private final AppData appData;
     private static final String UNSUPPORTED_OPTION = "Unsupported option. Please enter a number corresponding to the provided menu.";
 
     public InteractiveShell(DataController dataController,
                             PatternController patternController,
-                            User devToolsUser) {
+                            AppData appData) {
         this.dataController = dataController;
         this.patternController = patternController;
-        this.devToolsUser = devToolsUser;
+        this.appData = appData;
     }
 
     @Override
@@ -39,13 +40,23 @@ public class InteractiveShell implements Runnable {
             loadMenu();
             int option = readSelection();
             switch (option) {
-                case 1 -> devToolsUser.getUserSessionData().setGraph(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
+                case 1 -> {
+                    if (appData.getGraphs() == null) {
+                        appData.setGraphs(new ArrayList<>());
+                    }
+                    appData.getGraphs().add(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
+                }
                 case 2 -> log.info(dataController.analyse());
-                case 3 -> dataController.printGraph(devToolsUser.getUserSessionData().getGraph());
+                case 3 -> dataController.printAppDataGraphs();
                 case 4 -> createMenu(PatternType.BASIC);
                 case 5 -> createMenu(PatternType.PREDICTIVE);
-                case 6 -> patternController.printPatterns(devToolsUser);
-                case 7 -> devToolsUser.getUserSessionData().setPatterns(patternController.compute(devToolsUser).getBody());
+                case 6 -> patternController.printAppDataPatterns();
+                case 7 -> {
+                    if (appData.getPatternsList() == null) {
+                        appData.setPatternsList(new ArrayList<>());
+                    }
+                    appData.getPatternsList().add(patternController.compute(new ComputationSettingsDTO()).getBody());
+                }
                 case 9 -> {
                     log.info("*** EXITING PROGRAM ***");
                     continueApp = false;
@@ -63,7 +74,7 @@ public class InteractiveShell implements Runnable {
         log.info("4 Create BASIC patterns");
         log.info("5 Create PREDICTIVE patterns");
         log.info("6 Print patterns");
-        log.info("7 Compute patterns");
+        log.info("7 Compute BASIC ITERATION patterns");
         log.info("9 Exit program");
     }
 
@@ -81,7 +92,7 @@ public class InteractiveShell implements Runnable {
         }
         return input;
     }
-
+// TODO Refactor
     private void createMenu(PatternType chosenType) {
         PatternSettings.Autoconfig chosenConfigStrategy = null;
         int granularity = 0;
@@ -126,7 +137,9 @@ public class InteractiveShell implements Runnable {
                 }
             }
         }
-        devToolsUser.getUserSessionData().setPatterns(
+        //TODO Creating patterns
+
+        /*devToolsUser.getUserSessionData().setPatterns(
                 patternController.create(new PatternSettingsDTO(
                                 chosenType,
                                 chosenConfigStrategy,
@@ -134,7 +147,7 @@ public class InteractiveShell implements Runnable {
                                 length,
                                 "Interactive Shell"),
                         devToolsUser
-                ).getBody());
+                ).getBody());*/
     }
 
 }

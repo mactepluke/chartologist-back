@@ -19,7 +19,7 @@ import static org.apache.commons.collections4.ListUtils.partition;
 public class PatternFactory {
 
     private static final int MIN_GRANULARITY = 10;
-    private static final int MAX_GRANULARITY = 1000;
+    private static final int MAX_GRANULARITY = 200;
     private static final int MIN_PATTERN_LENGTH = 10;
     private static final int MAX_PATTERN_LENGTH = 250;
     private static final int DEFAULT_GRANULARITY = 100;
@@ -71,8 +71,8 @@ public class PatternFactory {
 
 
     public List<Pattern> create(PatternSettings.Builder paramsInput) {
-        initializeCheckVariables();
 
+        initializeCheckVariables();
         PatternSettings patternSettings = configParams(paramsInput);
 
         switch (patternSettings.getPatternType()) {
@@ -157,12 +157,12 @@ public class PatternFactory {
         List<Pattern> patterns = new ArrayList<>();
 
         if (patternSettings.getGraph() != null
-                && patternSettings.getGraph().candles() != null
+                && patternSettings.getGraph().getCandles() != null
                 && patternSettings.getLength() > 0
-                && patternSettings.getGraph().candles().size() / patternSettings.getLength() > minPatternsPerGraph) {
+                && patternSettings.getGraph().getCandles().size() / patternSettings.getLength() > minPatternsPerGraph) {
             log.info("Generating basic patterns with parameters: {}", patternSettings.toString());
 
-            List<List<Candle>> graphChunks = partition(patternSettings.getGraph().candles(), patternSettings.getLength());
+            List<List<Candle>> graphChunks = partition(patternSettings.getGraph().getCandles(), patternSettings.getLength());
 
             int patternCount = 0;
 
@@ -170,15 +170,15 @@ public class PatternFactory {
                 if (graphChunk.size() >= patternSettings.getLength()) {
 
                     List<PixelatedCandle> pixelatedChunk = candleFactory.pixelateCandles(graphChunk, patternSettings.getGranularity());
-                    BasicPattern basicPattern = new BasicPattern();
-                    basicPattern.setPixelatedCandles(pixelatedChunk);
-                    basicPattern.setGranularity(patternSettings.getGranularity());
-                    basicPattern.setLength(patternSettings.getLength());
-                    basicPattern.setTimeframe(patternSettings.getGraph().timeframe());
-                    basicPattern.setStartDate(graphChunk.get(0).dateTime());
-                    basicPattern.setName(patternSettings.getName() + "#" + ++patternCount);
-                    basicPattern.setPatternType(PatternType.BASIC);
-
+                    BasicPattern basicPattern = new BasicPattern(
+                            pixelatedChunk,
+                            patternSettings.getGranularity(),
+                            patternSettings.getLength(),
+                            patternSettings.getGraph().getSymbol(),
+                            patternSettings.getGraph().getTimeframe(),
+                            patternSettings.getName() + "#" + ++patternCount,
+                            graphChunk.get(0).dateTime()
+                    );
                     patterns.add(basicPattern);
                 }
             }
@@ -201,10 +201,7 @@ public class PatternFactory {
 
         if (!basicPatterns.isEmpty() && basicPatterns.get(0).getPatternType() == PatternType.BASIC) {
             for (Pattern pattern : basicPatterns) {
-                PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern);
-
-                predictivePattern.setPatternType(PatternType.PREDICTIVE);
-                predictivePattern.setScope(patternSettings.getScope());
+                PredictivePattern predictivePattern = new PredictivePattern(pattern, patternSettings.getScope());
 
                 predictivePatterns.add(predictivePattern);
             }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Log4j2
@@ -23,42 +24,68 @@ public class PatternComputer {
         this.candleFactory = candleFactory;
     }
 
-    public List<Pattern> computeBasicIterationPattern(List<Pattern> patterns, Graph graph) {
+    public List<Pattern> compute(ComputationSettings.Builder paramsInput)   {
 
+        initializeCheckVariables();
+        ComputationSettings computationSettings = configParams(paramsInput);
+
+        switch (computationSettings.getComputationType()) {
+            case BASIC_ITERATION -> {
+                return computeBasicIterationPatterns(computationSettings);
+            }
+            default -> {
+                log.error("Undefined pattern type.");
+                return Collections.emptyList();
+            }
+        }
+
+    }
+
+    private ComputationSettings configParams(ComputationSettings.Builder paramsInput) {
+
+        return paramsInput.build();
+    }
+
+    private void initializeCheckVariables() {
+        //TODO define, initialize computation settings and implement their use in corresponding methods
+    }
+
+    public List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) {
+
+        List<Pattern> patterns = computationSettings.getPatterns();
+        Graph graph = computationSettings.getGraph();
         List<Pattern> computedPatterns = new ArrayList<>();
 
         if (!patterns.isEmpty() && patterns.get(0).getPatternType() == PatternType.PREDICTIVE) {
-            ProgressBar pb = new ProgressBar("Compute basic iteration patterns...", patterns.size());
+
+            log.info("Compute basic iteration patterns for graph of symbol: {}, timeframe: {}", graph.getSymbol(), graph.getTimeframe());
+            ProgressBar pb = new ProgressBar("Processing...", patterns.size());
 
             pb.start();
             for (Pattern pattern : patterns) {
                 pb.step();
-                computedPatterns.add(computeBasicIterationPattern(pattern, graph));
+                computedPatterns.add(computeBasicIterationPattern((PredictivePattern) pattern, graph));
             }
             pb.stop();
         }
         return computedPatterns;
     }
 
-    private PredictivePattern computeBasicIterationPattern(Pattern pattern, Graph graph) {
+    private PredictivePattern computeBasicIterationPattern(PredictivePattern predictivePattern, Graph graph) {
 
-        byte matchScore;
-        byte priceVariation;
-        PredictivePattern predictivePattern = new PredictivePattern((PredictivePattern) pattern);
+        int matchScore;
+        int priceVariation;
 
-        if (pattern != null && pattern.getPatternType() == PatternType.PREDICTIVE) {
+        if (predictivePattern != null) {
 
-            ComputationData computationData = new ComputationData();
+            int startPricePrediction = predictivePattern.getPriceVariationPrediction();
+            LocalDateTime startTime = LocalDateTime.now();
+//TODO Cast to long? view SonarLint
+            long computations = graph.getCandles().size() - predictivePattern.getLength() - predictivePattern.getScope();
 
-            computationData.setComputationType(ComputationType.BASIC_ITERATION);
-            computationData.setStartPricePrediction(predictivePattern.getPriceVariationPrediction());
-            computationData.setStartTime(LocalDateTime.now());
-
-            int maxComputations = graph.candles().size() - predictivePattern.getLength() - predictivePattern.getScope();
-
-            for (var i = 0; i < maxComputations; i++) {
-                List<Candle> candlesToMatch = graph.candles().subList(i, i + predictivePattern.getLength());
-                List<Candle> followingCandles = graph.candles().subList(i + predictivePattern.getLength(), i + predictivePattern.getLength() + predictivePattern.getScope());
+            for (var i = 0; i < computations; i++) {
+                List<Candle> candlesToMatch = graph.getCandles().subList(i, i + predictivePattern.getLength());
+                List<Candle> followingCandles = graph.getCandles().subList(i + predictivePattern.getLength(), i + predictivePattern.getLength() + predictivePattern.getScope());
                 List<PixelatedCandle> pixelatedCandlesToMatch = candleFactory.pixelateCandles(candlesToMatch, predictivePattern.getGranularity());
                 List<PixelatedCandle> pixelatedFollowingCandles = candleFactory.pixelateCandles(followingCandles, predictivePattern.getGranularity());
 
@@ -72,22 +99,26 @@ public class PatternComputer {
                                 matchScore,
                                 priceVariation)
                 );
-                computationData.setComputations(computationData.getComputations() + 1);
             }
-            computationData.setEndTime(LocalDateTime.now());
-            computationData.setEndPricePrediction(predictivePattern.getPriceVariationPrediction());
-            predictivePattern.addComputationsHistory(computationData);
+            predictivePattern.getComputationsHistory().add(new ComputationData(
+                    startTime,
+                    LocalDateTime.now(),
+                    ComputationType.BASIC_ITERATION,
+                    computations,
+                    startPricePrediction,
+                    predictivePattern.getPriceVariationPrediction()
+            ));
         }
         return predictivePattern;
     }
 
-    private int adjustPriceVariationPrediction(byte priceVariationPrediction, byte matchScore, byte priceVariation) {
+    private int adjustPriceVariationPrediction(int priceVariationPrediction, int matchScore, int priceVariation) {
         return (priceVariationPrediction + priceVariation * matchScore / 100) / 2;
     }
 
-    private byte calculatePriceVariation(PredictivePattern pattern, List<PixelatedCandle> pixelatedFollowingCandles) {
+    private int calculatePriceVariation(PredictivePattern pattern, List<PixelatedCandle> pixelatedFollowingCandles) {
 
-        byte delta = 101;
+        int delta = 101;
 
         if (pixelatedFollowingCandles.size() >= pattern.getScope()) {
             PixelatedCandle firstCandle = pixelatedFollowingCandles.get(0);
@@ -104,7 +135,7 @@ public class PatternComputer {
                     predictionCandleClosePosition = i + 1;
                 }
             }
-            delta = Format.byteRelativePercentage(predictionCandleClosePosition - firstCandleOpenPosition, pattern.getGranularity());
+            delta = Format.relativePercentage(predictionCandleClosePosition - firstCandleOpenPosition, pattern.getGranularity());
         }
 
         if (delta == 101)   {
@@ -115,7 +146,7 @@ public class PatternComputer {
         return delta;
     }
 
-    private byte calculateMatchScore(PredictivePattern pattern, List<PixelatedCandle> pixelatedCandlesToMatch) {
+    private int calculateMatchScore(PredictivePattern pattern, List<PixelatedCandle> pixelatedCandlesToMatch) {
 
         int length = pattern.getLength();
         int granularity = pattern.getGranularity();
@@ -142,14 +173,10 @@ public class PatternComputer {
                        matchScore++;
                    }
                 }
-                    //TODO variable difficulty/accuracy ?
             }
         }
-//TODO variable discriminate wicks from bodys
-
-        //TODO variable threshold?
-        return Format.bytePositivePercentage(matchScore, inkedPixels);
+        return Format.positivePercentage(matchScore, inkedPixels);
     }
 }
 
-//TODO variable adjust with volume
+

@@ -1,5 +1,6 @@
 package com.syngleton.chartomancy.service;
 
+import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.PatternComputer;
 import com.syngleton.chartomancy.factory.PatternFactory;
 import com.syngleton.chartomancy.factory.PatternSettings;
@@ -31,8 +32,8 @@ public class PatternService {
         return patternFactory.create(settingsInput);
     }
 
-    public List<Pattern> compute(List<Pattern> patterns, Graph graph)  {
-        return patternComputer.computeBasicIterationPattern(patterns, graph);
+    public List<Pattern> compute(ComputationSettings.Builder settingsInput)  {
+        return patternComputer.compute(settingsInput);
     }
 
     public boolean printPatterns(List<Pattern> patterns) {

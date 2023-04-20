@@ -2,6 +2,7 @@ package com.syngleton.chartomancy.service;
 
 import com.syngleton.chartomancy.model.Candle;
 import com.syngleton.chartomancy.model.Graph;
+import com.syngleton.chartomancy.model.Symbol;
 import com.syngleton.chartomancy.model.Timeframe;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
@@ -39,10 +40,10 @@ public class DataService {
 
         if (currentFormat != null) {
             graph = createGraph(path, currentFormat);
-            log.info("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
-                    graph.name(),
-                    graph.symbol(),
-                    graph.timeframe());
+            log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
+                    graph.getName(),
+                    graph.getSymbol(),
+                    graph.getTimeframe());
             return graph;
         } else {
             log.error("File format header not found (parsed the first {} lines without success). List of supported headers:", readingAttempts);
@@ -58,11 +59,11 @@ public class DataService {
 
         if (graph != null) {
             log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
-                    graph.name(),
-                    graph.symbol(),
-                    graph.timeframe());
+                    graph.getName(),
+                    graph.getSymbol(),
+                    graph.getCandles());
             int i = 1;
-            for (Candle candle : graph.candles()) {
+            for (Candle candle : graph.getCandles()) {
                 log.info("{} -> {}", i++, candle.toString());
             }
             return true;
@@ -72,7 +73,7 @@ public class DataService {
         }
     }
 
-    private CSVFormat readFileFormat(String path)  {
+    private CSVFormat readFileFormat(String path) {
 
         CSVFormat csvFormat = null;
         String line;
@@ -100,7 +101,7 @@ public class DataService {
     private Graph createGraph(String path, CSVFormat csvFormat) {
         String line;
         List<Candle> candles = new ArrayList<>();
-        String symbol = null;
+        Symbol symbol = Symbol.UNDEFINED;
         Path filePath = Paths.get(path);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
@@ -124,20 +125,37 @@ public class DataService {
                             Format.roundFloat(Float.parseFloat(values[csvFormat.closePosition])),
                             Format.roundFloat(Float.parseFloat(values[csvFormat.volumePosition]))
                     );
-                    if (symbol == null) {
-                        symbol = values[csvFormat.symbolPosition];
+                    if (symbol == Symbol.UNDEFINED) {
+                        symbol = readSymbol(values[csvFormat.symbolPosition]);
                     }
+
                     candles.add(candle);
                 }
             } while (line != null);
         } catch (IOException e) {
             e.printStackTrace();
         }
-            candles.sort(Comparator.comparing(Candle::dateTime));
-            return new Graph(filePath.getFileName().toString(), symbol, getTimeframe(candles), candles);
+        candles.sort(Comparator.comparing(Candle::dateTime));
+        return new Graph(filePath.getFileName().toString(), symbol, getTimeframe(candles), candles);
     }
 
-    private Timeframe getTimeframe(List<Candle> candles)    {
+    private Symbol readSymbol(String symbolValue) {
+
+        Symbol symbol = Symbol.UNDEFINED;
+
+        if ((symbolValue != null)
+                && (symbolValue.contains("USD") || symbolValue.contains("usd"))) {
+            if (symbolValue.contains("BTC") || symbolValue.contains("btc")) {
+                symbol = Symbol.BTC_USD;
+            } else if (symbolValue.contains("ETH") || symbolValue.contains("eth")) {
+                symbol = Symbol.ETH_USD;
+            }
+        }
+
+        return symbol;
+    }
+
+    private Timeframe getTimeframe(List<Candle> candles) {
         Timeframe timeframe = Timeframe.UNKNOWN;
 
         if (candles.size() > 1) {

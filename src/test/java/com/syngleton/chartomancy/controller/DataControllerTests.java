@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.model.Graph;
+import com.syngleton.chartomancy.DataConfigTest;
 import com.syngleton.chartomancy.service.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.when;
@@ -19,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ContextConfiguration(classes = DataConfigTest.class)
 class DataControllerTests {
 
     @Value("${test_data_file_path}")
@@ -48,17 +50,17 @@ class DataControllerTests {
         when(dataService.load(testDataFilePath)).thenReturn(null);
 
         mockMvc.perform(get("/data/load?path={id}", testDataFilePath))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("[UNIT] Launch print graph endpoint")
-    void printGraphTest() throws Exception {
+    @DisplayName("[UNIT] Print app data graphs endpoint")
+    void printAppDataGraphsTest() throws Exception {
 
         when(dataService.printGraph(null)).thenReturn(true);
 
         mockMvc.perform(get("/data/print-graph"))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
     }
 
     @Test

@@ -81,7 +81,7 @@ public final class Format {
         return string;
     }
 
-    public static byte bytePositivePercentage(int part, int total) {
+    public static int positivePercentage(int part, int total) {
 
         int number = round(((float) part / total) * 100);
 
@@ -94,7 +94,7 @@ public final class Format {
         return (byte) number;
     }
 
-    public static byte byteRelativePercentage(int part, int total) {
+    public static int relativePercentage(int part, int total) {
 
         int number = round(((float) part / total) * 100);
 

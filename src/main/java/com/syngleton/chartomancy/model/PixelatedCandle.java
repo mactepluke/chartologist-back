@@ -3,23 +3,31 @@ package com.syngleton.chartomancy.model;
 
 import lombok.extern.log4j.Log4j2;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 @Log4j2
 public record PixelatedCandle(byte[] candle, int volume) {
 
     @Override
     public String toString()  {
-        return "Volume : " + volume;
+        return "PixelatedCandle{" +
+                "volume=" + volume +
+                ", candle=" + Arrays.toString(candle);
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        log.error("equals not implemented for this object.");
-        return false;
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PixelatedCandle pixelatedCandle = (PixelatedCandle) o;
+        return volume == pixelatedCandle.volume && Arrays.equals(candle, pixelatedCandle.candle);
     }
 
     @Override
     public int hashCode()  {
-        log.error("hashCode not implemented for this object.");
-        return -1;
+        int result = Objects.hash(volume);
+        result = 31 * result + Arrays.hashCode(candle);
+        return result;
     }
 }

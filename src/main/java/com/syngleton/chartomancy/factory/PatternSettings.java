@@ -8,13 +8,13 @@ import lombok.*;
 @ToString
 public class PatternSettings {
 
+    @Getter
+    private final Autoconfig autoconfig;
     @ToString.Exclude
     @Getter
     private final Graph graph;
     @Getter
     private final PatternType patternType;
-    @Getter
-    private final Autoconfig autoconfig;
     @Getter
     private final String name;
     @Getter
@@ -29,6 +29,7 @@ public class PatternSettings {
         MINIMIZE,
         MAXIMIZE,
         USE_DEFAULTS,
+        AUTOMATE,
         BYPASS_SAFETY_CHECK,
         TEST
     }
@@ -46,7 +47,7 @@ public class PatternSettings {
     public static class Builder {
         private Graph graph = null;
         private PatternType patternType = PatternType.BASIC;
-        private Autoconfig autoconfig = Autoconfig.NONE;
+        private Autoconfig autoconfig = Autoconfig.USE_DEFAULTS;
         private String name = "No Name";
         private int granularity = 1;
         private int scope = 1;
@@ -55,19 +56,6 @@ public class PatternSettings {
         public Builder patternType(PatternType patternType) {
             if (patternType != null) {
                 this.patternType = patternType;
-            }
-            return this;
-        }
-
-        public Builder map(PatternSettingsDTO patternSettingsDTO)   {
-
-            if (patternSettingsDTO != null) {
-                this.patternType = patternSettingsDTO.patternType();
-                this.autoconfig = patternSettingsDTO.autoconfig();
-                this.granularity = patternSettingsDTO.granularity();
-                this.length = patternSettingsDTO.length();
-                this.name = patternSettingsDTO.name();
-                this.scope = patternSettingsDTO.scope();
             }
             return this;
         }
@@ -107,6 +95,21 @@ public class PatternSettings {
             }
             return this;
         }
+
+        public Builder map(PatternSettingsDTO patternSettingsDTO)   {
+
+            if (patternSettingsDTO != null) {
+
+                this.patternType = patternSettingsDTO.patternType() != null ? patternSettingsDTO.patternType() : this.patternType;
+                this.autoconfig = patternSettingsDTO.autoconfig() != null ? patternSettingsDTO.autoconfig() : this.autoconfig;
+                this.granularity = patternSettingsDTO.granularity();
+                this.length = patternSettingsDTO.length();
+                this.name = patternSettingsDTO.name();
+                this.scope = patternSettingsDTO.scope();
+            }
+            return this;
+        }
+
         public PatternSettings build() {
             return new PatternSettings(this);
         }
