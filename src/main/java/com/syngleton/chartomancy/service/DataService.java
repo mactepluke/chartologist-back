@@ -1,9 +1,9 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.model.Candle;
-import com.syngleton.chartomancy.model.Graph;
-import com.syngleton.chartomancy.model.Symbol;
-import com.syngleton.chartomancy.model.Timeframe;
+import com.syngleton.chartomancy.model.charting.Candle;
+import com.syngleton.chartomancy.model.charting.Graph;
+import com.syngleton.chartomancy.model.charting.Symbol;
+import com.syngleton.chartomancy.model.charting.Timeframe;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +17,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.Math.abs;
 
@@ -30,7 +28,28 @@ public class DataService {
     @Value("${reading_attempts}")
     private int readingAttempts;
 
-    public Graph load(String path) {
+
+    public Set<Graph> loadGraphs(String dataFolderName, List<String> dataFilesNames) {
+
+        Set<Graph> graphs = new HashSet<>();
+
+        for (String dataFileName : dataFilesNames) {
+
+            Graph graph = loadGraph("./" + dataFolderName + "/" + dataFileName);
+            if (graph != null) {
+                graphs.add(loadGraph("./" + dataFolderName + "/" + dataFileName));
+            }
+        }
+        if (graphs.isEmpty()) {
+            log.error("Application could not initialize its data: no files of correct format could be read.");
+        } else {
+            log.info("Created graph(s) from files with number: {}", graphs.size());
+        }
+        return graphs;
+    }
+
+
+    public Graph loadGraph(String path) {
 
         Graph graph;
 

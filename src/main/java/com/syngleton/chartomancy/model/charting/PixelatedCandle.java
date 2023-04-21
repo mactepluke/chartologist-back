@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model;
+package com.syngleton.chartomancy.model.charting;
 
 
 import lombok.extern.log4j.Log4j2;

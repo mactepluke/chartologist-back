@@ -3,7 +3,7 @@ package com.syngleton.chartomancy.controller;
 import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.data.AppData;
 import com.syngleton.chartomancy.dto.ComputationSettingsDTO;
-import com.syngleton.chartomancy.model.Pattern;
+import com.syngleton.chartomancy.model.charting.Pattern;
 import com.syngleton.chartomancy.dto.PatternSettingsDTO;
 import com.syngleton.chartomancy.service.PatternService;
 import com.syngleton.chartomancy.factory.PatternSettings;
@@ -44,13 +44,13 @@ public class PatternController {
         HttpStatus status = NO_CONTENT;
         List<Pattern> patterns = null;
 
-        if (settingsInputDTO != null
+        /*if (settingsInputDTO != null
                 && appData.getGraphs() != null
                 && !appData.getGraphs().isEmpty()) {
-            patterns = patternService.create(new PatternSettings.Builder()
+            patterns = patternService.createPatterns(new PatternSettings.Builder()
                     .map(settingsInputDTO)
                     .graph(appData.getGraphs().get(0)));
-        }
+        }*/
 
         if (patterns != null) {
             log.info("Successfully created patterns.");
@@ -69,7 +69,7 @@ public class PatternController {
         HttpStatus status = NO_CONTENT;
         boolean result = false;
 
-        if ((appData.getPatternsList() != null) && (!appData.getPatternsList().isEmpty())) {
+/*        if ((appData.getPatternsList() != null) && (!appData.getPatternsList().isEmpty())) {
 
             for (List<Pattern> patterns : appData.getPatternsList()) {
                 patternService.printPatterns(patterns);
@@ -78,7 +78,7 @@ public class PatternController {
             result = true;
         } else {
             log.warn("Could not print patterns.");
-        }
+        }*/
         return new ResponseEntity<>(result, status);
     }
 
@@ -88,7 +88,7 @@ public class PatternController {
 
         HttpStatus status = NO_CONTENT;
         boolean result = false;
-
+/*
         if ((appData.getPatternsList() != null) && (!appData.getPatternsList().isEmpty())) {
 
             for (List<Pattern> patterns : appData.getPatternsList()) {
@@ -98,7 +98,7 @@ public class PatternController {
             result = true;
         } else {
             log.warn("Could not print patterns list.");
-        }
+        }*/
         return new ResponseEntity<>(result, status);
     }
 
@@ -111,15 +111,15 @@ public class PatternController {
         List<Pattern> patterns = null;
 
         if (settingsInputDTO != null
-                && appData.getPatternsList() != null
-                && !appData.getPatternsList().isEmpty()
+                && appData.getPatternBoxes() != null
+                && !appData.getPatternBoxes().isEmpty()
                 && appData.getGraphs() != null
                 && !appData.getGraphs().isEmpty()) {
 
-            patterns = patternService.compute(new ComputationSettings.Builder()
+            /*patterns = patternService.computePatterns(new ComputationSettings.Builder()
                     .map(settingsInputDTO)
                     .graph(appData.getGraphs().get(0))
-                    .patterns(appData.getPatternsList().get(0)));
+                    .patterns(appData.getPatternsList().get(0)));*/
             if (patterns != null) {
                 status = OK;
             } else {

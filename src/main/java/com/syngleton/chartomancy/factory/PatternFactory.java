@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.factory;
 
-import com.syngleton.chartomancy.model.*;
+import com.syngleton.chartomancy.model.charting.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

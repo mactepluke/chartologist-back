@@ -1,5 +1,6 @@
-package com.syngleton.chartomancy.model;
+package com.syngleton.chartomancy.model.trading;
 
+import com.syngleton.chartomancy.model.charting.Pattern;
 import lombok.Data;
 import lombok.ToString;
 
@@ -27,6 +28,5 @@ public class TradingBot {
     public float getTotalPnL() {
         return 0;
     }
-
 }
 

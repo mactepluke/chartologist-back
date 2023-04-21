@@ -1,8 +1,8 @@
 package com.syngleton.chartomancy.analytics;
 
 import com.syngleton.chartomancy.dto.ComputationSettingsDTO;
-import com.syngleton.chartomancy.model.Graph;
-import com.syngleton.chartomancy.model.Pattern;
+import com.syngleton.chartomancy.model.charting.Graph;
+import com.syngleton.chartomancy.model.charting.Pattern;
 import lombok.Getter;
 import lombok.ToString;
 

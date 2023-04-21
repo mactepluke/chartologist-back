@@ -7,7 +7,7 @@ import com.syngleton.chartomancy.view.InteractiveShell;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DevToolsService {
+public class ShellService {
 
     public boolean launchShell(DataController dataController, PatternController patternController, AppData appData)   {
         Thread interactiveShell = new Thread(new InteractiveShell(dataController, patternController, appData));

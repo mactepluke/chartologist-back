@@ -1,7 +1,7 @@
 package com.syngleton.chartomancy.analytics;
 
 import com.syngleton.chartomancy.factory.CandleFactory;
-import com.syngleton.chartomancy.model.*;
+import com.syngleton.chartomancy.model.charting.*;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;

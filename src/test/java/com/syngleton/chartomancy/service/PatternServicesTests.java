@@ -4,7 +4,7 @@ import com.syngleton.chartomancy.DataConfigTest;
 import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.*;
+import com.syngleton.chartomancy.model.charting.*;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -99,7 +99,7 @@ class PatternServicesTests {
     @DisplayName("[UNIT] Create basic patterns from mock graph")
     void createBasicPatternsTest() {
 
-        patterns = patternService.create(testPatternSettingsBuilder.patternType(PatternType.BASIC));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.BASIC));
 
         assertFalse(patterns.isEmpty());
         assertEquals(TEST_GRAPH_LENGTH / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -109,7 +109,7 @@ class PatternServicesTests {
     @DisplayName("[UNIT] Create predictive patterns from mock graph")
     void createPredictivePatternsTest() {
 
-        patterns = patternService.create(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(TEST_GRAPH_LENGTH / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -119,8 +119,8 @@ class PatternServicesTests {
     @DisplayName("[IT] Compute patterns from created predictive patterns")
     void computeBasicIterationTest() {
 
-        patterns = patternService.create(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
-        patterns = patternService.compute(testComputationSettingsBuilder
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
+        patterns = patternService.computePatterns(testComputationSettingsBuilder
                 .patterns(patterns)
                 .computationType(ComputationType.BASIC_ITERATION)
         );

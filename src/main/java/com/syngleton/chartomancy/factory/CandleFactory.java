@@ -1,7 +1,7 @@
 package com.syngleton.chartomancy.factory;
 
-import com.syngleton.chartomancy.model.Candle;
-import com.syngleton.chartomancy.model.PixelatedCandle;
+import com.syngleton.chartomancy.model.charting.Candle;
+import com.syngleton.chartomancy.model.charting.PixelatedCandle;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 

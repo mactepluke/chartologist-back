@@ -2,7 +2,7 @@ package com.syngleton.chartomancy.controller;
 
 import com.syngleton.chartomancy.DataConfigTest;
 import com.syngleton.chartomancy.data.AppData;
-import com.syngleton.chartomancy.service.DevToolsService;
+import com.syngleton.chartomancy.service.ShellService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
-class DevToolsControllerTests {
+class ShellControllerTests {
 
     private final AppData appData = new AppData();
 
@@ -32,9 +32,9 @@ class DevToolsControllerTests {
     @Autowired
     private PatternController patternController;
     @MockBean
-    private DevToolsService devToolsService;
+    private ShellService shellService;
 
-    DevToolsControllerTests() {
+    ShellControllerTests() {
     }
 
     @BeforeAll
@@ -51,7 +51,7 @@ class DevToolsControllerTests {
     @DisplayName("[UNIT] Launch shell endpoint")
     void launchShellTest() throws Exception {
 
-        when(devToolsService.launchShell(dataController, patternController, null)).thenReturn(true);
+        when(shellService.launchShell(dataController, patternController, null)).thenReturn(true);
 
         mockMvc.perform(get("/devtools/launch-shell/{password}", "dummyPassword"))
                 .andExpect(status().isUnauthorized());

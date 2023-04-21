@@ -1,7 +1,7 @@
 package com.syngleton.chartomancy.controller;
 
 import com.syngleton.chartomancy.data.AppData;
-import com.syngleton.chartomancy.model.Graph;
+import com.syngleton.chartomancy.model.charting.Graph;
 import com.syngleton.chartomancy.service.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class DataController {
         HttpStatus status = NO_CONTENT;
         Graph graph;
 
-        graph = dataService.load(path);
+        graph = dataService.loadGraph(path);
 
         if (graph != null)  {
             log.debug("Successfully loaded file: " + path);

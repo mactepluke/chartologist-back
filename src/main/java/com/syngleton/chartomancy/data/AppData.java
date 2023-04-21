@@ -1,13 +1,13 @@
 package com.syngleton.chartomancy.data;
 
-import com.syngleton.chartomancy.model.Graph;
-import com.syngleton.chartomancy.model.Pattern;
+import com.syngleton.chartomancy.model.charting.Graph;
+import com.syngleton.chartomancy.model.charting.PatternBox;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 public class AppData {
-    private List<Graph> graphs;
-    private List<List<Pattern>> patternsList;
+    private Set<Graph> graphs;
+    private Set<PatternBox> patternBoxes;
 }

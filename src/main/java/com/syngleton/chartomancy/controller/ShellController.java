@@ -1,7 +1,7 @@
 package com.syngleton.chartomancy.controller;
 
 import com.syngleton.chartomancy.data.AppData;
-import com.syngleton.chartomancy.service.DevToolsService;
+import com.syngleton.chartomancy.service.ShellService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,25 +21,25 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 @RestController
 @RequestMapping("/devtools")
 @Scope("request")
-public class DevToolsController {
+public class ShellController {
     @Value("${devtools_password}")
     private String devToolsPassword;
 
-    private final DevToolsService devToolsService;
+    private final ShellService shellService;
     private final DataController dataController;
     private final PatternController patternController;
     private final AppData appData;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public DevToolsController(DataController dataController,
+    public ShellController(DataController dataController,
                            PatternController patternController,
-                              DevToolsService devToolsService,
-                              AppData appData,
-                              PasswordEncoder passwordEncoder) {
+                           ShellService shellService,
+                           AppData appData,
+                           PasswordEncoder passwordEncoder) {
         this.dataController = dataController;
         this.patternController = patternController;
-        this.devToolsService = devToolsService;
+        this.shellService = shellService;
         this.appData = appData;
         this.passwordEncoder = passwordEncoder;
     }
@@ -52,7 +52,7 @@ public class DevToolsController {
 
         if (passwordEncoder.matches(password, devToolsPassword)) {
             status = OK;
-            result = devToolsService.launchShell(dataController, patternController, appData);
+            result = shellService.launchShell(dataController, patternController, appData);
         } else {
             log.error("Invalid password for devToolsUser.");
             status = UNAUTHORIZED;

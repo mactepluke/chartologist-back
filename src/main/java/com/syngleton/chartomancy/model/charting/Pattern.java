@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model;
+package com.syngleton.chartomancy.model.charting;
 
 import lombok.Getter;
 import lombok.ToString;

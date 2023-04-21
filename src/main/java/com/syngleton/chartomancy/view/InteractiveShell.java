@@ -4,11 +4,12 @@ import com.syngleton.chartomancy.controller.DataController;
 import com.syngleton.chartomancy.controller.PatternController;
 import com.syngleton.chartomancy.data.AppData;
 import com.syngleton.chartomancy.dto.ComputationSettingsDTO;
-import com.syngleton.chartomancy.model.PatternType;
+import com.syngleton.chartomancy.model.charting.PatternType;
 import com.syngleton.chartomancy.factory.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Scanner;
 
 @Log4j2
@@ -42,7 +43,7 @@ public class InteractiveShell implements Runnable {
             switch (option) {
                 case 1 -> {
                     if (appData.getGraphs() == null) {
-                        appData.setGraphs(new ArrayList<>());
+                        appData.setGraphs(new HashSet<>());
                     }
                     appData.getGraphs().add(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
                 }
@@ -52,10 +53,10 @@ public class InteractiveShell implements Runnable {
                 case 5 -> createMenu(PatternType.PREDICTIVE);
                 case 6 -> patternController.printAppDataPatterns();
                 case 7 -> {
-                    if (appData.getPatternsList() == null) {
-                        appData.setPatternsList(new ArrayList<>());
+                    if (appData.getPatternBoxes() == null) {
+                        appData.setPatternBoxes(new HashSet<>());
                     }
-                    appData.getPatternsList().add(patternController.compute(new ComputationSettingsDTO()).getBody());
+                    //appData.getPatternBoxes().add(patternController.compute(new ComputationSettingsDTO()).getBody());
                 }
                 case 9 -> {
                     log.info("*** EXITING PROGRAM ***");
@@ -92,7 +93,7 @@ public class InteractiveShell implements Runnable {
         }
         return input;
     }
-// TODO Refactor
+// TODO Refactor everything as well as controllers
     private void createMenu(PatternType chosenType) {
         PatternSettings.Autoconfig chosenConfigStrategy = null;
         int granularity = 0;

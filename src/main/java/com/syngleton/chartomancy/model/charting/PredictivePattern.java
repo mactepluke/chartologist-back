@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model;
+package com.syngleton.chartomancy.model.charting;
 
 import com.syngleton.chartomancy.analytics.ComputationData;
 import com.syngleton.chartomancy.util.Format;

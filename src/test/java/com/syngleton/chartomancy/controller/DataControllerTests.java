@@ -47,7 +47,7 @@ class DataControllerTests {
     @DisplayName("[UNIT] Load data endpoint")
     void loadTest() throws Exception {
 
-        when(dataService.load(testDataFilePath)).thenReturn(null);
+        when(dataService.loadGraph(testDataFilePath)).thenReturn(null);
 
         mockMvc.perform(get("/data/load?path={id}", testDataFilePath))
                 .andExpect(status().isNoContent());
