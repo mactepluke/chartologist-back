@@ -33,10 +33,8 @@ public class SecurityConfig {
     private String password;
     @Value("${role}")
     private String role;
-    @Value("${devtools_email}")
-    private String devToolsEmail;
-    @Value("${devtools_password}")
-    private String devToolsPassword;
+    @Value("${root_password}")
+    private String rootPassword;
 
     @Value("#{'${web.cors.allowed-origins}'.split(',')}")
     private List<String> allowedOrigins;

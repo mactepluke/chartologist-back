@@ -1,14 +1,12 @@
 package com.syngleton.chartomancy.view;
 
-import com.syngleton.chartomancy.controller.DataController;
-import com.syngleton.chartomancy.controller.PatternController;
-import com.syngleton.chartomancy.data.AppData;
-import com.syngleton.chartomancy.dto.ComputationSettingsDTO;
+import com.syngleton.chartomancy.controller.root.DataController;
+import com.syngleton.chartomancy.controller.root.PatternController;
+import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.model.charting.PatternType;
 import com.syngleton.chartomancy.factory.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -17,15 +15,15 @@ public class InteractiveShell implements Runnable {
 
     private final DataController dataController;
     private final PatternController patternController;
-    private final AppData appData;
+    private final CoreData coreData;
     private static final String UNSUPPORTED_OPTION = "Unsupported option. Please enter a number corresponding to the provided menu.";
 
     public InteractiveShell(DataController dataController,
                             PatternController patternController,
-                            AppData appData) {
+                            CoreData coreData) {
         this.dataController = dataController;
         this.patternController = patternController;
-        this.appData = appData;
+        this.coreData = coreData;
     }
 
     @Override
@@ -42,10 +40,10 @@ public class InteractiveShell implements Runnable {
             int option = readSelection();
             switch (option) {
                 case 1 -> {
-                    if (appData.getGraphs() == null) {
-                        appData.setGraphs(new HashSet<>());
+                    if (coreData.getGraphs() == null) {
+                        coreData.setGraphs(new HashSet<>());
                     }
-                    appData.getGraphs().add(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
+                    coreData.getGraphs().add(dataController.load("./data/Bitfinex_BTCUSD_d.csv").getBody());
                 }
                 case 2 -> log.info(dataController.analyse());
                 case 3 -> dataController.printAppDataGraphs();
@@ -53,8 +51,8 @@ public class InteractiveShell implements Runnable {
                 case 5 -> createMenu(PatternType.PREDICTIVE);
                 case 6 -> patternController.printAppDataPatterns();
                 case 7 -> {
-                    if (appData.getPatternBoxes() == null) {
-                        appData.setPatternBoxes(new HashSet<>());
+                    if (coreData.getPatternBoxes() == null) {
+                        coreData.setPatternBoxes(new HashSet<>());
                     }
                     //appData.getPatternBoxes().add(patternController.compute(new ComputationSettingsDTO()).getBody());
                 }
@@ -115,7 +113,7 @@ public class InteractiveShell implements Runnable {
             choiceMade = true;
 
             switch (option) {
-                case 1 -> chosenConfigStrategy = PatternSettings.Autoconfig.USE_DEFAULTS;
+                case 1 -> chosenConfigStrategy = PatternSettings.Autoconfig.DEFAULT;
                 case 2 -> chosenConfigStrategy = PatternSettings.Autoconfig.MINIMIZE;
                 case 3 -> chosenConfigStrategy = PatternSettings.Autoconfig.MAXIMIZE;
                 case 4 -> {

@@ -1,18 +1,20 @@
 package com.syngleton.chartomancy.model.charting;
 
 public enum Timeframe {
-    UNKNOWN(-1),
-    SECOND(1),
-    MINUTE(60),
-    HALF_HOUR(1800),
-    HOUR(3600),
-    FOUR_HOUR(14400),
-    DAY(86400),
-    WEEK(604800);
+    UNKNOWN(-1, 0),
+    SECOND(1, 60),
+    MINUTE(60, 30),
+    HALF_HOUR(1800, 2),
+    HOUR(3600, 4),
+    FOUR_HOUR(14400, 6),
+    DAY(86400, 7),
+    WEEK(604800, 4);
 
     public final long durationInSeconds;
+    public final int scope;
 
-    Timeframe(long durationInSeconds) {
+    Timeframe(long durationInSeconds, int scope) {
         this.durationInSeconds = durationInSeconds;
+        this.scope = scope;
     }
 }

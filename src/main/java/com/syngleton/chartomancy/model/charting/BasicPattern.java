@@ -1,9 +1,14 @@
 package com.syngleton.chartomancy.model.charting;
 
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class BasicPattern extends Pattern {
+
+    @Getter
+    private final LocalDateTime startDate;
 
     public BasicPattern(
             List<PixelatedCandle> pixelatedCandles,
@@ -11,7 +16,6 @@ public class BasicPattern extends Pattern {
             int length,
             Symbol symbol,
             Timeframe timeframe,
-            String name,
             LocalDateTime startDate
     ) {
         super(
@@ -20,9 +24,8 @@ public class BasicPattern extends Pattern {
                 granularity,
                 length,
                 symbol,
-                timeframe,
-                name,
-                startDate
+                timeframe
         );
+        this.startDate = startDate;
     }
 }

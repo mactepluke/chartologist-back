@@ -13,6 +13,10 @@ public abstract class ChartObject {
     }
 
     public boolean matches(ChartObject chartObject)    {
-        return (chartObject.timeframe == this.timeframe) && (chartObject.symbol == this.symbol);
+        return chartObject != null
+                && chartObject.timeframe != null
+                && chartObject.timeframe == this.timeframe
+                && chartObject.symbol != null
+                && chartObject.symbol == this.symbol;
     }
 }

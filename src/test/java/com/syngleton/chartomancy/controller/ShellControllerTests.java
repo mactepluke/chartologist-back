@@ -1,7 +1,9 @@
 package com.syngleton.chartomancy.controller;
 
 import com.syngleton.chartomancy.DataConfigTest;
-import com.syngleton.chartomancy.data.AppData;
+import com.syngleton.chartomancy.controller.root.DataController;
+import com.syngleton.chartomancy.controller.root.PatternController;
+import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.service.ShellService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -23,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = DataConfigTest.class)
 class ShellControllerTests {
 
-    private final AppData appData = new AppData();
+    private final CoreData coreData = new CoreData();
 
     @Autowired
     private MockMvc mockMvc;

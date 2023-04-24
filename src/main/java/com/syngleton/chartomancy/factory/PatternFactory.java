@@ -18,20 +18,20 @@ import static org.apache.commons.collections4.ListUtils.partition;
 @Component
 public class PatternFactory {
 
-    private static final int MIN_GRANULARITY = 10;
-    private static final int MAX_GRANULARITY = 200;
+    private static final int MIN_GRANULARITY = 30;
+    private static final int MAX_GRANULARITY = 150;
     private static final int MIN_PATTERN_LENGTH = 10;
-    private static final int MAX_PATTERN_LENGTH = 250;
+    private static final int MAX_PATTERN_LENGTH = 100;
     private static final int DEFAULT_GRANULARITY = 100;
     private static final int DEFAULT_PATTERN_LENGTH = 50;
     private static final int MIN_PATTERNS_PER_GRAPH = 10;
-    private static final int TEST_GRANULARITY = 50;
-    private static final int TEST_PATTERN_LENGTH = 20;
+    private static final int TEST_GRANULARITY = 100;
+    private static final int TEST_PATTERN_LENGTH = 30;
     private static final int TEST_SCOPE = 2;
     private static final int TEST_MIN_PATTERN_PER_GRAPH = 4;
-    private static final int DEFAULT_SCOPE = 60;
+    private static final int DEFAULT_SCOPE = 5;
     private static final int MIN_SCOPE = 1;
-    private static final int MAX_SCOPE = 250;
+    private static final int MAX_SCOPE = 30;
 
     @Value("${min_granularity}")
     private int minGranularity;
@@ -82,11 +82,24 @@ public class PatternFactory {
             case PREDICTIVE -> {
                 return generatePredictivePatterns(patternSettings);
             }
+
             default -> {
                 log.error("Undefined pattern type.");
                 return Collections.emptyList();
             }
         }
+    }
+
+    public List<Pattern> generateTradingPatterns(List<PredictivePattern> predictivePatterns) {
+
+        List<Pattern> tradingPatterns = new ArrayList<>();
+
+        if (predictivePatterns != null) {
+            for (PredictivePattern pattern : predictivePatterns) {
+                tradingPatterns.add(new TradingPattern(pattern));
+            }
+        }
+        return tradingPatterns;
     }
 
     private void initializeCheckVariables() {
@@ -102,6 +115,10 @@ public class PatternFactory {
         defaultScope = setIntIfZero(defaultScope, DEFAULT_SCOPE);
         minScope = setIntIfZero(minScope, MIN_SCOPE);
         maxScope = setIntIfZero(maxScope, MAX_SCOPE);
+        defaultGranularity = streamlineInt(setIntIfZero(defaultGranularity, DEFAULT_GRANULARITY), minGranularity, maxGranularity);
+        defaultPatternLength = streamlineInt(setIntIfZero(defaultPatternLength, DEFAULT_PATTERN_LENGTH), minPatternLength, maxPatternLength);
+        defaultScope = streamlineInt(setIntIfZero(defaultScope, DEFAULT_SCOPE), minScope, maxScope);
+
     }
 
     private PatternSettings configParams(PatternSettings.Builder paramsInput) {
@@ -113,21 +130,16 @@ public class PatternFactory {
                     .granularity(streamlineInt(initialParams.getGranularity(), minGranularity, maxGranularity))
                     .length(streamlineInt(initialParams.getLength(), minPatternLength, maxPatternLength))
                     .scope(streamlineInt(initialParams.getScope(), minScope, maxScope));
-            case USE_DEFAULTS -> {
-                defaultGranularity = defaultGranularity == 0 ?
-                        DEFAULT_GRANULARITY : (streamlineInt(defaultGranularity, minGranularity, maxGranularity));
-
-                defaultPatternLength = defaultPatternLength == 0 ?
-                        DEFAULT_PATTERN_LENGTH : streamlineInt(defaultPatternLength, minPatternLength, maxPatternLength);
-
-                defaultScope = defaultScope == 0 ?
-                        DEFAULT_SCOPE : streamlineInt(defaultScope, minScope, maxScope);
-
+            case DEFAULT ->
                 paramsInput = paramsInput
-                        .granularity(defaultGranularity)
                         .length(defaultPatternLength)
+                        .granularity(defaultGranularity)
                         .scope(defaultScope);
-            }
+            case TIMEFRAME ->
+                paramsInput = paramsInput
+                        .length(streamlineInt(initialParams.getGraph().getTimeframe().scope * 2, minPatternLength, maxPatternLength))
+                        .granularity(defaultGranularity)
+                        .scope(streamlineInt(initialParams.getGraph().getTimeframe().scope, minScope, maxScope));
             case MINIMIZE -> paramsInput = paramsInput
                     .length(minPatternLength)
                     .granularity(minGranularity)
@@ -143,8 +155,7 @@ public class PatternFactory {
                 paramsInput = paramsInput
                         .length(streamlineInt(testPatternLength, minPatternLength, maxPatternLength))
                         .granularity(streamlineInt(testGranularity, minPatternLength, maxPatternLength))
-                        .scope(streamlineInt(testScope, minScope, maxScope))
-                        .name("Test");
+                        .scope(streamlineInt(testScope, minScope, maxScope));
                 minPatternsPerGraph = testMinPatternsPerGraph;
             }
             default -> log.error("Could not define parameters configuration strategy.");
@@ -164,7 +175,6 @@ public class PatternFactory {
 
             List<List<Candle>> graphChunks = partition(patternSettings.getGraph().getCandles(), patternSettings.getLength());
 
-            int patternCount = 0;
 
             for (List<Candle> graphChunk : graphChunks) {
                 if (graphChunk.size() >= patternSettings.getLength()) {
@@ -176,7 +186,6 @@ public class PatternFactory {
                             patternSettings.getLength(),
                             patternSettings.getGraph().getSymbol(),
                             patternSettings.getGraph().getTimeframe(),
-                            patternSettings.getName() + "#" + ++patternCount,
                             graphChunk.get(0).dateTime()
                     );
                     patterns.add(basicPattern);
@@ -200,9 +209,16 @@ public class PatternFactory {
         List<Pattern> predictivePatterns = new ArrayList<>();
 
         if (!basicPatterns.isEmpty() && basicPatterns.get(0).getPatternType() == PatternType.BASIC) {
-            for (Pattern pattern : basicPatterns) {
-                PredictivePattern predictivePattern = new PredictivePattern(pattern, patternSettings.getScope());
 
+            for (Pattern pattern : basicPatterns) {
+
+                if (patternSettings.isFullScope()) {
+                    for (int scope = 1; scope < patternSettings.getScope(); scope++) {
+                        PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern, scope);
+                        predictivePatterns.add(predictivePattern);
+                    }
+                }
+                PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern, patternSettings.getScope());
                 predictivePatterns.add(predictivePattern);
             }
         }

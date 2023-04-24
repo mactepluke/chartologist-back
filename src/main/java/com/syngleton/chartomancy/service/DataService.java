@@ -1,25 +1,21 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.model.charting.Candle;
-import com.syngleton.chartomancy.model.charting.Graph;
-import com.syngleton.chartomancy.model.charting.Symbol;
-import com.syngleton.chartomancy.model.charting.Timeframe;
-import com.syngleton.chartomancy.util.Format;
+import com.syngleton.chartomancy.data.CoreData;
+import com.syngleton.chartomancy.factory.GraphFactory;
+import com.syngleton.chartomancy.model.charting.*;
+import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.*;
-
-import static java.lang.Math.abs;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Log4j2
 @Service
@@ -27,38 +23,48 @@ public class DataService {
 
     @Value("${reading_attempts}")
     private int readingAttempts;
+    private final GraphFactory graphFactory;
+    private static final String NEW_LINE = System.getProperty("line.separator");
 
 
-    public Set<Graph> loadGraphs(String dataFolderName, List<String> dataFilesNames) {
+    @Autowired
+    public DataService(GraphFactory graphFactory) {
+        this.graphFactory = graphFactory;
+
+    }
+
+    public boolean loadGraphs(CoreData coreData, String dataFolderName, List<String> dataFilesNames) {
 
         Set<Graph> graphs = new HashSet<>();
 
-        for (String dataFileName : dataFilesNames) {
+        if (coreData != null) {
+            for (String dataFileName : dataFilesNames) {
 
-            Graph graph = loadGraph("./" + dataFolderName + "/" + dataFileName);
-            if (graph != null) {
-                graphs.add(loadGraph("./" + dataFolderName + "/" + dataFileName));
+                Graph graph = loadGraph("./" + dataFolderName + "/" + dataFileName);
+
+                if (graph != null && !Check.matchesAnyChartObjectIn(graph, coreData.getGraphs())) {
+                    graphs.add(graph);
+                }
+            }
+            if (!Check.notNullNotEmpty(coreData.getGraphs())) {
+                coreData.setGraphs(graphs);
+            } else {
+                coreData.getGraphs().addAll(graphs);
             }
         }
-        if (graphs.isEmpty()) {
-            log.error("Application could not initialize its data: no files of correct format could be read.");
-        } else {
-            log.info("Created graph(s) from files with number: {}", graphs.size());
-        }
-        return graphs;
+        return !graphs.isEmpty();
     }
-
 
     public Graph loadGraph(String path) {
 
         Graph graph;
 
-        log.info("Reading file: " + path + "...");
+        log.info("Reading file... : " + path);
 
         CSVFormat currentFormat = readFileFormat(path);
 
         if (currentFormat != null) {
-            graph = createGraph(path, currentFormat);
+            graph = graphFactory.create(path, currentFormat);
             log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
                     graph.getName(),
                     graph.getSymbol(),
@@ -72,6 +78,129 @@ public class DataService {
             }
             return null;
         }
+    }
+
+    //TODO Implement this method
+    public boolean loadTradingData(CoreData coreData) {
+
+
+        log.debug("NOT IMPLEMENTED YET");
+
+
+        return false;
+    }
+
+    //TODO Implement this method
+    public boolean saveTradingData(CoreData coreData) {
+        log.debug("NOT IMPLEMENTED YET");
+        return false;
+    }
+
+    //TODO Implement this method
+    public boolean generateTradingData(CoreData coreData) {
+
+        Set<PatternBox> tradingData = new HashSet<>();
+
+        if ((coreData != null) && Check.notNullNotEmpty(coreData.getPatternBoxes())) {
+            for (PatternBox patternBox : coreData.getPatternBoxes()) {
+                List<Pattern> tradingPatterns = new ArrayList<>();
+
+                if (Check.notNullNotEmpty(patternBox.getPatterns())) {
+                    for (Pattern pattern : patternBox.getPatterns()) {
+                        tradingPatterns.add(new TradingPattern((PredictivePattern) pattern));
+                    }
+                }
+                if (!tradingPatterns.isEmpty()) {
+                    tradingData.add(new PatternBox(tradingPatterns.get(0).getSymbol(), tradingPatterns.get(0).getTimeframe(), tradingPatterns));
+                }
+            }
+            coreData.setTradingPatternBoxes(tradingData);
+        }
+        return !tradingData.isEmpty();
+    }
+
+    public boolean purgeNonTradingData(CoreData coreData) {
+        return coreData.purge();
+    }
+
+    public boolean createGraphsForMissingTimeframes(CoreData coreData) {
+        log.debug("NOT IMPLEMENTED YET");
+        return false;
+    }
+
+    public void printCoreData(CoreData coreData) {
+
+        StringBuilder coreDataToPrint = new StringBuilder();
+
+        if (coreData != null)   {
+            if (Check.notNullNotEmpty(coreData.getGraphs())) {
+                coreDataToPrint.append(coreData.getGraphs().size())
+                        .append(" GRAPH(S)")
+                        .append(NEW_LINE);
+                for (Graph graph : coreData.getGraphs())    {
+                    coreDataToPrint
+                            .append(graph.getName())
+                            .append(", ")
+                            .append(graph.getSymbol())
+                            .append(", ")
+                            .append(graph.getTimeframe())
+                            .append(NEW_LINE)
+                            .append("---")
+                            .append(NEW_LINE);
+
+                }
+            } else {
+                coreDataToPrint.append(coreData.getGraphs().size())
+                        .append(NEW_LINE)
+                        .append("0 GRAPH(S)")
+                        .append(NEW_LINE);
+            }
+
+            if (Check.notNullNotEmpty(coreData.getPatternBoxes())) {
+                coreDataToPrint.append(coreData.getPatternBoxes().size())
+                        .append(" PATTERN BOX(ES)")
+                        .append(NEW_LINE);
+                for (PatternBox patternBox : coreData.getPatternBoxes())    {
+                    coreDataToPrint
+                            .append(patternBox.getPatterns().size())
+                            .append(" patterns, ")
+                            .append(patternBox.getSymbol())
+                            .append(", ")
+                            .append(patternBox.getTimeframe())
+                            .append(NEW_LINE)
+                            .append("---")
+                            .append(NEW_LINE);
+                }
+            } else {
+                coreDataToPrint.append(coreData.getGraphs().size())
+                        .append("0 PATTERN BOX(ES)")
+                        .append(NEW_LINE);
+            }
+
+            if (Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
+                coreDataToPrint.append(coreData.getTradingPatternBoxes().size())
+                        .append(" TRADING PATTERN BOX(ES)")
+                        .append(NEW_LINE);
+                for (PatternBox tradingPatternBox : coreData.getTradingPatternBoxes())    {
+                    coreDataToPrint
+                            .append(tradingPatternBox.getPatterns().size())
+                            .append(" trading patterns, ")
+                            .append(tradingPatternBox.getSymbol())
+                            .append(", ")
+                            .append(tradingPatternBox.getTimeframe())
+                            .append(NEW_LINE)
+                            .append("---")
+                            .append(NEW_LINE);
+                }
+            } else {
+                coreDataToPrint.append(coreData.getGraphs().size())
+                        .append("0 TRADING PATTERN BOX(ES)");
+            }
+        } else {
+            coreDataToPrint.append("Core Data is empty.");
+        }
+
+        log.info(coreDataToPrint.toString());
     }
 
     public boolean printGraph(Graph graph) {
@@ -115,77 +244,6 @@ public class DataService {
             e.printStackTrace();
         }
         return csvFormat;
-    }
-
-    private Graph createGraph(String path, CSVFormat csvFormat) {
-        String line;
-        List<Candle> candles = new ArrayList<>();
-        Symbol symbol = Symbol.UNDEFINED;
-        Path filePath = Paths.get(path);
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-
-            do {
-                line = reader.readLine();
-            } while (!line.matches(csvFormat.formatHeader));
-
-            do {
-                line = reader.readLine();
-                if (line != null) {
-                    String[] values = line.split(csvFormat.delimiter);
-                    Candle candle = new Candle(
-                            LocalDateTime.ofEpochSecond(Long.parseLong(
-                                            Format.cutString(values[csvFormat.unixPosition], 10)),
-                                    0,
-                                    ZoneOffset.UTC),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.openPosition])),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.highPosition])),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.lowPosition])),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.closePosition])),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.volumePosition]))
-                    );
-                    if (symbol == Symbol.UNDEFINED) {
-                        symbol = readSymbol(values[csvFormat.symbolPosition]);
-                    }
-
-                    candles.add(candle);
-                }
-            } while (line != null);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        candles.sort(Comparator.comparing(Candle::dateTime));
-        return new Graph(filePath.getFileName().toString(), symbol, getTimeframe(candles), candles);
-    }
-
-    private Symbol readSymbol(String symbolValue) {
-
-        Symbol symbol = Symbol.UNDEFINED;
-
-        if ((symbolValue != null)
-                && (symbolValue.contains("USD") || symbolValue.contains("usd"))) {
-            if (symbolValue.contains("BTC") || symbolValue.contains("btc")) {
-                symbol = Symbol.BTC_USD;
-            } else if (symbolValue.contains("ETH") || symbolValue.contains("eth")) {
-                symbol = Symbol.ETH_USD;
-            }
-        }
-
-        return symbol;
-    }
-
-    private Timeframe getTimeframe(List<Candle> candles) {
-        Timeframe timeframe = Timeframe.UNKNOWN;
-
-        if (candles.size() > 1) {
-            long timeBetweenCandles = abs(Duration.between(candles.get(0).dateTime(), candles.get(1).dateTime()).getSeconds());
-            for (Timeframe tf : Timeframe.values()) {
-                if (timeBetweenCandles == tf.durationInSeconds) {
-                    timeframe = tf;
-                }
-            }
-        }
-        return timeframe;
     }
 }
 

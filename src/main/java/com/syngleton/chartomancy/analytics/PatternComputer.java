@@ -42,7 +42,7 @@ public class PatternComputer {
     }
 
     private ComputationSettings configParams(ComputationSettings.Builder paramsInput) {
-
+//TODO refine this method
         return paramsInput.build();
     }
 
@@ -56,9 +56,10 @@ public class PatternComputer {
         Graph graph = computationSettings.getGraph();
         List<Pattern> computedPatterns = new ArrayList<>();
 
+        log.info("Computing basic iteration patterns for graph of symbol: {}, timeframe: {}", graph.getSymbol(), graph.getTimeframe());
+
         if (!patterns.isEmpty() && patterns.get(0).getPatternType() == PatternType.PREDICTIVE) {
 
-            log.info("Compute basic iteration patterns for graph of symbol: {}, timeframe: {}", graph.getSymbol(), graph.getTimeframe());
             ProgressBar pb = new ProgressBar("Processing...", patterns.size());
 
             pb.start();
@@ -67,6 +68,8 @@ public class PatternComputer {
                 computedPatterns.add(computeBasicIterationPattern((PredictivePattern) pattern, graph));
             }
             pb.stop();
+        } else {
+            log.error("Could not compute: no computable patterns found.");
         }
         return computedPatterns;
     }

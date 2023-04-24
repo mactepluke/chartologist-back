@@ -33,7 +33,7 @@ public class ComputationSettings {
 
     public enum Autoconfig {
         NONE,
-        USE_DEFAULTS,
+        DEFAULT,
         TEST
     }
 
@@ -51,7 +51,7 @@ public class ComputationSettings {
 
 
     public static class Builder    {
-        private Autoconfig autoconfig = Autoconfig.USE_DEFAULTS;
+        private Autoconfig autoconfig = Autoconfig.DEFAULT;
         private ComputationType computationType = ComputationType.BASIC_ITERATION;
         private Graph graph = null;
         private List<Pattern> patterns = null;

@@ -14,24 +14,18 @@ public abstract class Pattern extends ChartObject {
     private final PatternType patternType;
     private final int granularity;
     private final int length;
-    private final String name;
-    private final LocalDateTime startDate;
 
     protected Pattern(List<PixelatedCandle> pixelatedCandles,
                       PatternType patternType,
                       int granularity,
                       int length,
                       Symbol symbol,
-                      Timeframe timeframe,
-                      String name,
-                      LocalDateTime startDate
+                      Timeframe timeframe
     ) {
         super(symbol, timeframe);
         this.pixelatedCandles = pixelatedCandles;
         this.patternType = patternType;
         this.granularity = granularity;
         this.length = length;
-        this.name = name;
-        this.startDate = startDate;
     }
 }

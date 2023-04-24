@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 public class TradingBot {
     private final List<Pattern> patterns;
-    private final List<TradingData> tradingHistory;
+    private final List<TradesData> tradingHistory;
     private boolean active;
     private TradingStrategy tradingStrategy;
 

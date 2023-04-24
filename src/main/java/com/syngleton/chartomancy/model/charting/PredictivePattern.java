@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,18 +20,18 @@ public class PredictivePattern extends Pattern {
     private final int scope;
     private final List<ComputationData> computationsHistory;
     private int priceVariationPrediction = 0;
+    private final LocalDateTime startDate;
 
-    public PredictivePattern(Pattern pattern, int scope) {
+    public PredictivePattern(BasicPattern pattern, int scope) {
         super(
                 pattern.getPixelatedCandles(),
                 PatternType.PREDICTIVE,
                 pattern.getGranularity(),
                 pattern.getLength(),
                 pattern.getSymbol(),
-                pattern.getTimeframe(),
-                pattern.getName(),
-                pattern.getStartDate()
+                pattern.getTimeframe()
                 );
+        this.startDate = pattern.getStartDate();
         this.scope = Format.streamlineInt(scope, 1, this.getLength());
         this.computationsHistory = new ArrayList<>();
     }

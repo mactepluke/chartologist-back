@@ -2,12 +2,11 @@ package com.syngleton.chartomancy.service;
 
 import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.PatternComputer;
+import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternFactory;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.Graph;
-import com.syngleton.chartomancy.model.charting.Pattern;
-import com.syngleton.chartomancy.model.charting.PatternBox;
-import com.syngleton.chartomancy.model.charting.PixelatedCandle;
+import com.syngleton.chartomancy.model.charting.*;
+import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 
 @Log4j2
 @Service
@@ -32,87 +32,76 @@ public class PatternService {
         this.patternComputer = patternComputer;
     }
 
-    public List<Pattern> createPatterns(PatternSettings.Builder settingsInput) {
-        return patternFactory.create(settingsInput);
-    }
-
-    public Set<PatternBox> createPatternBoxes(Set<Graph> graphs, PatternSettings.Builder settingsInput) {
+    public boolean createPatternBoxes(CoreData coreData, PatternSettings.Builder settingsInput) {
 
         Set<PatternBox> patternBoxes = new HashSet<>();
 
-        if ((graphs != null) && (!graphs.isEmpty())) {
-            for (Graph graph : graphs) {
-                boolean noMatch = true;
+        if (coreData != null
+                && Check.notNullNotEmpty(coreData.getGraphs())
+        ) {
+            if (Check.notNullNotEmpty(coreData.getPatternBoxes())) {
+                patternBoxes = coreData.getPatternBoxes();
+            }
 
-                for (PatternBox patternBox : patternBoxes) {
-                    if ((patternBox != null) && (patternBox.matches(graph))) {
-                        noMatch = false;
-                    }
-                }
-                if (noMatch) {
+            for (Graph graph : coreData.getGraphs()) {
+
+                if (!Check.matchesAnyChartObjectIn(graph, patternBoxes)) {
                     List<Pattern> patterns = createPatterns(settingsInput.graph(graph));
 
-                    if ((patterns != null) && (!patterns.isEmpty())) {
+                    if (Check.notNullNotEmpty(patterns)) {
                         patternBoxes.add(new PatternBox(patterns.get(0).getSymbol(), patterns.get(0).getTimeframe(), patterns));
                     }
                 }
             }
+            coreData.setPatternBoxes(patternBoxes);
         }
+        return !patternBoxes.isEmpty();
+    }
 
-        if (patternBoxes.isEmpty()) {
-            log.error("Application could not initialize its data: no patterns could be created.");
-        } else {
-            log.info("Created {} list(s) of patterns", patternBoxes.size());
+
+    public List<Pattern> createPatterns(PatternSettings.Builder settingsInput) {
+        return patternFactory.create(settingsInput);
+    }
+
+    public boolean computePatternsList(CoreData coreData, ComputationSettings.Builder settingsInput) {
+
+        Set<PatternBox> computedPatternBoxes = new HashSet<>();
+
+        if (coreData != null
+                && Check.notNullNotEmpty(coreData.getGraphs())
+                && Check.notNullNotEmpty(coreData.getPatternBoxes())
+        ) {
+            for (PatternBox patternBox : coreData.getPatternBoxes()) {
+
+                if ((patternBox != null) && Check.notNullNotEmpty(patternBox.getPatterns())) {
+
+                    Graph matchingGraph = Check.getFirstMatchingChartObjectIn(patternBox, coreData.getGraphs());
+
+                    if (matchingGraph != null) {
+                        computedPatternBoxes.add(
+                                new PatternBox(
+                                        matchingGraph.getSymbol(),
+                                        matchingGraph.getTimeframe(),
+                                        computePatterns(
+                                                settingsInput
+                                                        .patterns(patternBox.getPatterns())
+                                                        .graph(matchingGraph)
+                                        )
+                                )
+                        );
+                    }
+                }
+            }
+            if (Check.notNullNotEmpty(computedPatternBoxes))   {
+                coreData.setPatternBoxes(computedPatternBoxes);
+                return true;
+            }
         }
-
-        return patternBoxes;
+        return false;
     }
 
     public List<Pattern> computePatterns(ComputationSettings.Builder settingsInput) {
         return patternComputer.compute(settingsInput);
-    }
-
-    public Set<PatternBox> computePatternsList(Set<PatternBox> patternBoxes, Set<Graph> graphs, ComputationSettings.Builder settingsInput) {
-
-        Set<PatternBox> computedPatternBoxes = new HashSet<>();
-
-        if (patternBoxes != null
-                && !patternBoxes.isEmpty()
-                && graphs != null
-                && !graphs.isEmpty()
-        ) {
-
-            for (PatternBox patternBox : patternBoxes) {
-
-                if ((patternBox != null) && (!patternBox.getPatterns().isEmpty())) {
-
-                    for (Graph graph : graphs) {
-                        if (graph.matches(patternBox)) {
-                            computedPatternBoxes.add(
-                                    new PatternBox(
-                                            graph.getSymbol(),
-                                            graph.getTimeframe(),
-                                            computePatterns(
-                                                    settingsInput
-                                                            .patterns(patternBox.getPatterns())
-                                                            .graph(graph)
-                                            )
-                                    )
-                            );
-                        }
-                    }
-
-                }
-            }
-        }
-
-        if (computedPatternBoxes.isEmpty()) {
-            log.error("Application could not compute patterns: no pattern has been altered.");
-            return patternBoxes;
-        }
-        log.info("Computed {} list(s) of patterns", computedPatternBoxes.size());
-
-        return computedPatternBoxes;
     }
 
     public boolean printPatterns(List<Pattern> patterns) {
