@@ -6,19 +6,17 @@ import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.*;
-import com.syngleton.chartomancy.util.Format;
+import com.syngleton.chartomancy.model.charting.Pattern;
+import com.syngleton.chartomancy.model.charting.PatternType;
+import com.syngleton.chartomancy.model.charting.PredictivePattern;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.*;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,16 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 class PatternServiceTests {
-
-/*    private final static int TEST_GRAPH_LENGTH = 3000;
-    private final static int TEST_GRAPH_STARTING_DATETIME = 1666051200;
-    private final static Timeframe TEST_TIMEFRAME = Timeframe.DAY;
-    private final static Symbol TEST_SYMBOL = Symbol.UNDEFINED;
-    private final static int TEST_STARTING_OPEN = 2000;
-    private final static int MINIMUM_VALUE = 400;
-    private final static int MAXIMUM_VALUE = 5000;
-    private final static float VARIABILITY_COEF = 300;
-    private final static int NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES = 2;*/
 
     private List<Pattern> patterns;
     private List<Pattern> patternsToPrint;
@@ -54,32 +42,6 @@ class PatternServiceTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING PATTERN SERVICE TESTS ***");
-        /*
-        List<Candle> mockCandles = new ArrayList<>();
-
-        for (int i = 0; i < TEST_GRAPH_LENGTH; i++) {
-            Random rd = new Random();
-            float span = (float) Math.random() * VARIABILITY_COEF;
-            boolean direction = rd.nextBoolean();
-            float open = (i == 0) ? TEST_STARTING_OPEN : mockCandles.get(i - 1).close();
-            float close = (direction) ? open + span : open - span;
-            float high = (float) ((direction) ? close + Math.random() * VARIABILITY_COEF / 2 : open + Math.random() * VARIABILITY_COEF / 2);
-            float low = (float) ((direction) ? open - Math.random() * VARIABILITY_COEF / 2 : close - Math.random() * VARIABILITY_COEF / 2);
-            float volume = (float) Math.random() * VARIABILITY_COEF * TEST_STARTING_OPEN;
-
-            Candle candle = new Candle(
-                    LocalDateTime.ofEpochSecond(
-                            TEST_GRAPH_STARTING_DATETIME + TEST_TIMEFRAME.durationInSeconds * i,
-                            0,
-                            ZoneOffset.UTC),
-                    Format.streamlineFloat(open, MINIMUM_VALUE, MAXIMUM_VALUE),
-                    Format.streamlineFloat(high, MINIMUM_VALUE, MAXIMUM_VALUE),
-                    Format.streamlineFloat(low, MINIMUM_VALUE, MAXIMUM_VALUE),
-                    Format.streamlineFloat(close, MINIMUM_VALUE, MAXIMUM_VALUE),
-                    volume
-            );
-            mockCandles.add(candle);
-        }*/
 
         coreData.setGraphs(mockData.getTestGraphs());
 

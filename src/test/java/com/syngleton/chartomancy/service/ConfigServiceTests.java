@@ -40,6 +40,7 @@ class ConfigServiceTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING AUTOMATION SERVICE TESTS ***");
+        testDataFolderName = "src/test/resources/" + testDataFolderName;
     }
 
     @AfterAll
@@ -60,7 +61,7 @@ class ConfigServiceTests {
                 false,
                 false,
                 false,
-                true,
+                false,
                 PatternSettings.Autoconfig.TEST,
                 ComputationSettings.Autoconfig.TEST,
                 ComputationType.BASIC_ITERATION,
@@ -68,6 +69,7 @@ class ConfigServiceTests {
                 false
         );
         assertNotNull(coreData.getTradingPatternBoxes());
+        assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES, coreData.getPatternBoxes().size());
         assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES, coreData.getTradingPatternBoxes().size());
     }
 

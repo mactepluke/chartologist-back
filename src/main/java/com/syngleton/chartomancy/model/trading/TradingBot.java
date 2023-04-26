@@ -1,6 +1,7 @@
 package com.syngleton.chartomancy.model.trading;
 
 import com.syngleton.chartomancy.model.charting.Pattern;
+import com.syngleton.chartomancy.model.charting.TradingPattern;
 import lombok.Data;
 import lombok.ToString;
 
@@ -10,12 +11,12 @@ import java.util.List;
 @ToString
 @Data
 public class TradingBot {
-    private final List<Pattern> patterns;
+    private final List<TradingPattern> patterns;
     private final List<TradesData> tradingHistory;
     private boolean active;
     private TradingStrategy tradingStrategy;
 
-    public TradingBot(List<Pattern> patterns) {
+    public TradingBot(List<TradingPattern> patterns) {
         this.patterns = patterns;
         this.tradingHistory = new ArrayList<>();
     }

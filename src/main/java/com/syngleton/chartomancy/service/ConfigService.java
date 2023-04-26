@@ -57,20 +57,25 @@ public class ConfigService {
                     createGraphsForMissingTimeframes,
                     fullScope));
 
+            if (generateTradingData && loadTradingDataAtStartup)    {
+                log.warn("Conflict in data config parameters: trading data will be generated, not loaded from file.");
+                loadTradingDataAtStartup = false;
+            }
+
             if (generateTradingData && !loadTradingDataAtStartup) {
-                log.debug("Generated trading data: {}", dataService.generateTradingData(coreData));
+                log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
                 if (overrideSavedTradingData) {
-                    log.debug("Overriden saved trading data with newly generated data: {}", dataService.saveTradingData(coreData));
+                    log.info("Overriden saved trading data with newly generated data: {}", dataService.saveTradingData(coreData));
                 }
                 if (purgeAfterTradingDataGeneration) {
-                    log.debug("Purged non-trading data: {}", dataService.purgeNonTradingData(coreData));
+                    log.info("Purged non-trading data: {}", dataService.purgeNonTradingData(coreData));
                 }
             }
         }
 
         //LOADING TRADING DATA IF APPLICABLE
         if (loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData) && !generateTradingData) {
-            log.debug("Loaded trading data: {}", dataService.loadTradingData(coreData));
+            log.info("Loaded trading data: {}", dataService.loadTradingData(coreData));
         }
 
         //PRINTING CORE DATA CONTENTS IF APPLICABLE
@@ -99,7 +104,7 @@ public class ConfigService {
 
         //CREATING GRAPHS FOR MISSING TIMEFRAMES
         if (createGraphsForMissingTimeframes) {
-            log.debug("Created graphs for missing timeframes: {}", dataService.createGraphsForMissingTimeframes(coreData));
+            log.info("Created graphs for missing timeframes: {}", dataService.createGraphsForMissingTimeframes(coreData));
         }
 
         //CREATING PREDICTIVE PATTERNS
@@ -111,7 +116,7 @@ public class ConfigService {
         }
 
         if (patternService.createPatternBoxes(coreData, patternSettingsInput)) {
-            log.info("Created {} pattern box(es)", coreData.getGraphs().size());
+            log.info("Created {} pattern box(es)", coreData.getPatternBoxes().size());
         } else {
             log.error("Application could not initialize its data: no pattern boxes could be created.");
         }

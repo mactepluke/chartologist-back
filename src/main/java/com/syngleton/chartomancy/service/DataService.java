@@ -42,7 +42,7 @@ public class DataService {
 
                 Graph graph = loadGraph("./" + dataFolderName + "/" + dataFileName);
 
-                if (graph != null && !Check.matchesAnyChartObjectIn(graph, coreData.getGraphs())) {
+                if (graph != null && !graph.matchesAnyChartObjectIn(coreData.getGraphs())) {
                     graphs.add(graph);
                 }
             }
@@ -82,8 +82,6 @@ public class DataService {
 
     //TODO Implement this method
     public boolean loadTradingData(CoreData coreData) {
-
-
         log.debug("NOT IMPLEMENTED YET");
 
 
@@ -96,7 +94,6 @@ public class DataService {
         return false;
     }
 
-    //TODO Implement this method
     public boolean generateTradingData(CoreData coreData) {
 
         Set<PatternBox> tradingData = new HashSet<>();
@@ -128,79 +125,99 @@ public class DataService {
         return false;
     }
 
-    public void printCoreData(CoreData coreData) {
+    public boolean printCoreData(CoreData coreData) {
 
-        StringBuilder coreDataToPrint = new StringBuilder();
+        if (coreData != null) {
 
-        if (coreData != null)   {
-            if (Check.notNullNotEmpty(coreData.getGraphs())) {
-                coreDataToPrint.append(coreData.getGraphs().size())
-                        .append(" GRAPH(S)")
-                        .append(NEW_LINE);
-                for (Graph graph : coreData.getGraphs())    {
-                    coreDataToPrint
-                            .append(graph.getName())
-                            .append(", ")
-                            .append(graph.getSymbol())
-                            .append(", ")
-                            .append(graph.getTimeframe())
-                            .append(NEW_LINE)
-                            .append("---")
-                            .append(NEW_LINE);
+            String coreDataToPrint =
+                    NEW_LINE +
+                    "--- CORE DATA ---" +
+                    generateGraphsToPrint(coreData.getGraphs()) +
+                    generatePatternBoxesToPrint(coreData.getPatternBoxes(), "PATTERN") +
+                    generatePatternBoxesToPrint(coreData.getTradingPatternBoxes(), "TRADING PATTERN");
 
-                }
-            } else {
-                coreDataToPrint.append(coreData.getGraphs().size())
+            log.info(coreDataToPrint);
+            return true;
+        } else {
+            log.info("Cannot print core data: object is empty.");
+            return false;
+        }
+    }
+
+    private String generateGraphsToPrint(Set<Graph> graphs) {
+
+        StringBuilder graphsBuilder = new StringBuilder();
+
+        if (Check.notNullNotEmpty(graphs)) {
+            graphsBuilder
+                    .append(NEW_LINE)
+                    .append(graphs.size())
+                    .append(" GRAPH(S)")
+                    .append(NEW_LINE);
+            for (Graph graph : graphs) {
+                graphsBuilder
+                        .append(graph.getName())
+                        .append(", ")
+                        .append(graph.getSymbol())
+                        .append(", ")
+                        .append(graph.getTimeframe())
+                        .append(", ")
+                        .append(graph.getCandles().size())
+                        .append(" candles")
                         .append(NEW_LINE)
-                        .append("0 GRAPH(S)")
-                        .append(NEW_LINE);
-            }
-
-            if (Check.notNullNotEmpty(coreData.getPatternBoxes())) {
-                coreDataToPrint.append(coreData.getPatternBoxes().size())
-                        .append(" PATTERN BOX(ES)")
-                        .append(NEW_LINE);
-                for (PatternBox patternBox : coreData.getPatternBoxes())    {
-                    coreDataToPrint
-                            .append(patternBox.getPatterns().size())
-                            .append(" patterns, ")
-                            .append(patternBox.getSymbol())
-                            .append(", ")
-                            .append(patternBox.getTimeframe())
-                            .append(NEW_LINE)
-                            .append("---")
-                            .append(NEW_LINE);
-                }
-            } else {
-                coreDataToPrint.append(coreData.getGraphs().size())
-                        .append("0 PATTERN BOX(ES)")
-                        .append(NEW_LINE);
-            }
-
-            if (Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
-                coreDataToPrint.append(coreData.getTradingPatternBoxes().size())
-                        .append(" TRADING PATTERN BOX(ES)")
-                        .append(NEW_LINE);
-                for (PatternBox tradingPatternBox : coreData.getTradingPatternBoxes())    {
-                    coreDataToPrint
-                            .append(tradingPatternBox.getPatterns().size())
-                            .append(" trading patterns, ")
-                            .append(tradingPatternBox.getSymbol())
-                            .append(", ")
-                            .append(tradingPatternBox.getTimeframe())
-                            .append(NEW_LINE)
-                            .append("---")
-                            .append(NEW_LINE);
-                }
-            } else {
-                coreDataToPrint.append(coreData.getGraphs().size())
-                        .append("0 TRADING PATTERN BOX(ES)");
+                        .append("---");
             }
         } else {
-            coreDataToPrint.append("Core Data is empty.");
+            graphsBuilder
+                    .append(NEW_LINE)
+                    .append("0 GRAPH(S)")
+                    .append(NEW_LINE)
+                    .append("---");
         }
+        return graphsBuilder.toString();
+    }
 
-        log.info(coreDataToPrint.toString());
+    private String generatePatternBoxesToPrint(Set<PatternBox> patternBoxes, String nameOfContent) {
+
+        StringBuilder patternBoxesBuilder = new StringBuilder();
+
+        if (Check.notNullNotEmpty(patternBoxes)) {
+            patternBoxesBuilder
+                    .append(NEW_LINE)
+                    .append(patternBoxes.size())
+                    .append(" ")
+                    .append(nameOfContent)
+                    .append(" BOX(ES)")
+                    .append(NEW_LINE);
+            for (PatternBox patternBox : patternBoxes) {
+                boolean notNullNotEmpty = Check.notNullNotEmpty(patternBox.getPatterns());
+
+                patternBoxesBuilder
+                        .append(patternBox.getPatterns().size())
+                        .append(" patterns, ")
+                        .append(patternBox.getSymbol())
+                        .append(", ")
+                        .append(patternBox.getTimeframe())
+                        .append(", pattern type: ")
+                        .append((notNullNotEmpty) ? patternBox.getPatterns().get(0).getPatternType() : "(empty)")
+                        .append(", pattern length: ")
+                        .append((notNullNotEmpty) ? patternBox.getPatterns().get(0).getLength() : "(empty)")
+                        .append(", pattern granularity: ")
+                        .append((notNullNotEmpty) ? patternBox.getPatterns().get(0).getGranularity() : "(empty)")
+                        .append(NEW_LINE)
+                        .append("*");
+            }
+        } else {
+            patternBoxesBuilder
+                    .append(NEW_LINE)
+                    .append("0")
+                    .append(" ")
+                    .append(nameOfContent)
+                    .append(" BOX(ES)")
+                    .append(NEW_LINE)
+                    .append("*");
+        }
+        return patternBoxesBuilder.toString();
     }
 
     public boolean printGraph(Graph graph) {

@@ -56,7 +56,7 @@ public class PatternComputer {
         Graph graph = computationSettings.getGraph();
         List<Pattern> computedPatterns = new ArrayList<>();
 
-        log.info("Computing basic iteration patterns for graph of symbol: {}, timeframe: {}", graph.getSymbol(), graph.getTimeframe());
+        log.debug("Computing basic iteration patterns for graph of symbol: {}, timeframe: {}", graph.getSymbol(), graph.getTimeframe());
 
         if (!patterns.isEmpty() && patterns.get(0).getPatternType() == PatternType.PREDICTIVE) {
 

@@ -58,6 +58,7 @@ class DataServiceTests {
                 patterns
         );
         coreData.getPatternBoxes().add(patternBox);
+        testDataFolderName = "src/test/resources/" + testDataFolderName;
     }
 
     @AfterAll
@@ -69,7 +70,7 @@ class DataServiceTests {
     @Test
     @DisplayName("[UNIT] Loads all test files and creates their graphs")
     void loadGraphsTest() {
-        assertTrue(dataService.loadGraphs(coreData, "src/test/resources/" + testDataFolderName, testDataFilesNames));
+        assertTrue(dataService.loadGraphs(coreData, testDataFolderName, testDataFilesNames));
         assertEquals(testDataFilesNames.size(), coreData.getGraphs().size());
     }
 

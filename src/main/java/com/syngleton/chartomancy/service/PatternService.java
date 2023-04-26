@@ -5,13 +5,15 @@ import com.syngleton.chartomancy.analytics.PatternComputer;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternFactory;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.*;
+import com.syngleton.chartomancy.model.charting.Graph;
+import com.syngleton.chartomancy.model.charting.Pattern;
+import com.syngleton.chartomancy.model.charting.PatternBox;
+import com.syngleton.chartomancy.model.charting.PixelatedCandle;
 import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,8 +46,7 @@ public class PatternService {
             }
 
             for (Graph graph : coreData.getGraphs()) {
-
-                if (!Check.matchesAnyChartObjectIn(graph, patternBoxes)) {
+                if (!graph.matchesAnyChartObjectIn(patternBoxes)) {
                     List<Pattern> patterns = createPatterns(settingsInput.graph(graph));
 
                     if (Check.notNullNotEmpty(patterns)) {
@@ -75,7 +76,7 @@ public class PatternService {
 
                 if ((patternBox != null) && Check.notNullNotEmpty(patternBox.getPatterns())) {
 
-                    Graph matchingGraph = Check.getFirstMatchingChartObjectIn(patternBox, coreData.getGraphs());
+                    Graph matchingGraph = patternBox.getFirstMatchingChartObjectIn(coreData.getGraphs());
 
                     if (matchingGraph != null) {
                         computedPatternBoxes.add(
