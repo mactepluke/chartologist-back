@@ -28,6 +28,7 @@ class DataServiceTests {
 
     @Value("${test_data_folder_name}")
     private String testDataFolderName;
+    private String getTestDataFolderPath;
     @Value("#{'${test_data_files_names}'.split(',')}")
     private List<String> testDataFilesNames;
 
@@ -53,12 +54,11 @@ class DataServiceTests {
                 LocalDateTime.now());
         patterns.add(new PredictivePattern(basicPattern, 5));
         PatternBox patternBox = new PatternBox(
-                mockData.getMockGraphDay1().getSymbol(),
-                mockData.getMockGraphDay1().getTimeframe(),
+                mockData.getMockGraphDay1(),
                 patterns
         );
         coreData.getPatternBoxes().add(patternBox);
-        testDataFolderName = "src/test/resources/" + testDataFolderName;
+        getTestDataFolderPath = "src/test/resources/" + testDataFolderName;
     }
 
     @AfterAll
@@ -70,8 +70,10 @@ class DataServiceTests {
     @Test
     @DisplayName("[UNIT] Loads all test files and creates their graphs")
     void loadGraphsTest() {
-        assertTrue(dataService.loadGraphs(coreData, testDataFolderName, testDataFilesNames));
-        assertEquals(testDataFilesNames.size(), coreData.getGraphs().size());
+        CoreData testCoreData = new CoreData();
+
+        assertTrue(dataService.loadGraphs(testCoreData, getTestDataFolderPath, testDataFilesNames));
+        assertEquals(testDataFilesNames.size(), testCoreData.getGraphs().size());
     }
 
     @Test
@@ -101,8 +103,9 @@ class DataServiceTests {
     }
 
     @Test
-    @DisplayName("[UNIT] Purges non-trading data")
+    @DisplayName("[UNIT] Creates graphs for missing timeframes")
     void createGraphsForMissingTimeframesTest() {
         assertTrue(dataService.createGraphsForMissingTimeframes(coreData));
+        assertEquals(mockData.getNumberOfDifferentMockTimeframes(), mockData.getNumberOfDifferentMockTimeframes() + 1);
     }
 }

@@ -4,6 +4,7 @@ import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.GraphFactory;
 import com.syngleton.chartomancy.model.charting.*;
 import com.syngleton.chartomancy.util.Check;
+import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,10 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Log4j2
 @Service
@@ -25,6 +23,7 @@ public class DataService {
     private int readingAttempts;
     private final GraphFactory graphFactory;
     private static final String NEW_LINE = System.getProperty("line.separator");
+    private static final String EMPTY_VALUE = "(empty)";
 
 
     @Autowired
@@ -42,7 +41,7 @@ public class DataService {
 
                 Graph graph = loadGraph("./" + dataFolderName + "/" + dataFileName);
 
-                if (graph != null && !graph.matchesAnyChartObjectIn(coreData.getGraphs())) {
+                if (graph != null && graph.doesNotMatchAnyChartObjectIn(coreData.getGraphs())) {
                     graphs.add(graph);
                 }
             }
@@ -100,15 +99,23 @@ public class DataService {
 
         if ((coreData != null) && Check.notNullNotEmpty(coreData.getPatternBoxes())) {
             for (PatternBox patternBox : coreData.getPatternBoxes()) {
-                List<Pattern> tradingPatterns = new ArrayList<>();
+                Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
 
                 if (Check.notNullNotEmpty(patternBox.getPatterns())) {
-                    for (Pattern pattern : patternBox.getPatterns()) {
-                        tradingPatterns.add(new TradingPattern((PredictivePattern) pattern));
+
+                    for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
+
+                        List<Pattern> tradingPatternsList = new ArrayList<>();
+
+                        for (Pattern pattern : entry.getValue()) {
+                            tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
+                        }
+                        tradingPatterns.put(entry.getKey(), tradingPatternsList);
                     }
                 }
-                if (!tradingPatterns.isEmpty()) {
-                    tradingData.add(new PatternBox(tradingPatterns.get(0).getSymbol(), tradingPatterns.get(0).getTimeframe(), tradingPatterns));
+                ChartObject anyPattern = tradingPatterns.entrySet().iterator().next().getValue().get(0);
+                if (!tradingPatterns.isEmpty() && anyPattern != null) {
+                    tradingData.add(new PatternBox(anyPattern, tradingPatterns));
                 }
             }
             coreData.setTradingPatternBoxes(tradingData);
@@ -131,10 +138,11 @@ public class DataService {
 
             String coreDataToPrint =
                     NEW_LINE +
-                    "--- CORE DATA ---" +
-                    generateGraphsToPrint(coreData.getGraphs()) +
-                    generatePatternBoxesToPrint(coreData.getPatternBoxes(), "PATTERN") +
-                    generatePatternBoxesToPrint(coreData.getTradingPatternBoxes(), "TRADING PATTERN");
+                            "*** CORE DATA ***" +
+                            generateGraphsToPrint(coreData.getGraphs()) +
+                            generatePatternBoxesToPrint(coreData.getPatternBoxes(), "PATTERN") +
+                            generatePatternBoxesToPrint(coreData.getTradingPatternBoxes(), "TRADING PATTERN") +
+                    generateMemoryUsageToPrint();
 
             log.info(coreDataToPrint);
             return true;
@@ -142,6 +150,20 @@ public class DataService {
             log.info("Cannot print core data: object is empty.");
             return false;
         }
+    }
+
+    private String generateMemoryUsageToPrint() {
+
+        return NEW_LINE +
+                "Current heap size (MB): " +
+                Format.roundFloat((float) Runtime.getRuntime().totalMemory() / 1000000) +
+                NEW_LINE +
+                "Max heap size (MB): " +
+                Format.roundFloat((float) Runtime.getRuntime().maxMemory() / 1000000) +
+                NEW_LINE +
+                "Free heap size (MB): " +
+                Format.roundFloat((float) Runtime.getRuntime().freeMemory() / 1000000) +
+                NEW_LINE;
     }
 
     private String generateGraphsToPrint(Set<Graph> graphs) {
@@ -156,6 +178,7 @@ public class DataService {
                     .append(NEW_LINE);
             for (Graph graph : graphs) {
                 graphsBuilder
+                        .append("-> ")
                         .append(graph.getName())
                         .append(", ")
                         .append(graph.getSymbol())
@@ -165,14 +188,14 @@ public class DataService {
                         .append(graph.getCandles().size())
                         .append(" candles")
                         .append(NEW_LINE)
-                        .append("---");
+                        .append("***");
             }
         } else {
             graphsBuilder
                     .append(NEW_LINE)
                     .append("0 GRAPH(S)")
                     .append(NEW_LINE)
-                    .append("---");
+                    .append("***");
         }
         return graphsBuilder.toString();
     }
@@ -190,22 +213,34 @@ public class DataService {
                     .append(" BOX(ES)")
                     .append(NEW_LINE);
             for (PatternBox patternBox : patternBoxes) {
-                boolean notNullNotEmpty = Check.notNullNotEmpty(patternBox.getPatterns());
 
+                for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
+
+                    if (entry.getValue() != null)   {
+
+                        Pattern anyPattern = patternBox.getPatterns().entrySet().iterator().next().getValue().get(0);
+
+                            patternBoxesBuilder
+                                    .append("-> ")
+                                    .append(entry.getValue().size())
+                                    .append(" patterns, ")
+                                    .append(patternBox.getSymbol())
+                                    .append(", ")
+                                    .append(patternBox.getTimeframe())
+                                    .append(", pattern scope=")
+                                    .append(entry.getKey())
+                                    .append(", pattern type=")
+                                    .append(anyPattern.getPatternType())
+                                    .append(", pattern length=")
+                                    .append(anyPattern.getLength())
+                                    .append(", pattern granularity=")
+                                    .append(anyPattern.getGranularity())
+                                    .append(NEW_LINE);
+                    }
+
+                }
                 patternBoxesBuilder
-                        .append(patternBox.getPatterns().size())
-                        .append(" patterns, ")
-                        .append(patternBox.getSymbol())
-                        .append(", ")
-                        .append(patternBox.getTimeframe())
-                        .append(", pattern type: ")
-                        .append((notNullNotEmpty) ? patternBox.getPatterns().get(0).getPatternType() : "(empty)")
-                        .append(", pattern length: ")
-                        .append((notNullNotEmpty) ? patternBox.getPatterns().get(0).getLength() : "(empty)")
-                        .append(", pattern granularity: ")
-                        .append((notNullNotEmpty) ? patternBox.getPatterns().get(0).getGranularity() : "(empty)")
-                        .append(NEW_LINE)
-                        .append("*");
+                        .append("***");
             }
         } else {
             patternBoxesBuilder
@@ -215,7 +250,7 @@ public class DataService {
                     .append(nameOfContent)
                     .append(" BOX(ES)")
                     .append(NEW_LINE)
-                    .append("*");
+                    .append("***");
         }
         return patternBoxesBuilder.toString();
     }

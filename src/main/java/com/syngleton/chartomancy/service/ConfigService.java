@@ -57,12 +57,13 @@ public class ConfigService {
                     createGraphsForMissingTimeframes,
                     fullScope));
 
-            if (generateTradingData && loadTradingDataAtStartup)    {
-                log.warn("Conflict in data config parameters: trading data will be generated, not loaded from file.");
-                loadTradingDataAtStartup = false;
-            }
 
-            if (generateTradingData && !loadTradingDataAtStartup) {
+
+            if (generateTradingData) {
+                if (loadTradingDataAtStartup)    {
+                    log.warn("Conflict in data config parameters: trading data will be generated, not loaded from file.");
+                    loadTradingDataAtStartup = false;
+                }
                 log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
                 if (overrideSavedTradingData) {
                     log.info("Overriden saved trading data with newly generated data: {}", dataService.saveTradingData(coreData));
@@ -74,7 +75,7 @@ public class ConfigService {
         }
 
         //LOADING TRADING DATA IF APPLICABLE
-        if (loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData) && !generateTradingData) {
+        if (loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData)) {
             log.info("Loaded trading data: {}", dataService.loadTradingData(coreData));
         }
 
@@ -126,7 +127,7 @@ public class ConfigService {
                 .computationType(computationType)
                 .autoconfig(computationSettings);
 
-        if (patternService.computePatternsList(coreData, computationSettingsInput)) {
+        if (patternService.computePatternBoxes(coreData, computationSettingsInput)) {
             log.info("Computed {} pattern box(es)", coreData.getPatternBoxes().size());
         } else {
             log.error("Application could not initialize its data: no pattern boxes format could be computed.");

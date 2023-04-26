@@ -100,8 +100,10 @@ public class GraphFactory {
         return timeframe;
     }
 
-    public Graph convertUp(Graph graph, Timeframe timeframe)  {
+    public Graph convertToUpperTimeframe(Graph graph, Timeframe timeframe)  {
 //TODO Implement this method
+
+
 
         return graph;
     }

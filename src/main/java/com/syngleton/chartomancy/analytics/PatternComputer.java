@@ -84,7 +84,7 @@ public class PatternComputer {
             int startPricePrediction = predictivePattern.getPriceVariationPrediction();
             LocalDateTime startTime = LocalDateTime.now();
 //TODO Cast to long? view SonarLint
-            long computations = graph.getCandles().size() - predictivePattern.getLength() - predictivePattern.getScope();
+            int computations = graph.getCandles().size() - predictivePattern.getLength() - predictivePattern.getScope();
 
             for (var i = 0; i < computations; i++) {
                 List<Candle> candlesToMatch = graph.getCandles().subList(i, i + predictivePattern.getLength());

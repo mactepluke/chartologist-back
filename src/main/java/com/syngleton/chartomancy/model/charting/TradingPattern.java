@@ -1,5 +1,8 @@
 package com.syngleton.chartomancy.model.charting;
 
+import lombok.Getter;
+
+@Getter
 public class TradingPattern extends Pattern {
 
     private final int scope;

@@ -46,11 +46,11 @@ public class PatternService {
             }
 
             for (Graph graph : coreData.getGraphs()) {
-                if (!graph.matchesAnyChartObjectIn(patternBoxes)) {
+                if (graph.doesNotMatchAnyChartObjectIn(patternBoxes)) {
                     List<Pattern> patterns = createPatterns(settingsInput.graph(graph));
 
                     if (Check.notNullNotEmpty(patterns)) {
-                        patternBoxes.add(new PatternBox(patterns.get(0).getSymbol(), patterns.get(0).getTimeframe(), patterns));
+                        patternBoxes.add(new PatternBox(patterns.get(0), patterns));
                     }
                 }
             }
@@ -64,7 +64,7 @@ public class PatternService {
         return patternFactory.create(settingsInput);
     }
 
-    public boolean computePatternsList(CoreData coreData, ComputationSettings.Builder settingsInput) {
+    public boolean computePatternBoxes(CoreData coreData, ComputationSettings.Builder settingsInput) {
 
         Set<PatternBox> computedPatternBoxes = new HashSet<>();
 
@@ -81,11 +81,10 @@ public class PatternService {
                     if (matchingGraph != null) {
                         computedPatternBoxes.add(
                                 new PatternBox(
-                                        matchingGraph.getSymbol(),
-                                        matchingGraph.getTimeframe(),
+                                        matchingGraph,
                                         computePatterns(
                                                 settingsInput
-                                                        .patterns(patternBox.getPatterns())
+                                                        .patterns(patternBox.getListOfAllPatterns())
                                                         .graph(matchingGraph)
                                         )
                                 )
