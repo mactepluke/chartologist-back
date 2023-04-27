@@ -1,14 +1,14 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.DataConfigTest;
-import com.syngleton.chartomancy.MockData;
+import com.syngleton.chartomancy.configuration.DataConfigTest;
+import com.syngleton.chartomancy.configuration.MockData;
 import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.Pattern;
-import com.syngleton.chartomancy.model.charting.PatternType;
-import com.syngleton.chartomancy.model.charting.PredictivePattern;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
+import com.syngleton.chartomancy.model.charting.patterns.PatternType;
+import com.syngleton.chartomancy.model.charting.patterns.PredictivePattern;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,16 +28,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class PatternServiceTests {
 
     private List<Pattern> patterns;
-    private List<Pattern> patternsToPrint;
     private PatternSettings.Builder testPatternSettingsBuilder;
     private ComputationSettings.Builder testComputationSettingsBuilder;
 
     @Autowired
     PatternService patternService;
     @Autowired
+    MockData mockData;
+    @Autowired
     CoreData coreData;
     @Autowired
-    MockData mockData;
+    DataService dataService;
 
     @BeforeAll
     void setUp() {
@@ -55,11 +56,8 @@ class PatternServiceTests {
 
     @AfterAll
     void tearDown() {
-        if (patternsToPrint != null) {
-            log.trace(patternService.generatePatternsToPrint(patternsToPrint));
-        } else {
-            log.trace("--- No patterns to print ---");
-        }
+        coreData = null;
+        mockData.resetGraphs();
         log.info("*** ENDING PATTERN SERVICE TESTS ***");
     }
 
@@ -74,10 +72,30 @@ class PatternServiceTests {
     }
 
     @Test
+    @DisplayName("[UNIT] Create light basic patterns from mock graph")
+    void createLightBasicPatternsTest() {
+
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.LIGHT_BASIC));
+
+        assertFalse(patterns.isEmpty());
+        assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
+    }
+
+    @Test
     @DisplayName("[UNIT] Create predictive patterns from mock graph")
     void createPredictivePatternsTest() {
 
         patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
+
+        assertFalse(patterns.isEmpty());
+        assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Create light predictive patterns from mock graph")
+    void createLightPredictivePatternsTest() {
+
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.LIGHT_PREDICTIVE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -97,10 +115,9 @@ class PatternServiceTests {
 
         for (Pattern pattern : patterns) {
             assertEquals(1, ((PredictivePattern) pattern).getComputationsHistory().size());
-            assertEquals(mockData.getMockGraphDay1().getCandles().size() - pattern.getLength() - ((PredictivePattern) pattern).getScope(),
+            assertEquals(mockData.getMockGraphDay1().getFloatCandles().size() - pattern.getLength() - ((PredictivePattern) pattern).getScope(),
                     ((PredictivePattern) pattern).getComputationsHistory().get(0).computations());
         }
-        patternsToPrint = patterns;
     }
 
     @Test
@@ -109,7 +126,6 @@ class PatternServiceTests {
 
         assertTrue(patternService.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
-
         assertTrue(patternService.computePatternBoxes(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
     }

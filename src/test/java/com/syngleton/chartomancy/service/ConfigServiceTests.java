@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.DataConfigTest;
+import com.syngleton.chartomancy.configuration.DataConfigTest;
 import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
@@ -15,8 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Log4j2
@@ -40,6 +39,7 @@ class ConfigServiceTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING AUTOMATION SERVICE TESTS ***");
+
         testDataFolderName = "src/test/resources/" + testDataFolderName;
     }
 
@@ -58,19 +58,19 @@ class ConfigServiceTests {
                 testDataFilesNames,
                 true,
                 true,
-                false,
+                true,
                 false,
                 false,
                 false,
                 PatternSettings.Autoconfig.TEST,
                 ComputationSettings.Autoconfig.TEST,
                 ComputationType.BASIC_ITERATION,
-                true,
+                false,
                 false
         );
         assertNotNull(coreData.getTradingPatternBoxes());
-        assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES, coreData.getPatternBoxes().size());
-        assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES, coreData.getTradingPatternBoxes().size());
+        assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES + 2, coreData.getGraphs().size());
+        assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES + 1, coreData.getPatternBoxes().size());
+        assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES + 1, coreData.getTradingPatternBoxes().size());
     }
-
 }

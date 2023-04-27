@@ -1,22 +1,28 @@
-package com.syngleton.chartomancy.model.charting;
+package com.syngleton.chartomancy.model.charting.patterns;
 
+import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import lombok.Getter;
+import lombok.ToString;
+
+import java.util.List;
 
 @Getter
-public class TradingPattern extends Pattern {
+public class LightTradingPattern extends Pattern    {
 
+    @ToString.Exclude
+    private final List<IntCandle> intCandles;
     private final int scope;
     private final int priceVariationPrediction;
 
-    public TradingPattern(PredictivePattern pattern) {
+    public LightTradingPattern(LightPredictivePattern pattern) {
         super(
-                pattern.getPixelatedCandles(),
                 PatternType.TRADING,
                 pattern.getGranularity(),
                 pattern.getLength(),
                 pattern.getSymbol(),
                 pattern.getTimeframe()
         );
+        this.intCandles = pattern.getIntCandles();
         this.scope = pattern.getScope();
         this.priceVariationPrediction = pattern.getPriceVariationPrediction();
     }

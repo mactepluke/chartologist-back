@@ -1,8 +1,8 @@
 package com.syngleton.chartomancy.factory;
 
 import com.syngleton.chartomancy.dto.PatternSettingsDTO;
-import com.syngleton.chartomancy.model.charting.Graph;
-import com.syngleton.chartomancy.model.charting.PatternType;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.patterns.PatternType;
 import lombok.*;
 
 @ToString

@@ -1,5 +1,6 @@
-package com.syngleton.chartomancy.model.charting;
+package com.syngleton.chartomancy.model.charting.patterns;
 
+import com.syngleton.chartomancy.model.charting.misc.ChartObject;
 import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;
 

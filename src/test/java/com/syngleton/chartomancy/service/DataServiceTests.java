@@ -1,9 +1,12 @@
 package com.syngleton.chartomancy.service;
 
-import com.syngleton.chartomancy.DataConfigTest;
-import com.syngleton.chartomancy.MockData;
+import com.syngleton.chartomancy.configuration.DataConfigTest;
+import com.syngleton.chartomancy.configuration.MockData;
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.model.charting.*;
+import com.syngleton.chartomancy.model.charting.patterns.BasicPattern;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
+import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
+import com.syngleton.chartomancy.model.charting.patterns.PredictivePattern;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +38,14 @@ class DataServiceTests {
     @Autowired
     DataService dataService;
     @Autowired
-    CoreData coreData;
-    @Autowired
     MockData mockData;
+    @Autowired
+    CoreData coreData;
 
     @BeforeAll
     void setUp() {
         log.info("*** STARTING DATA SERVICE TESTS ***");
+
         coreData.setGraphs(mockData.getTestGraphs());
         coreData.setPatternBoxes(new HashSet<>());
         List<Pattern> patterns = new ArrayList<>();
@@ -64,6 +68,7 @@ class DataServiceTests {
     @AfterAll
     void tearDown() {
         coreData = null;
+        mockData.resetGraphs();
         log.info("*** ENDING DATA SERVICE TESTS ***");
     }
 
@@ -106,6 +111,6 @@ class DataServiceTests {
     @DisplayName("[UNIT] Creates graphs for missing timeframes")
     void createGraphsForMissingTimeframesTest() {
         assertTrue(dataService.createGraphsForMissingTimeframes(coreData));
-        assertEquals(mockData.getNumberOfDifferentMockTimeframes(), mockData.getNumberOfDifferentMockTimeframes() + 1);
+        assertEquals(mockData.getNumberOfDifferentMockTimeframes()  + 2, coreData.getGraphs().size());
     }
 }

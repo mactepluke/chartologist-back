@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.model.trading;
 
-import com.syngleton.chartomancy.model.charting.TradingPattern;
+import com.syngleton.chartomancy.model.charting.patterns.TradingPattern;
 import lombok.Data;
 import lombok.ToString;
 

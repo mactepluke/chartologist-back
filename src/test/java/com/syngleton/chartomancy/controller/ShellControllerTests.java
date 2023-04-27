@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.controller;
 
-import com.syngleton.chartomancy.DataConfigTest;
+import com.syngleton.chartomancy.configuration.DataConfigTest;
 import com.syngleton.chartomancy.controller.root.DataController;
 import com.syngleton.chartomancy.controller.root.PatternController;
 import com.syngleton.chartomancy.data.CoreData;

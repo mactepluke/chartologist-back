@@ -1,7 +1,7 @@
 package com.syngleton.chartomancy.controller.root;
 
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.model.charting.Graph;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.service.DataService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;

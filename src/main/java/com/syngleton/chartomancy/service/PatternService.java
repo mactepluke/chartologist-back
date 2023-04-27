@@ -5,10 +5,11 @@ import com.syngleton.chartomancy.analytics.PatternComputer;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternFactory;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.Graph;
-import com.syngleton.chartomancy.model.charting.Pattern;
-import com.syngleton.chartomancy.model.charting.PatternBox;
-import com.syngleton.chartomancy.model.charting.PixelatedCandle;
+import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
+import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
+import com.syngleton.chartomancy.model.charting.patterns.PixelatedPattern;
 import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,6 @@ public class PatternService {
             if (Check.notNullNotEmpty(coreData.getPatternBoxes())) {
                 patternBoxes = coreData.getPatternBoxes();
             }
-
             for (Graph graph : coreData.getGraphs()) {
                 if (graph.doesNotMatchAnyChartObjectIn(patternBoxes)) {
                     List<Pattern> patterns = createPatterns(settingsInput.graph(graph));
@@ -104,7 +104,7 @@ public class PatternService {
         return patternComputer.compute(settingsInput);
     }
 
-    public boolean printPatterns(List<Pattern> patterns) {
+    public boolean printPatterns(List<PixelatedPattern> patterns) {
 
         String patternsToPrint = generatePatternsToPrint(patterns);
 
@@ -117,11 +117,11 @@ public class PatternService {
         }
     }
 
-    public String generatePatternsToPrint(List<Pattern> patterns) {
+    public String generatePatternsToPrint(List<PixelatedPattern> patterns) {
         StringBuilder patternsBuilder = new StringBuilder();
 
         if (patterns != null) {
-            for (Pattern pattern : patterns) {
+            for (PixelatedPattern pattern : patterns) {
                 patternsBuilder.append(generatePatternToPrint(pattern));
                 patternsBuilder.append(NEW_LINE);
 
@@ -130,7 +130,7 @@ public class PatternService {
         return patternsBuilder.toString();
     }
 
-    private String generatePatternToPrint(Pattern pattern) {
+    private String generatePatternToPrint(PixelatedPattern pattern) {
 
         StringBuilder patternsBuilder = new StringBuilder();
 

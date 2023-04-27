@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.model.charting;
+package com.syngleton.chartomancy.model.charting.misc;
 
 import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;

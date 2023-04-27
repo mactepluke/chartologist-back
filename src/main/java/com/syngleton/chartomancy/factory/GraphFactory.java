@@ -1,10 +1,11 @@
 package com.syngleton.chartomancy.factory;
 
-import com.syngleton.chartomancy.model.charting.Candle;
-import com.syngleton.chartomancy.model.charting.Graph;
-import com.syngleton.chartomancy.model.charting.Symbol;
-import com.syngleton.chartomancy.model.charting.Timeframe;
+import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.misc.Symbol;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.service.CSVFormat;
+import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static java.lang.Math.abs;
+import static java.lang.Math.*;
 
 @Log4j2
 @Component
@@ -29,7 +30,7 @@ public class GraphFactory {
 
     public Graph create(String path, CSVFormat csvFormat) {
         String line;
-        List<Candle> candles = new ArrayList<>();
+        List<FloatCandle> floatCandles = new ArrayList<>();
         Symbol symbol = Symbol.UNDEFINED;
         Path filePath = Paths.get(path);
 
@@ -44,7 +45,7 @@ public class GraphFactory {
                 line = reader.readLine();
                 if (line != null) {
                     String[] values = line.split(csvFormat.delimiter);
-                    Candle candle = new Candle(
+                    FloatCandle floatCandle = new FloatCandle(
                             LocalDateTime.ofEpochSecond(Long.parseLong(
                                             Format.cutString(values[csvFormat.unixPosition], 10)),
                                     0,
@@ -59,15 +60,15 @@ public class GraphFactory {
                         symbol = readSymbol(values[csvFormat.symbolPosition]);
                     }
 
-                    candles.add(candle);
+                    floatCandles.add(floatCandle);
                 }
             } while (line != null);
         } catch (
                 IOException e) {
             e.printStackTrace();
         }
-        candles.sort(Comparator.comparing(Candle::dateTime));
-        return new Graph(filePath.getFileName().toString(), symbol, getTimeframe(candles), candles);
+        floatCandles.sort(Comparator.comparing(FloatCandle::dateTime));
+        return new Graph(filePath.getFileName().toString(), symbol, getTimeframe(floatCandles), floatCandles);
     }
 
     private Symbol readSymbol(String symbolValue) {
@@ -86,11 +87,11 @@ public class GraphFactory {
         return symbol;
     }
 
-    private Timeframe getTimeframe(List<Candle> candles) {
+    private Timeframe getTimeframe(List<FloatCandle> floatCandles) {
         Timeframe timeframe = Timeframe.UNKNOWN;
 
-        if (candles.size() > 1) {
-            long timeBetweenCandles = abs(Duration.between(candles.get(0).dateTime(), candles.get(1).dateTime()).getSeconds());
+        if (floatCandles.size() > 1) {
+            long timeBetweenCandles = abs(Duration.between(floatCandles.get(0).dateTime(), floatCandles.get(1).dateTime()).getSeconds());
             for (Timeframe tf : Timeframe.values()) {
                 if (timeBetweenCandles == tf.durationInSeconds) {
                     timeframe = tf;
@@ -100,11 +101,37 @@ public class GraphFactory {
         return timeframe;
     }
 
-    public Graph convertToUpperTimeframe(Graph graph, Timeframe timeframe)  {
-//TODO Implement this method
+    public Graph upscaleTimeframe(Graph graph, Timeframe timeframe) {
 
+        Graph upscaleGraph = null;
 
+        if (graph != null
+                && timeframe != null
+                && timeframe != Timeframe.UNKNOWN
+                && Check.notNullNotEmpty(graph.getFloatCandles())
+                && timeframe.durationInSeconds > graph.getTimeframe().durationInSeconds) {
 
-        return graph;
+            List<FloatCandle> newFloatCandles = new ArrayList<>();
+
+            int span = (int) (timeframe.durationInSeconds / graph.getTimeframe().durationInSeconds);
+
+            for (int i = 0; i < graph.getFloatCandles().size() - span + 1; i = i + span) {
+                LocalDateTime dateTime = graph.getFloatCandles().get(i).dateTime();
+                float open = graph.getFloatCandles().get(i).open();
+                float close = graph.getFloatCandles().get(i + span - 1).close();
+                float high = open;
+                float low = open;
+                float volume = 0;
+
+                for (int j = 0; j < span; j++) {
+                    volume = volume + graph.getFloatCandles().get(i + j).volume();
+                    high = max(high, graph.getFloatCandles().get(i + j).high());
+                    low = min(low, graph.getFloatCandles().get(i + j).low());
+                }
+                newFloatCandles.add(new FloatCandle(dateTime, open, high, low, close, volume));
+            }
+            upscaleGraph = new Graph("Upscale-" + graph.getName(), graph.getSymbol(), timeframe, newFloatCandles);
+        }
+        return upscaleGraph;
     }
 }

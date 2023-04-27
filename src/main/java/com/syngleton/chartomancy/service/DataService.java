@@ -2,7 +2,14 @@ package com.syngleton.chartomancy.service;
 
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.GraphFactory;
-import com.syngleton.chartomancy.model.charting.*;
+import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.model.charting.misc.ChartObject;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
+import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
+import com.syngleton.chartomancy.model.charting.patterns.PredictivePattern;
+import com.syngleton.chartomancy.model.charting.patterns.TradingPattern;
 import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
@@ -23,13 +30,10 @@ public class DataService {
     private int readingAttempts;
     private final GraphFactory graphFactory;
     private static final String NEW_LINE = System.getProperty("line.separator");
-    private static final String EMPTY_VALUE = "(empty)";
-
 
     @Autowired
     public DataService(GraphFactory graphFactory) {
         this.graphFactory = graphFactory;
-
     }
 
     public boolean loadGraphs(CoreData coreData, String dataFolderName, List<String> dataFilesNames) {
@@ -128,7 +132,39 @@ public class DataService {
     }
 
     public boolean createGraphsForMissingTimeframes(CoreData coreData) {
-        log.debug("NOT IMPLEMENTED YET");
+
+        if (coreData != null && Check.notNullNotEmpty(coreData.getGraphs())) {
+
+            Timeframe lowestTimeframe = Timeframe.UNKNOWN;
+            Graph lowestTimeframeGraph = null;
+
+            Set<Timeframe> missingTimeframes = new TreeSet<>(Arrays.asList(
+                    Timeframe.SECOND,
+                    Timeframe.MINUTE,
+                    Timeframe.HALF_HOUR,
+                    Timeframe.HOUR,
+                    Timeframe.FOUR_HOUR,
+                    Timeframe.DAY,
+                    Timeframe.WEEK));
+
+            for (Graph graph : coreData.getGraphs())    {
+                if (lowestTimeframe == Timeframe.UNKNOWN
+                        || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds)   {
+                    lowestTimeframe = graph.getTimeframe();
+                    lowestTimeframeGraph = graph;
+                }
+                missingTimeframes.remove(graph.getTimeframe());
+            }
+
+            for (Timeframe timeframe : missingTimeframes)   {
+                if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds)  {
+                    lowestTimeframeGraph = graphFactory.upscaleTimeframe(lowestTimeframeGraph, timeframe);
+                    lowestTimeframe = timeframe;
+                    coreData.getGraphs().add(lowestTimeframeGraph);
+                }
+            }
+            return true;
+        }
         return false;
     }
 
@@ -185,7 +221,7 @@ public class DataService {
                         .append(", ")
                         .append(graph.getTimeframe())
                         .append(", ")
-                        .append(graph.getCandles().size())
+                        .append(graph.getFloatCandles().size())
                         .append(" candles")
                         .append(NEW_LINE)
                         .append("***");
@@ -261,10 +297,10 @@ public class DataService {
             log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
                     graph.getName(),
                     graph.getSymbol(),
-                    graph.getCandles());
+                    graph.getTimeframe());
             int i = 1;
-            for (Candle candle : graph.getCandles()) {
-                log.info("{} -> {}", i++, candle.toString());
+            for (FloatCandle floatCandle : graph.getFloatCandles()) {
+                log.info("{} -> {}", i++, floatCandle.toString());
             }
             return true;
         } else {

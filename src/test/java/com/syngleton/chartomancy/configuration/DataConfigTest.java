@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy;
+package com.syngleton.chartomancy.configuration;
 
 import com.syngleton.chartomancy.data.CoreData;
 import org.springframework.boot.test.context.TestConfiguration;

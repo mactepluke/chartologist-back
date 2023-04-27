@@ -1,5 +1,6 @@
-package com.syngleton.chartomancy.model.charting;
+package com.syngleton.chartomancy.model.charting.misc;
 
+import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import lombok.Getter;
 
 import java.util.List;
@@ -8,12 +9,12 @@ import java.util.Objects;
 @Getter
 public class Graph extends ChartObject {
     private final String name;
-    private final List<Candle> candles;
+    private final List<FloatCandle> floatCandles;
 
-    public Graph(String name, Symbol symbol, Timeframe timeframe, List<Candle> candles) {
+    public Graph(String name, Symbol symbol, Timeframe timeframe, List<FloatCandle> floatCandles) {
         super(symbol, timeframe);
         this.name = name;
-        this.candles = candles;
+        this.floatCandles = floatCandles;
     }
 
     @Override

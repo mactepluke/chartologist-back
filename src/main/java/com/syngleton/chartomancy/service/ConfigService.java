@@ -4,7 +4,7 @@ import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.PatternType;
+import com.syngleton.chartomancy.model.charting.patterns.PatternType;
 import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;

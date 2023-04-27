@@ -1,11 +1,10 @@
-package com.syngleton.chartomancy;
+package com.syngleton.chartomancy.configuration;
 
-import com.syngleton.chartomancy.model.charting.Candle;
-import com.syngleton.chartomancy.model.charting.Graph;
-import com.syngleton.chartomancy.model.charting.Symbol;
-import com.syngleton.chartomancy.model.charting.Timeframe;
+import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.misc.Symbol;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.util.Format;
-import lombok.Data;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -25,13 +24,13 @@ public class MockData {
     private final static float VARIABILITY_COEF = 300;
     private final static int NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES = 2;
 
-    private final List<Candle> mockCandles = new ArrayList<>();
-    private final Graph mockGraphDay1;
-    private final Graph mockGraphDay2;
-    private final Graph mockGraphHour;
-    private final Set<Graph> testGraphs;
+    private final List<FloatCandle> mockFloatCandles = new ArrayList<>();
     private final int testGraphLength;
     private final int numberOfDifferentMockTimeframes;
+    private  Graph mockGraphDay1;
+    private  Graph mockGraphDay2;
+    private  Graph mockGraphHour;
+    private  Set<Graph> testGraphs;
 
     public MockData() {
 
@@ -42,13 +41,13 @@ public class MockData {
             Random rd = new Random();
             float span = (float) Math.random() * VARIABILITY_COEF;
             boolean direction = rd.nextBoolean();
-            float open = (i == 0) ? TEST_STARTING_OPEN : mockCandles.get(i - 1).close();
+            float open = (i == 0) ? TEST_STARTING_OPEN : mockFloatCandles.get(i - 1).close();
             float close = (direction) ? open + span : open - span;
             float high = (float) ((direction) ? close + Math.random() * VARIABILITY_COEF / 2 : open + Math.random() * VARIABILITY_COEF / 2);
             float low = (float) ((direction) ? open - Math.random() * VARIABILITY_COEF / 2 : close - Math.random() * VARIABILITY_COEF / 2);
             float volume = (float) Math.random() * VARIABILITY_COEF * TEST_STARTING_OPEN;
 
-            Candle candle = new Candle(
+            FloatCandle floatCandle = new FloatCandle(
                     LocalDateTime.ofEpochSecond(
                             TEST_GRAPH_STARTING_DATETIME + TEST_TIMEFRAME.durationInSeconds * i,
                             0,
@@ -59,15 +58,17 @@ public class MockData {
                     Format.streamlineFloat(close, MINIMUM_VALUE, MAXIMUM_VALUE),
                     volume
             );
-            mockCandles.add(candle);
+            mockFloatCandles.add(floatCandle);
         }
+        resetGraphs();
+    }
 
-        mockGraphDay1 = new Graph("Mock graph day 1", TEST_SYMBOL, Timeframe.DAY, mockCandles);
-        mockGraphDay2 = new Graph("Mock graph day 2", TEST_SYMBOL, Timeframe.DAY, mockCandles);
-        mockGraphHour = new Graph("Mock graph hour", TEST_SYMBOL, Timeframe.HOUR, mockCandles);
+    public void resetGraphs() {
+
+        mockGraphDay1 = new Graph("Mock graph day 1", TEST_SYMBOL, Timeframe.DAY, mockFloatCandles);
+        mockGraphDay2 = new Graph("Mock graph day 2", TEST_SYMBOL, Timeframe.DAY, mockFloatCandles);
+        mockGraphHour = new Graph("Mock graph hour", TEST_SYMBOL, Timeframe.HOUR, mockFloatCandles);
 
         testGraphs = new HashSet<>(Arrays.asList(mockGraphDay1, mockGraphDay2, mockGraphHour));
-
-
     }
 }

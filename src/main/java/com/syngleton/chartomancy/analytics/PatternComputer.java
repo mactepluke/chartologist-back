@@ -1,7 +1,12 @@
 package com.syngleton.chartomancy.analytics;
 
 import com.syngleton.chartomancy.factory.CandleFactory;
-import com.syngleton.chartomancy.model.charting.*;
+import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
+import com.syngleton.chartomancy.model.charting.patterns.PatternType;
+import com.syngleton.chartomancy.model.charting.patterns.PredictivePattern;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
@@ -56,11 +61,11 @@ public class PatternComputer {
         Graph graph = computationSettings.getGraph();
         List<Pattern> computedPatterns = new ArrayList<>();
 
-        log.debug("Computing basic iteration patterns for graph of symbol: {}, timeframe: {}", graph.getSymbol(), graph.getTimeframe());
+        String pbMessage = "Processing " + graph.getSymbol() + ", " + graph.getTimeframe();
 
         if (!patterns.isEmpty() && patterns.get(0).getPatternType() == PatternType.PREDICTIVE) {
 
-            ProgressBar pb = new ProgressBar("Processing...", patterns.size());
+            ProgressBar pb = new ProgressBar(pbMessage, patterns.size());
 
             pb.start();
             for (Pattern pattern : patterns) {
@@ -83,14 +88,14 @@ public class PatternComputer {
 
             int startPricePrediction = predictivePattern.getPriceVariationPrediction();
             LocalDateTime startTime = LocalDateTime.now();
-//TODO Cast to long? view SonarLint
-            int computations = graph.getCandles().size() - predictivePattern.getLength() - predictivePattern.getScope();
+
+            int computations = graph.getFloatCandles().size() - predictivePattern.getLength() - predictivePattern.getScope();
 
             for (var i = 0; i < computations; i++) {
-                List<Candle> candlesToMatch = graph.getCandles().subList(i, i + predictivePattern.getLength());
-                List<Candle> followingCandles = graph.getCandles().subList(i + predictivePattern.getLength(), i + predictivePattern.getLength() + predictivePattern.getScope());
-                List<PixelatedCandle> pixelatedCandlesToMatch = candleFactory.pixelateCandles(candlesToMatch, predictivePattern.getGranularity());
-                List<PixelatedCandle> pixelatedFollowingCandles = candleFactory.pixelateCandles(followingCandles, predictivePattern.getGranularity());
+                List<FloatCandle> candlesToMatches = graph.getFloatCandles().subList(i, i + predictivePattern.getLength());
+                List<FloatCandle> followingFloatCandles = graph.getFloatCandles().subList(i + predictivePattern.getLength(), i + predictivePattern.getLength() + predictivePattern.getScope());
+                List<PixelatedCandle> pixelatedCandlesToMatch = candleFactory.pixelateCandles(candlesToMatches, predictivePattern.getGranularity());
+                List<PixelatedCandle> pixelatedFollowingCandles = candleFactory.pixelateCandles(followingFloatCandles, predictivePattern.getGranularity());
 
                 matchScore = calculateMatchScore(predictivePattern, pixelatedCandlesToMatch);
 

@@ -3,7 +3,7 @@ package com.syngleton.chartomancy.view;
 import com.syngleton.chartomancy.controller.root.DataController;
 import com.syngleton.chartomancy.controller.root.PatternController;
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.model.charting.PatternType;
+import com.syngleton.chartomancy.model.charting.patterns.PatternType;
 import com.syngleton.chartomancy.factory.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 
