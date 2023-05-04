@@ -3,9 +3,11 @@ package com.syngleton.chartomancy.model.charting.patterns;
 import com.syngleton.chartomancy.model.charting.misc.ChartObject;
 import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.*;
 
+@Log4j2
 public class PatternBox extends ChartObject {
 
     @Getter
@@ -27,9 +29,9 @@ public class PatternBox extends ChartObject {
                 if (pattern != null) {
                     int key = 0;
                     switch (pattern.getPatternType()) {
-                        case BASIC -> key = ((pattern).getLength());
-                        case PREDICTIVE -> key = ((PredictivePattern) pattern).getScope();
+                        case PREDICTIVE, LIGHT_PREDICTIVE -> key = ((ComputablePattern) pattern).getScope();
                         case TRADING -> key = ((TradingPattern) pattern).getScope();
+                        default -> key = ((pattern).getLength());
                     }
                     this.patterns.computeIfAbsent(key, k -> new ArrayList<>());
                     this.patterns.get(key).add(pattern);
@@ -59,7 +61,7 @@ public class PatternBox extends ChartObject {
     @Override
     public String toString()  {
         return "PatternBox{" +
-                ", symbol=" + getSymbol() +
+                "symbol=" + getSymbol() +
                 ", timeframe=" + getTimeframe() + "}";
     }
 

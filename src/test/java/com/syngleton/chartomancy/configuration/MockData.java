@@ -52,10 +52,10 @@ public class MockData {
                             TEST_GRAPH_STARTING_DATETIME + TEST_TIMEFRAME.durationInSeconds * i,
                             0,
                             ZoneOffset.UTC),
-                    Format.streamlineFloat(open, MINIMUM_VALUE, MAXIMUM_VALUE),
-                    Format.streamlineFloat(high, MINIMUM_VALUE, MAXIMUM_VALUE),
-                    Format.streamlineFloat(low, MINIMUM_VALUE, MAXIMUM_VALUE),
-                    Format.streamlineFloat(close, MINIMUM_VALUE, MAXIMUM_VALUE),
+                    Format.streamline(open, MINIMUM_VALUE, MAXIMUM_VALUE),
+                    Format.streamline(high, MINIMUM_VALUE, MAXIMUM_VALUE),
+                    Format.streamline(low, MINIMUM_VALUE, MAXIMUM_VALUE),
+                    Format.streamline(close, MINIMUM_VALUE, MAXIMUM_VALUE),
                     volume
             );
             mockFloatCandles.add(floatCandle);
@@ -69,6 +69,6 @@ public class MockData {
         mockGraphDay2 = new Graph("Mock graph day 2", TEST_SYMBOL, Timeframe.DAY, mockFloatCandles);
         mockGraphHour = new Graph("Mock graph hour", TEST_SYMBOL, Timeframe.HOUR, mockFloatCandles);
 
-        testGraphs = new HashSet<>(Arrays.asList(mockGraphDay1, mockGraphDay2, mockGraphHour));
+        testGraphs = new HashSet<>(List.of(mockGraphDay1, mockGraphDay2, mockGraphHour));
     }
 }

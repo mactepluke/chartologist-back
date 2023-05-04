@@ -2,12 +2,10 @@ package com.syngleton.chartomancy.analytics;
 
 import com.syngleton.chartomancy.factory.CandleFactory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
-import com.syngleton.chartomancy.model.charting.patterns.Pattern;
-import com.syngleton.chartomancy.model.charting.patterns.PatternType;
-import com.syngleton.chartomancy.model.charting.patterns.PredictivePattern;
-import com.syngleton.chartomancy.util.Format;
+import com.syngleton.chartomancy.model.charting.patterns.*;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +21,15 @@ import java.util.List;
 public class PatternComputer {
 
     private final CandleFactory candleFactory;
+    private final Analyzer analyzer;
 
     @Autowired
-    public PatternComputer(CandleFactory candleFactory) {
+    public PatternComputer(CandleFactory candleFactory, Analyzer analyzer) {
         this.candleFactory = candleFactory;
+        this.analyzer = analyzer;
     }
 
-    public List<Pattern> compute(ComputationSettings.Builder paramsInput)   {
+    public List<Pattern> compute(ComputationSettings.Builder paramsInput) {
 
         initializeCheckVariables();
         ComputationSettings computationSettings = configParams(paramsInput);
@@ -43,7 +43,6 @@ public class PatternComputer {
                 return Collections.emptyList();
             }
         }
-
     }
 
     private ComputationSettings configParams(ComputationSettings.Builder paramsInput) {
@@ -55,7 +54,7 @@ public class PatternComputer {
         //TODO define, initialize computation settings and implement their use in corresponding methods
     }
 
-    public List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) {
+    private List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) {
 
         List<Pattern> patterns = computationSettings.getPatterns();
         Graph graph = computationSettings.getGraph();
@@ -63,14 +62,16 @@ public class PatternComputer {
 
         String pbMessage = "Processing " + graph.getSymbol() + ", " + graph.getTimeframe();
 
-        if (!patterns.isEmpty() && patterns.get(0).getPatternType() == PatternType.PREDICTIVE) {
+        if (!patterns.isEmpty()
+                && (patterns.get(0).getPatternType() == PatternType.PREDICTIVE
+                || patterns.get(0).getPatternType() == PatternType.LIGHT_PREDICTIVE)) {
 
             ProgressBar pb = new ProgressBar(pbMessage, patterns.size());
 
             pb.start();
             for (Pattern pattern : patterns) {
                 pb.step();
-                computedPatterns.add(computeBasicIterationPattern((PredictivePattern) pattern, graph));
+                computedPatterns.add(computeBasicIterationPattern((ComputablePattern) pattern, graph));
             }
             pb.stop();
         } else {
@@ -79,112 +80,63 @@ public class PatternComputer {
         return computedPatterns;
     }
 
-    private PredictivePattern computeBasicIterationPattern(PredictivePattern predictivePattern, Graph graph) {
+    private Pattern computeBasicIterationPattern(ComputablePattern computablePattern, Graph graph) {
 
-        int matchScore;
-        int priceVariation;
+        int matchScore = 0;
+        float priceVariation = 0;
 
-        if (predictivePattern != null) {
+        if (computablePattern != null) {
 
-            int startPricePrediction = predictivePattern.getPriceVariationPrediction();
+            float startPricePrediction = computablePattern.getPriceVariationPrediction();
             LocalDateTime startTime = LocalDateTime.now();
 
-            int computations = graph.getFloatCandles().size() - predictivePattern.getLength() - predictivePattern.getScope();
+            int computations = graph.getFloatCandles().size() - computablePattern.getLength() - computablePattern.getScope() + 1;
+
+            float divider = 1;
 
             for (var i = 0; i < computations; i++) {
-                List<FloatCandle> candlesToMatches = graph.getFloatCandles().subList(i, i + predictivePattern.getLength());
-                List<FloatCandle> followingFloatCandles = graph.getFloatCandles().subList(i + predictivePattern.getLength(), i + predictivePattern.getLength() + predictivePattern.getScope());
-                List<PixelatedCandle> pixelatedCandlesToMatch = candleFactory.pixelateCandles(candlesToMatches, predictivePattern.getGranularity());
-                List<PixelatedCandle> pixelatedFollowingCandles = candleFactory.pixelateCandles(followingFloatCandles, predictivePattern.getGranularity());
 
-                matchScore = calculateMatchScore(predictivePattern, pixelatedCandlesToMatch);
+                List<FloatCandle> candlesToMatches = graph.getFloatCandles().subList(i, i + computablePattern.getLength());
+                List<FloatCandle> followingFloatCandles = graph.getFloatCandles().subList(i + computablePattern.getLength(), i + computablePattern.getLength() + computablePattern.getScope());
 
-                priceVariation = calculatePriceVariation(predictivePattern, pixelatedFollowingCandles);
+                priceVariation = analyzer.calculatePriceVariation(followingFloatCandles, computablePattern.getScope());
 
-                predictivePattern.setPriceVariationPrediction(
-                        adjustPriceVariationPrediction(
-                                predictivePattern.getPriceVariationPrediction(),
-                                matchScore,
-                                priceVariation)
+                switch (computablePattern.getPatternType()) {
+                    case LIGHT_PREDICTIVE -> {
+                        List<IntCandle> intCandlesToMatch = candleFactory.streamlineToIntCandles(candlesToMatches, computablePattern.getGranularity());
+                        assert computablePattern instanceof LightPredictivePattern;
+                        matchScore = analyzer.calculateMatchScoreWithExponentialSmoothing((LightPredictivePattern) computablePattern, intCandlesToMatch);
+                    }
+                    case PREDICTIVE -> {
+                        List<PixelatedCandle> pixelatedCandlesToMatch = candleFactory.pixelateCandles(candlesToMatches, computablePattern.getGranularity());
+                        assert computablePattern instanceof PredictivePattern;
+                        matchScore = analyzer.calculateMatchScore((PredictivePattern) computablePattern, pixelatedCandlesToMatch);
+                    }
+                    default ->
+                            log.error("Could not compute patterns because of unrecognized pattern type: {}", computablePattern.getPatternType());
+                }
+
+                computablePattern.setPriceVariationPrediction(
+                        computablePattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f)
                 );
+                divider = divider + matchScore / 100f;
             }
-            predictivePattern.getComputationsHistory().add(new ComputationData(
+
+            computablePattern.setPriceVariationPrediction(computablePattern.getPriceVariationPrediction() / divider);
+
+            computablePattern.getComputationsHistory().add(new ComputationData(
                     startTime,
                     LocalDateTime.now(),
                     ComputationType.BASIC_ITERATION,
                     computations,
                     startPricePrediction,
-                    predictivePattern.getPriceVariationPrediction()
+                    computablePattern.getPriceVariationPrediction()
             ));
         }
-        return predictivePattern;
+        return (Pattern) computablePattern;
     }
 
-    private int adjustPriceVariationPrediction(int priceVariationPrediction, int matchScore, int priceVariation) {
-        return (priceVariationPrediction + priceVariation * matchScore / 100) / 2;
-    }
 
-    private int calculatePriceVariation(PredictivePattern pattern, List<PixelatedCandle> pixelatedFollowingCandles) {
-
-        int delta = 101;
-
-        if (pixelatedFollowingCandles.size() >= pattern.getScope()) {
-            PixelatedCandle firstCandle = pixelatedFollowingCandles.get(0);
-            PixelatedCandle predictionCandle = pixelatedFollowingCandles.get(pattern.getScope() - 1);
-
-            int firstCandleOpenPosition = 0;
-            int predictionCandleClosePosition = 0;
-
-            for (var i = 0; i < pattern.getGranularity(); i++) {
-                if (firstCandle.candle()[i] == 3) {
-                    firstCandleOpenPosition = i + 1;
-                }
-                if (predictionCandle.candle()[i] == 4) {
-                    predictionCandleClosePosition = i + 1;
-                }
-            }
-            delta = Format.relativePercentage(predictionCandleClosePosition - firstCandleOpenPosition, pattern.getGranularity());
-        }
-
-        if (delta == 101)   {
-            log.error("Unable to calculate price variation: error during the scan of pixelated candles.");
-            return 0;
-        }
-
-        return delta;
-    }
-
-    private int calculateMatchScore(PredictivePattern pattern, List<PixelatedCandle> pixelatedCandlesToMatch) {
-
-        int length = pattern.getLength();
-        int granularity = pattern.getGranularity();
-        int inkedPixels = 0;
-        int matchScore = 0;
-
-        if (pattern.getLength() != pixelatedCandlesToMatch.size())  {
-            log.error("Pattern size does not match graph sample size.");
-            return 0;
-        }
-
-        for (var i = 0; i < length; i++) {
-
-            for (int j = 0; j < granularity; j++) {
-
-                byte patternPixel = pattern.getPixelatedCandles().get(i).candle()[j];
-
-                if (patternPixel != 0)  {
-                   inkedPixels++;
-
-                   byte pixelatedCandlesToMatchPixel = pixelatedCandlesToMatch.get(i).candle()[j];
-
-                   if (pixelatedCandlesToMatchPixel != 0)   {
-                       matchScore++;
-                   }
-                }
-            }
-        }
-        return Format.positivePercentage(matchScore, inkedPixels);
-    }
 }
 
 

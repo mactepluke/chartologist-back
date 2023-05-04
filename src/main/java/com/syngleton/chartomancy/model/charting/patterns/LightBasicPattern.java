@@ -3,14 +3,18 @@ package com.syngleton.chartomancy.model.charting.patterns;
 import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @Getter
-public class LightBasicPattern extends Pattern {
+public class LightBasicPattern extends Pattern implements IntPattern {
 
     private final LocalDateTime startDate;
     @ToString.Exclude

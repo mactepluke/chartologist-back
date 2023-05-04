@@ -34,7 +34,6 @@ public class PatternController {
         this.coreData = coreData;
     }
 
-    //TODO implement multiple patterns/graph creation
     //http://localhost:8080/pattern/create
     @GetMapping(path = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Pattern>> create(@RequestBody PatternSettingsDTO settingsInputDTO) {
@@ -100,7 +99,6 @@ public class PatternController {
         return new ResponseEntity<>(result, status);
     }
 
-    //TODO aggregate computation by matching ChartObject types
     //http://localhost:8080/pattern/compute
     @GetMapping("/compute")
     public ResponseEntity<List<Pattern>> compute(@RequestBody ComputationSettingsDTO settingsInputDTO) {

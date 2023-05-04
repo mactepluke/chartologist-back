@@ -7,8 +7,8 @@ public record ComputationData(
     LocalDateTime endTime,
     ComputationType computationType,
     long computations,
-    int startPricePrediction,
-    int endPricePrediction
+    float startPricePrediction,
+    float endPricePrediction
 ) {
 
 }

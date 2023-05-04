@@ -50,11 +50,11 @@ public class GraphFactory {
                                             Format.cutString(values[csvFormat.unixPosition], 10)),
                                     0,
                                     ZoneOffset.UTC),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.openPosition])),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.highPosition])),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.lowPosition])),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.closePosition])),
-                            Format.roundFloat(Float.parseFloat(values[csvFormat.volumePosition]))
+                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.openPosition])),
+                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.highPosition])),
+                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.lowPosition])),
+                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.closePosition])),
+                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.volumePosition]))
                     );
                     if (symbol == Symbol.UNDEFINED) {
                         symbol = readSymbol(values[csvFormat.symbolPosition]);

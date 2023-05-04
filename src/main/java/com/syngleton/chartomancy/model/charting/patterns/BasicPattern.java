@@ -3,13 +3,15 @@ package com.syngleton.chartomancy.model.charting.patterns;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class BasicPattern extends Pattern implements PixelatedPattern {
 
     @Getter

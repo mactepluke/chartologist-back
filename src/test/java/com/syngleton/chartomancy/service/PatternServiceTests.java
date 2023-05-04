@@ -6,6 +6,7 @@ import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
+import com.syngleton.chartomancy.model.charting.patterns.ComputablePattern;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternType;
 import com.syngleton.chartomancy.model.charting.patterns.PredictivePattern;
@@ -115,7 +116,7 @@ class PatternServiceTests {
 
         for (Pattern pattern : patterns) {
             assertEquals(1, ((PredictivePattern) pattern).getComputationsHistory().size());
-            assertEquals(mockData.getMockGraphDay1().getFloatCandles().size() - pattern.getLength() - ((PredictivePattern) pattern).getScope(),
+            assertEquals(mockData.getMockGraphDay1().getFloatCandles().size() - pattern.getLength() - ((PredictivePattern) pattern).getScope() + 1,
                     ((PredictivePattern) pattern).getComputationsHistory().get(0).computations());
         }
     }

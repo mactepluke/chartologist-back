@@ -18,6 +18,7 @@ public class ConfigService {
 
     private final DataService dataService;
     private final PatternService patternService;
+    private static final String NEW_LINE = System.getProperty("line.separator");
 
     @Autowired
     public ConfigService(DataService dataService,
@@ -37,13 +38,48 @@ public class ConfigService {
                                        PatternSettings.Autoconfig patternSettingsAutoconfig,
                                        ComputationSettings.Autoconfig computationSettings,
                                        ComputationType computationType,
+                                       PatternType computablePatternType,
                                        boolean fullScope,
                                        boolean printCoreData
     ) {
 
         CoreData coreData = new CoreData();
 
-        log.info("INITIALIZING CORE DATA WITH: PATTERN SETTINGS={}, COMPUTATION={}, COMPUTATION SETTINGS={}", patternSettingsAutoconfig, computationType, computationSettings);
+        log.info("INITIALIZING CORE DATA (pattern settings={}, , pattern type={}, computation={}, computation settings={})",
+                patternSettingsAutoconfig,
+                computablePatternType,
+                computationType,
+                computationSettings);
+
+        log.debug("Initialization parameters:" + NEW_LINE +
+                        "Data folder name: {}" + NEW_LINE +
+                        "Data file names: {}" + NEW_LINE +
+                        "Run analysis at startup: {}" + NEW_LINE +
+                        "Generate trading data: {}" + NEW_LINE +
+                        "Create graphs for missing timeframes: {}" + NEW_LINE +
+                        "Load trading data at startup: {}" + NEW_LINE +
+                        "Override saved trading data: {}" + NEW_LINE +
+                        "Purge computation data after trading data is generated: {}" + NEW_LINE +
+                        "Pattern setting autoconfig: {}" + NEW_LINE +
+                        "Computation settings autoconfig: {}" + NEW_LINE +
+                        "Computation type: {}" + NEW_LINE +
+                        "Computable pattern type: {}" + NEW_LINE +
+                        "Create patterns for full scope range : {}" + NEW_LINE +
+                        "Print core data after analysis: {}" + NEW_LINE,
+                dataFolderName,
+                dataFilesNames,
+                runAnalysisAtStartup,
+                generateTradingData,
+                createGraphsForMissingTimeframes,
+                loadTradingDataAtStartup,
+                overrideSavedTradingData,
+                purgeAfterTradingDataGeneration,
+                patternSettingsAutoconfig,
+                computationSettings,
+                computationType,
+                computablePatternType,
+                fullScope,
+                printCoreData);
 
         //RUNNING ANALYSIS IF APPLICABLE
         if (runAnalysisAtStartup) {
@@ -54,35 +90,32 @@ public class ConfigService {
                     patternSettingsAutoconfig,
                     computationSettings,
                     computationType,
+                    computablePatternType,
                     createGraphsForMissingTimeframes,
                     fullScope));
 
-
-
             if (generateTradingData) {
-                if (loadTradingDataAtStartup)    {
+                if (loadTradingDataAtStartup) {
                     log.warn("Conflict in data config parameters: trading data will be generated, not loaded from file.");
                     loadTradingDataAtStartup = false;
                 }
                 log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
-                if (overrideSavedTradingData) {
-                    log.info("Overriden saved trading data with newly generated data: {}", dataService.saveTradingData(coreData));
-                }
-                if (purgeAfterTradingDataGeneration) {
-                    log.info("Purged non-trading data: {}", dataService.purgeNonTradingData(coreData));
-                }
+
+                log.info("Overriden saved trading data with newly generated data: {}",
+                        Check.executeIfTrue(overrideSavedTradingData, dataService::saveTradingData, coreData));
+
+                log.info("Purged non-trading data: {}",
+                        Check.executeIfTrue(purgeAfterTradingDataGeneration, dataService::purgeNonTradingData, coreData));
+
             }
         }
-
         //LOADING TRADING DATA IF APPLICABLE
-        if (loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData)) {
-            log.info("Loaded trading data: {}", dataService.loadTradingData(coreData));
-        }
-
+        log.info("Loaded trading data: {}",
+                Check.executeIfTrue(loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData),
+                dataService::loadTradingData,
+                coreData));
         //PRINTING CORE DATA CONTENTS IF APPLICABLE
-        if (printCoreData) {
-            dataService.printCoreData(coreData);
-        }
+        Check.executeIfTrue(printCoreData, dataService::printCoreData, coreData);
 
         return coreData;
     }
@@ -93,6 +126,7 @@ public class ConfigService {
                                 PatternSettings.Autoconfig patternSettingsAutoconfig,
                                 ComputationSettings.Autoconfig computationSettings,
                                 ComputationType computationType,
+                                PatternType computablePatternType,
                                 boolean createGraphsForMissingTimeframes,
                                 boolean fullScope) {
 
@@ -102,15 +136,13 @@ public class ConfigService {
         } else {
             log.error("Application could not initialize its data: no files of correct format could be read.");
         }
-
         //CREATING GRAPHS FOR MISSING TIMEFRAMES
-        if (createGraphsForMissingTimeframes) {
-            log.info("Created graphs for missing timeframes: {}", dataService.createGraphsForMissingTimeframes(coreData));
-        }
+        log.info("Created graphs for missing timeframes: {}",
+                Check.executeIfTrue(createGraphsForMissingTimeframes, dataService::createGraphsForMissingTimeframes, coreData));
 
         //CREATING PREDICTIVE PATTERNS
         PatternSettings.Builder patternSettingsInput = new PatternSettings.Builder()
-                .patternType(PatternType.PREDICTIVE)
+                .patternType(computablePatternType)
                 .autoconfig(patternSettingsAutoconfig);
         if (fullScope) {
             patternSettingsInput = patternSettingsInput.scope("FULL");
@@ -121,7 +153,6 @@ public class ConfigService {
         } else {
             log.error("Application could not initialize its data: no pattern boxes could be created.");
         }
-
         //COMPUTING PREDICTIVE PATTERNS
         ComputationSettings.Builder computationSettingsInput = new ComputationSettings.Builder()
                 .computationType(computationType)

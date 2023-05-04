@@ -11,19 +11,62 @@ public final class Format {
         throw new IllegalAccessException();
     }
 
-    public static Float roundFloat(float number) {
-        return (float) (round( ((double) number * 100) / 100));
+    public static float roundTwoDigits(float number) {
+        return (round(number * 100) / 100f);
     }
 
-    public static Float roundFloat(float number, int decimals)  {
-        if (decimals <= 0)   {
-            decimals = 1;
+    public static float roundNDigits(float number, int decimals) {
+        if (decimals <= 0) {
+            return (float) round(number);
         }
-        if (decimals > 6)   {
-            decimals = 6;
+        if (decimals > 8) {
+            decimals = 8;
         }
         double op = Math.pow(10, decimals);
         return (float) (round(number * op) / op);
+    }
+
+    public static float roundAccordingly(float number) {
+
+        return roundAccordingly(number, number);
+    }
+
+    public static float roundAccordingly(float number, float reference) {
+
+        if (reference > 1000)  {
+            return roundNDigits(number, 0);
+        }
+
+        if (reference > 100)  {
+            return roundNDigits(number, 1);
+        }
+
+        if (reference > 10)    {
+            return roundNDigits(number, 2);
+        }
+
+        if (reference > 1)    {
+            return roundNDigits(number, 3);
+        }
+
+        if (reference > 0.1)    {
+            return roundNDigits(number, 4);
+        }
+
+        if (reference > 0.01)    {
+            return roundNDigits(number, 5);
+        }
+
+        if (reference > 0.001)    {
+            return roundNDigits(number, 6);
+        }
+
+        if (reference > 0.0001)    {
+            return roundNDigits(number, 7);
+        }
+
+        return roundNDigits(number, 5);
+
     }
 
     public static String cutString(String string, int length) {
@@ -37,32 +80,31 @@ public final class Format {
         return string;
     }
 
+    public static int streamline(int number, int min, int max) {
 
-    public static int streamlineInt(int number, int min, int max)    {
-
-        if (number < min)   {
+        if (number < min) {
             number = min;
         }
 
-        if (number > max)   {
+        if (number > max) {
             number = max;
         }
         return number;
     }
 
-    public static float streamlineFloat(float number, float min, float max)    {
+    public static float streamline(float number, float min, float max) {
 
-        if (number < min)   {
+        if (number < min) {
             number = min;
         }
 
-        if (number > max)   {
+        if (number > max) {
             number = max;
         }
         return number;
     }
 
-    public static int setIntIfZero(int value, int newValue)  {
+    public static int setIfZero(int value, int newValue) {
         if (value == 0) {
             value = newValue;
         }
@@ -80,31 +122,4 @@ public final class Format {
         }
         return string;
     }
-
-    public static int positivePercentage(int part, int total) {
-
-        int number = round(((float) part / total) * 100);
-
-        if (number < 0)   {
-            number = 0;
-        }
-        if (number > 100)   {
-            number = 100;
-        }
-        return (byte) number;
-    }
-
-    public static int relativePercentage(int part, int total) {
-
-        int number = round(((float) part / total) * 100);
-
-        if (number < -100)   {
-            number = -100;
-        }
-        if (number > 100)   {
-            number = 100;
-        }
-        return (byte) number;
-    }
-
 }

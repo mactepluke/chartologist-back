@@ -6,10 +6,7 @@ import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import com.syngleton.chartomancy.model.charting.misc.ChartObject;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
-import com.syngleton.chartomancy.model.charting.patterns.Pattern;
-import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
-import com.syngleton.chartomancy.model.charting.patterns.PredictivePattern;
-import com.syngleton.chartomancy.model.charting.patterns.TradingPattern;
+import com.syngleton.chartomancy.model.charting.patterns.*;
 import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
@@ -26,7 +23,7 @@ import java.util.*;
 @Service
 public class DataService {
 
-    @Value("${reading_attempts}")
+    @Value("${reading_attempts:3}")
     private int readingAttempts;
     private final GraphFactory graphFactory;
     private static final String NEW_LINE = System.getProperty("line.separator");
@@ -103,19 +100,11 @@ public class DataService {
 
         if ((coreData != null) && Check.notNullNotEmpty(coreData.getPatternBoxes())) {
             for (PatternBox patternBox : coreData.getPatternBoxes()) {
+
                 Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
 
                 if (Check.notNullNotEmpty(patternBox.getPatterns())) {
-
-                    for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
-
-                        List<Pattern> tradingPatternsList = new ArrayList<>();
-
-                        for (Pattern pattern : entry.getValue()) {
-                            tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
-                        }
-                        tradingPatterns.put(entry.getKey(), tradingPatternsList);
-                    }
+                    tradingPatterns = convertPatternsToTrading(patternBox.getPatterns());
                 }
                 ChartObject anyPattern = tradingPatterns.entrySet().iterator().next().getValue().get(0);
                 if (!tradingPatterns.isEmpty() && anyPattern != null) {
@@ -125,6 +114,28 @@ public class DataService {
             coreData.setTradingPatternBoxes(tradingData);
         }
         return !tradingData.isEmpty();
+    }
+
+    private Map<Integer, List<Pattern>> convertPatternsToTrading(Map<Integer, List<Pattern>> patterns)   {
+
+        Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
+
+        for (Map.Entry<Integer, List<Pattern>> entry : patterns.entrySet()) {
+
+            List<Pattern> tradingPatternsList = new ArrayList<>();
+
+            for (Pattern pattern : entry.getValue()) {
+                switch (pattern.getPatternType())   {
+                    case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
+                    case LIGHT_PREDICTIVE -> tradingPatternsList.add(new LightTradingPattern((LightPredictivePattern) pattern));
+                    default -> {
+                        return patterns;
+                    }
+                }
+            }
+            tradingPatterns.put(entry.getKey(), tradingPatternsList);
+        }
+        return tradingPatterns;
     }
 
     public boolean purgeNonTradingData(CoreData coreData) {
@@ -138,7 +149,7 @@ public class DataService {
             Timeframe lowestTimeframe = Timeframe.UNKNOWN;
             Graph lowestTimeframeGraph = null;
 
-            Set<Timeframe> missingTimeframes = new TreeSet<>(Arrays.asList(
+            Set<Timeframe> missingTimeframes = new TreeSet<>(List.of(
                     Timeframe.SECOND,
                     Timeframe.MINUTE,
                     Timeframe.HALF_HOUR,
@@ -192,13 +203,13 @@ public class DataService {
 
         return NEW_LINE +
                 "Current heap size (MB): " +
-                Format.roundFloat((float) Runtime.getRuntime().totalMemory() / 1000000) +
+                Format.roundAccordingly((float) Runtime.getRuntime().totalMemory() / 1000000) +
                 NEW_LINE +
                 "Max heap size (MB): " +
-                Format.roundFloat((float) Runtime.getRuntime().maxMemory() / 1000000) +
+                Format.roundAccordingly((float) Runtime.getRuntime().maxMemory() / 1000000) +
                 NEW_LINE +
                 "Free heap size (MB): " +
-                Format.roundFloat((float) Runtime.getRuntime().freeMemory() / 1000000) +
+                Format.roundAccordingly((float) Runtime.getRuntime().freeMemory() / 1000000) +
                 NEW_LINE;
     }
 

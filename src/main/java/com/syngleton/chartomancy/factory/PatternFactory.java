@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.syngleton.chartomancy.util.Format.setIntIfZero;
-import static com.syngleton.chartomancy.util.Format.streamlineInt;
+import static com.syngleton.chartomancy.util.Format.setIfZero;
+import static com.syngleton.chartomancy.util.Format.streamline;
 import static org.apache.commons.collections4.ListUtils.partition;
 
 @Log4j2
@@ -22,47 +22,47 @@ import static org.apache.commons.collections4.ListUtils.partition;
 public class PatternFactory {
 
     private static final int MIN_GRANULARITY = 30;
-    private static final int MAX_GRANULARITY = 150;
+    private static final int MAX_GRANULARITY = 1000;
     private static final int MIN_PATTERN_LENGTH = 10;
     private static final int MAX_PATTERN_LENGTH = 100;
     private static final int DEFAULT_GRANULARITY = 100;
     private static final int DEFAULT_PATTERN_LENGTH = 50;
-    private static final int MIN_PATTERNS_PER_GRAPH = 10;
+    private static final int MIN_PATTERNS_PER_GRAPH = 1;
     private static final int TEST_GRANULARITY = 100;
-    private static final int TEST_PATTERN_LENGTH = 30;
+    private static final int TEST_PATTERN_LENGTH = 10;
     private static final int TEST_SCOPE = 2;
-    private static final int TEST_MIN_PATTERN_PER_GRAPH = 4;
-    private static final int DEFAULT_SCOPE = 5;
+    private static final int TEST_MIN_PATTERN_PER_GRAPH = 1;
+    private static final int DEFAULT_SCOPE = 12;
     private static final int MIN_SCOPE = 1;
     private static final int MAX_SCOPE = 30;
 
-    @Value("${min_granularity}")
+    @Value("${min_granularity:0}")
     private int minGranularity;
-    @Value("${max_granularity}")
+    @Value("${max_granularity:0}")
     private int maxGranularity;
-    @Value("${min_pattern_length}")
+    @Value("${min_pattern_length:0}")
     private int minPatternLength;
-    @Value("${max_pattern_length}")
+    @Value("${max_pattern_length:0}")
     private int maxPatternLength;
-    @Value("${default_granularity}")
+    @Value("${default_granularity:0}")
     private int defaultGranularity;
-    @Value("${default_pattern_length}")
+    @Value("${default_pattern_length:0}")
     private int defaultPatternLength;
-    @Value("${min_patterns_per_graph}")
+    @Value("${min_patterns_per_graph:0}")
     private int minPatternsPerGraph;
-    @Value("${test_granularity}")
+    @Value("${test_granularity:0}")
     private int testGranularity;
-    @Value("${test_pattern_length}")
+    @Value("${test_pattern_length:0}")
     private int testPatternLength;
-    @Value("${test_scope}")
+    @Value("${test_scope:0}")
     private int testScope;
-    @Value("${test_min_patterns_per_graph}")
+    @Value("${test_min_patterns_per_graph:0}")
     private int testMinPatternsPerGraph;
-    @Value("${default_scope}")
+    @Value("${default_scope:0}")
     private int defaultScope;
-    @Value("${min_scope}")
+    @Value("${min_scope:0}")
     private int minScope;
-    @Value("${max_scope}")
+    @Value("${max_scope:0}")
     private int maxScope;
 
     private final CandleFactory candleFactory;
@@ -101,21 +101,21 @@ public class PatternFactory {
 
 
     private void initializeCheckVariables() {
-        minGranularity = setIntIfZero(minGranularity, MIN_GRANULARITY);
-        maxGranularity = setIntIfZero(maxGranularity, MAX_GRANULARITY);
-        minPatternLength = setIntIfZero(minPatternLength, MIN_PATTERN_LENGTH);
-        maxPatternLength = setIntIfZero(maxPatternLength, MAX_PATTERN_LENGTH);
-        minPatternsPerGraph = setIntIfZero(minPatternsPerGraph, MIN_PATTERNS_PER_GRAPH);
-        testGranularity = setIntIfZero(testGranularity, TEST_GRANULARITY);
-        testPatternLength = setIntIfZero(testPatternLength, TEST_PATTERN_LENGTH);
-        testScope = setIntIfZero(testScope, TEST_SCOPE);
-        testMinPatternsPerGraph = setIntIfZero(testMinPatternsPerGraph, TEST_MIN_PATTERN_PER_GRAPH);
-        defaultScope = setIntIfZero(defaultScope, DEFAULT_SCOPE);
-        minScope = setIntIfZero(minScope, MIN_SCOPE);
-        maxScope = setIntIfZero(maxScope, MAX_SCOPE);
-        defaultGranularity = streamlineInt(setIntIfZero(defaultGranularity, DEFAULT_GRANULARITY), minGranularity, maxGranularity);
-        defaultPatternLength = streamlineInt(setIntIfZero(defaultPatternLength, DEFAULT_PATTERN_LENGTH), minPatternLength, maxPatternLength);
-        defaultScope = streamlineInt(setIntIfZero(defaultScope, DEFAULT_SCOPE), minScope, maxScope);
+        minGranularity = setIfZero(minGranularity, MIN_GRANULARITY);
+        maxGranularity = setIfZero(maxGranularity, MAX_GRANULARITY);
+        minPatternLength = setIfZero(minPatternLength, MIN_PATTERN_LENGTH);
+        maxPatternLength = setIfZero(maxPatternLength, MAX_PATTERN_LENGTH);
+        minPatternsPerGraph = setIfZero(minPatternsPerGraph, MIN_PATTERNS_PER_GRAPH);
+        testGranularity = setIfZero(testGranularity, TEST_GRANULARITY);
+        testPatternLength = setIfZero(testPatternLength, TEST_PATTERN_LENGTH);
+        testScope = setIfZero(testScope, TEST_SCOPE);
+        testMinPatternsPerGraph = setIfZero(testMinPatternsPerGraph, TEST_MIN_PATTERN_PER_GRAPH);
+        defaultScope = setIfZero(defaultScope, DEFAULT_SCOPE);
+        minScope = setIfZero(minScope, MIN_SCOPE);
+        maxScope = setIfZero(maxScope, MAX_SCOPE);
+        defaultGranularity = streamline(setIfZero(defaultGranularity, DEFAULT_GRANULARITY), minGranularity, maxGranularity);
+        defaultPatternLength = streamline(setIfZero(defaultPatternLength, DEFAULT_PATTERN_LENGTH), minPatternLength, maxPatternLength);
+        defaultScope = streamline(setIfZero(defaultScope, DEFAULT_SCOPE), minScope, maxScope);
 
     }
 
@@ -125,9 +125,9 @@ public class PatternFactory {
 
         switch (initialParams.getAutoconfig()) {
             case NONE -> paramsInput = paramsInput
-                    .granularity(streamlineInt(initialParams.getGranularity(), minGranularity, maxGranularity))
-                    .length(streamlineInt(initialParams.getLength(), minPatternLength, maxPatternLength))
-                    .scope(streamlineInt(initialParams.getScope(), minScope, maxScope));
+                    .granularity(streamline(initialParams.getGranularity(), minGranularity, maxGranularity))
+                    .length(streamline(initialParams.getLength(), minPatternLength, maxPatternLength))
+                    .scope(streamline(initialParams.getScope(), minScope, maxScope));
             case DEFAULT ->
                 paramsInput = paramsInput
                         .length(defaultPatternLength)
@@ -135,9 +135,9 @@ public class PatternFactory {
                         .scope(defaultScope);
             case TIMEFRAME ->
                 paramsInput = paramsInput
-                        .length(streamlineInt(initialParams.getGraph().getTimeframe().scope * 2, minPatternLength, maxPatternLength))
+                        .length(streamline(initialParams.getGraph().getTimeframe().scope * 3, minPatternLength, maxPatternLength))
                         .granularity(defaultGranularity)
-                        .scope(streamlineInt(initialParams.getGraph().getTimeframe().scope, minScope, maxScope));
+                        .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, minScope, maxScope));
             case MINIMIZE -> paramsInput = paramsInput
                     .length(minPatternLength)
                     .granularity(minGranularity)
@@ -151,9 +151,9 @@ public class PatternFactory {
                 log.info("Using test parameters for pattern generation (set up in config file)");
 
                 paramsInput = paramsInput
-                        .length(streamlineInt(testPatternLength, minPatternLength, maxPatternLength))
-                        .granularity(streamlineInt(testGranularity, minPatternLength, maxPatternLength))
-                        .scope(streamlineInt(testScope, minScope, maxScope));
+                        .length(streamline(testPatternLength, minPatternLength, maxPatternLength))
+                        .granularity(streamline(testGranularity, minPatternLength, maxPatternLength))
+                        .scope(streamline(testScope, minScope, maxScope));
                 minPatternsPerGraph = testMinPatternsPerGraph;
             }
             default -> log.error("Could not define parameters configuration strategy.");

@@ -136,7 +136,6 @@ public class InteractiveShell implements Runnable {
                 }
             }
         }
-        //TODO Creating patterns
 
         /*devToolsUser.getUserSessionData().setPatterns(
                 patternController.create(new PatternSettingsDTO(

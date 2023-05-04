@@ -12,6 +12,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,8 +25,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = DataConfigTest.class)
 class DataControllerTests {
 
-    @Value("${test_data_file_path}")
+    @Value("${test_data_folder_name}")
+    private String testDataFolderName;
     private String testDataFilePath;
+    @Value("#{'${test_data_files_names}'.split(',')}")
+    private List<String> testDataFilesNames;
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,6 +40,7 @@ class DataControllerTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING DATA CONTROLLER TESTS ***");
+        testDataFilePath = "src/test/resources/" + testDataFolderName + testDataFilesNames.get(0);
     }
 
     @AfterAll

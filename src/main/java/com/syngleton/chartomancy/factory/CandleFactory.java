@@ -3,6 +3,7 @@ package com.syngleton.chartomancy.factory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
+import com.syngleton.chartomancy.util.Pair;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.syngleton.chartomancy.util.Format.streamlineInt;
+import static com.syngleton.chartomancy.util.Format.streamline;
 import static java.lang.Math.round;
 
 @Log4j2
@@ -18,6 +19,19 @@ import static java.lang.Math.round;
 public class CandleFactory {
 
     public List<IntCandle> streamlineToIntCandles(List<FloatCandle> floatCandles, int granularity) {
+
+        Pair<Float, Float> extremes = getLowestAndHighest(floatCandles);
+
+        List<IntCandle> intCandles = new ArrayList<>();
+
+        for (FloatCandle floatCandle : floatCandles) {
+            intCandles.add(streamlineToIntCandle(floatCandle, granularity, extremes.first(), extremes.second()));
+        }
+        return intCandles;
+    }
+
+    private Pair<Float, Float> getLowestAndHighest(List<FloatCandle> floatCandles)  {
+
         float lowest = floatCandles.get(0).low();
         float highest = 0;
 
@@ -25,18 +39,12 @@ public class CandleFactory {
             lowest = Math.min(lowest, floatCandle.low());
             highest = Math.max(highest, floatCandle.high());
         }
-
-        List<IntCandle> intCandles = new ArrayList<>();
-
-        for (FloatCandle floatCandle : floatCandles) {
-            intCandles.add(streamlineToIntCandle(floatCandle, granularity, lowest, highest));
-        }
-        return intCandles;
+        return new Pair<>(lowest, highest);
     }
 
     private IntCandle streamlineToIntCandle(FloatCandle floatCandle, int granularity, float lowest, float highest)   {
 
-        int divider = round((highest - lowest) / granularity);
+        float divider = (highest - lowest) / granularity;
 
         int open = round((floatCandle.open() - lowest) / divider);
         int high = round((floatCandle.high() - lowest) / divider);
@@ -44,10 +52,10 @@ public class CandleFactory {
         int close = round((floatCandle.close() - lowest) / divider);
         int volume = round(floatCandle.volume() / divider);
 
-        open = streamlineInt(open, 0, granularity);
-        high = streamlineInt(high, 0, granularity);
-        low = streamlineInt(low, 0, granularity);
-        close = streamlineInt(close, 0, granularity);
+        open = streamline(open, 0, granularity);
+        high = streamline(high, 0, granularity);
+        low = streamline(low, 0, granularity);
+        close = streamline(close, 0, granularity);
 
         return new IntCandle(LocalDateTime.now(), open, high, low, close, volume);
     }
