@@ -4,7 +4,11 @@ import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.misc.Symbol;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.charting.patterns.PatternType;
+import com.syngleton.chartomancy.model.trading.Trade;
 import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +20,18 @@ import java.util.List;
 @Service
 public class ConfigService {
 
+    private final TradingService tradingService;
     private final DataService dataService;
     private final PatternService patternService;
     private static final String NEW_LINE = System.getProperty("line.separator");
 
     @Autowired
     public ConfigService(DataService dataService,
-                         PatternService patternService) {
+                         PatternService patternService,
+                         TradingService tradingService) {
         this.dataService = dataService;
         this.patternService = patternService;
+        this.tradingService = tradingService;
     }
 
     public CoreData initializeCoreData(String dataFolderName,
@@ -39,6 +46,7 @@ public class ConfigService {
                                        ComputationSettings.Autoconfig computationSettings,
                                        ComputationType computationType,
                                        PatternType computablePatternType,
+                                       boolean atomicPartition,
                                        boolean fullScope,
                                        boolean printCoreData
     ) {
@@ -64,7 +72,8 @@ public class ConfigService {
                         "Computation settings autoconfig: {}" + NEW_LINE +
                         "Computation type: {}" + NEW_LINE +
                         "Computable pattern type: {}" + NEW_LINE +
-                        "Create patterns for full scope range : {}" + NEW_LINE +
+                        "Atomic graph partition: {}" + NEW_LINE +
+                        "Full scope prediction range: {}" + NEW_LINE +
                         "Print core data after analysis: {}" + NEW_LINE,
                 dataFolderName,
                 dataFilesNames,
@@ -78,6 +87,7 @@ public class ConfigService {
                 computationSettings,
                 computationType,
                 computablePatternType,
+                atomicPartition,
                 fullScope,
                 printCoreData);
 
@@ -92,6 +102,7 @@ public class ConfigService {
                     computationType,
                     computablePatternType,
                     createGraphsForMissingTimeframes,
+                    atomicPartition,
                     fullScope));
 
             if (generateTradingData) {
@@ -112,10 +123,24 @@ public class ConfigService {
         //LOADING TRADING DATA IF APPLICABLE
         log.info("Loaded trading data: {}",
                 Check.executeIfTrue(loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData),
-                dataService::loadTradingData,
-                coreData));
+                        dataService::loadTradingData,
+                        coreData));
         //PRINTING CORE DATA CONTENTS IF APPLICABLE
         Check.executeIfTrue(printCoreData, dataService::printCoreData, coreData);
+
+
+        //_______________TEST_______________
+        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.DAY);
+
+        for (var i = 1; i < 1000; i++) {
+            Trade trade = tradingService.generateOptimalBasicTrade(graph, coreData, 20 * i, -1, 0);
+            if (trade == null) {
+                break;
+            }
+            log.debug("TRADE# {} -------> {}", i + 1, trade);
+        }
+        //______________________________
+
 
         return coreData;
     }
@@ -128,6 +153,7 @@ public class ConfigService {
                                 ComputationType computationType,
                                 PatternType computablePatternType,
                                 boolean createGraphsForMissingTimeframes,
+                                boolean atomicPartition,
                                 boolean fullScope) {
 
         //LOADING GRAPHS
@@ -146,6 +172,10 @@ public class ConfigService {
                 .autoconfig(patternSettingsAutoconfig);
         if (fullScope) {
             patternSettingsInput = patternSettingsInput.scope("FULL");
+        }
+
+        if (atomicPartition) {
+            patternSettingsInput = patternSettingsInput.atomizePartition();
         }
 
         if (patternService.createPatternBoxes(coreData, patternSettingsInput)) {

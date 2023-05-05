@@ -107,7 +107,7 @@ public class TradingService {
             for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
 
                 float priceVariationForScope = predictPriceVariationForScope(graph, patternBox, eventHorizon, entry.getKey());
-
+//TODO Faire une moyenne des pricePrediction de tous les scopes ? Ou plutôt une courbe d'évolution ?
                 log.debug("SCOPE={}, PRICE PREDICTION={}", entry.getKey(), priceVariationForScope);
 
                 if (highestPrice == 0) {
@@ -166,10 +166,15 @@ public class TradingService {
 
                     List<FloatCandle> floatCandles = graph.getFloatCandles().subList(eventHorizon - patternLength, eventHorizon);
 
-                    int matchScore = analyzer.calculateMatchScoreWithExponentialSmoothing(tradingPattern, candleFactory.streamlineToIntCandles(floatCandles, tradingPattern.getGranularity()));
+                    int matchScore = analyzer.calculateMatchScore(tradingPattern, candleFactory.streamlineToIntCandles(floatCandles, tradingPattern.getGranularity()));
 
-                    pricePrediction = pricePrediction + patternPricePrediction * (matchScore / 100f);
-                    divider = divider + matchScore / 100f;
+                    //TODO Check this code
+                    float price = analyzer.filterPricePrediction(patternPricePrediction * (matchScore / 100f));
+
+                    if (price != 0) {
+                        pricePrediction = pricePrediction + price;
+                        divider = divider + matchScore / 100f;
+                    }
                 }
             }
             pricePrediction = pricePrediction / divider;

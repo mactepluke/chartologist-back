@@ -18,8 +18,22 @@ public final class Calc {
         if (number > 100) {
             number = 100;
         }
-        return (byte) number;
+        return number;
     }
+
+    public static int positivePercentage(double part, double total) {
+
+        int number = (int) round(((float) part / total) * 100);
+
+        if (number < 0) {
+            number = 0;
+        }
+        if (number > 100) {
+            number = 100;
+        }
+        return number;
+    }
+
 
     public static int relativePercentage(int part, int total) {
 
@@ -39,7 +53,28 @@ public final class Calc {
         if (number > 100) {
             number = 100;
         }
-        return (byte) number;
+        return number;
+    }
+
+    public static int relativePercentage(double part, double total) {
+
+        if (part == 0) {
+            return 0;
+        }
+
+        if (part == total) {
+            return 100;
+        }
+
+        int number = (int) round(((float) part / total) * 100);
+
+        if (number < -100) {
+            number = -100;
+        }
+        if (number > 100) {
+            number = 100;
+        }
+        return number;
     }
 
     public static int variationPercentage(int start, int end) {

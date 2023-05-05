@@ -41,6 +41,8 @@ public class DataConfig {
     private ComputationType computationType;
     @Value("${computable_pattern_type:LIGHT_PREDICTIVE}")
     private PatternType computablePatternType;
+    @Value("${atomic_partition:false}")
+    private boolean atomicPartition;
     @Value("${full_scope:false}")
     private boolean fullScope;
     @Value("${print_core_data:false}")
@@ -68,6 +70,7 @@ public class DataConfig {
                 computationSettingsAutoconfig,
                 computationType,
                 computablePatternType,
+                atomicPartition,
                 fullScope,
                 printCoreData
         );

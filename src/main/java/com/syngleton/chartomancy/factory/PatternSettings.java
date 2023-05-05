@@ -23,6 +23,8 @@ public class PatternSettings {
     private final int scope;
     @Getter
     private final boolean fullScope;
+    @Getter
+    private final boolean atomicPartition;
 
     public enum Autoconfig {
         NONE,
@@ -30,6 +32,8 @@ public class PatternSettings {
         MAXIMIZE,
         DEFAULT,
         TIMEFRAME,
+        TIMEFRAME_LONG,
+        TIMEFRAME_VERY_LONG,
         BYPASS_SAFETY_CHECK,
         TEST
     }
@@ -42,6 +46,7 @@ public class PatternSettings {
         this.autoconfig = builder.autoconfig;
         this.scope = builder.scope;
         this.fullScope = builder.fullScope;
+        this.atomicPartition = builder.atomicPartition;
     }
 
     public static class Builder {
@@ -52,6 +57,7 @@ public class PatternSettings {
         private int scope = 1;
         private int length;
         private boolean fullScope = false;
+        private boolean atomicPartition = false;
 
         public Builder patternType(PatternType patternType) {
             if (patternType != null) {
@@ -77,9 +83,14 @@ public class PatternSettings {
             return this;
         }
 
+        public Builder atomizePartition() {
+            this.atomicPartition = true;
+            return this;
+        }
+
         public Builder scope(String scope) {
             if (scope.equals("FULL")) {
-                fullScope = true;
+                this.fullScope = true;
             }
             return this;
         }

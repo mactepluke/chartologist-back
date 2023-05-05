@@ -101,25 +101,27 @@ public class PatternComputer {
 
                 priceVariation = analyzer.calculatePriceVariation(followingFloatCandles, computablePattern.getScope());
 
-                switch (computablePattern.getPatternType()) {
-                    case LIGHT_PREDICTIVE -> {
-                        List<IntCandle> intCandlesToMatch = candleFactory.streamlineToIntCandles(candlesToMatches, computablePattern.getGranularity());
-                        assert computablePattern instanceof LightPredictivePattern;
-                        matchScore = analyzer.calculateMatchScoreWithExponentialSmoothing((LightPredictivePattern) computablePattern, intCandlesToMatch);
-                    }
-                    case PREDICTIVE -> {
-                        List<PixelatedCandle> pixelatedCandlesToMatch = candleFactory.pixelateCandles(candlesToMatches, computablePattern.getGranularity());
-                        assert computablePattern instanceof PredictivePattern;
-                        matchScore = analyzer.calculateMatchScore((PredictivePattern) computablePattern, pixelatedCandlesToMatch);
-                    }
-                    default ->
-                            log.error("Could not compute patterns because of unrecognized pattern type: {}", computablePattern.getPatternType());
-                }
+                if (priceVariation != 0) {
 
-                computablePattern.setPriceVariationPrediction(
-                        computablePattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f)
-                );
-                divider = divider + matchScore / 100f;
+                    switch (computablePattern.getPatternType()) {
+                        case LIGHT_PREDICTIVE -> {
+                            List<IntCandle> intCandlesToMatch = candleFactory.streamlineToIntCandles(candlesToMatches, computablePattern.getGranularity());
+                            assert computablePattern instanceof LightPredictivePattern;
+                            matchScore = analyzer.calculateMatchScore((LightPredictivePattern) computablePattern, intCandlesToMatch);
+                        }
+                        case PREDICTIVE -> {
+                            List<PixelatedCandle> pixelatedCandlesToMatch = candleFactory.pixelateCandles(candlesToMatches, computablePattern.getGranularity());
+                            assert computablePattern instanceof PredictivePattern;
+                            matchScore = analyzer.calculateMatchScore((PredictivePattern) computablePattern, pixelatedCandlesToMatch);
+                        }
+                        default -> log.error("Could not compute patterns because of unrecognized pattern type: {}", computablePattern.getPatternType());
+                    }
+
+                    computablePattern.setPriceVariationPrediction(
+                            computablePattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f)
+                    );
+                    divider = divider + matchScore / 100f;
+                }
             }
 
             computablePattern.setPriceVariationPrediction(computablePattern.getPriceVariationPrediction() / divider);

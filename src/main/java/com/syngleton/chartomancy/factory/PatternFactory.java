@@ -22,17 +22,17 @@ import static org.apache.commons.collections4.ListUtils.partition;
 public class PatternFactory {
 
     private static final int MIN_GRANULARITY = 30;
-    private static final int MAX_GRANULARITY = 1000;
+    private static final int MAX_GRANULARITY = 500;
     private static final int MIN_PATTERN_LENGTH = 10;
-    private static final int MAX_PATTERN_LENGTH = 100;
+    private static final int MAX_PATTERN_LENGTH = 50;
     private static final int DEFAULT_GRANULARITY = 100;
-    private static final int DEFAULT_PATTERN_LENGTH = 50;
+    private static final int DEFAULT_PATTERN_LENGTH = 15;
     private static final int MIN_PATTERNS_PER_GRAPH = 1;
     private static final int TEST_GRANULARITY = 100;
     private static final int TEST_PATTERN_LENGTH = 10;
     private static final int TEST_SCOPE = 2;
     private static final int TEST_MIN_PATTERN_PER_GRAPH = 1;
-    private static final int DEFAULT_SCOPE = 12;
+    private static final int DEFAULT_SCOPE = 8;
     private static final int MIN_SCOPE = 1;
     private static final int MAX_SCOPE = 30;
 
@@ -128,16 +128,22 @@ public class PatternFactory {
                     .granularity(streamline(initialParams.getGranularity(), minGranularity, maxGranularity))
                     .length(streamline(initialParams.getLength(), minPatternLength, maxPatternLength))
                     .scope(streamline(initialParams.getScope(), minScope, maxScope));
-            case DEFAULT ->
-                paramsInput = paramsInput
-                        .length(defaultPatternLength)
-                        .granularity(defaultGranularity)
-                        .scope(defaultScope);
-            case TIMEFRAME ->
-                paramsInput = paramsInput
-                        .length(streamline(initialParams.getGraph().getTimeframe().scope * 3, minPatternLength, maxPatternLength))
-                        .granularity(defaultGranularity)
-                        .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, minScope, maxScope));
+            case DEFAULT -> paramsInput = paramsInput
+                    .length(defaultPatternLength)
+                    .granularity(defaultGranularity)
+                    .scope(defaultScope);
+            case TIMEFRAME -> paramsInput = paramsInput
+                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 2, minPatternLength, maxPatternLength))
+                    .granularity(defaultGranularity)
+                    .scope(streamline(initialParams.getGraph().getTimeframe().scope, minScope, maxScope));
+            case TIMEFRAME_LONG -> paramsInput = paramsInput
+                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 3, minPatternLength, maxPatternLength))
+                    .granularity(defaultGranularity)
+                    .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, minScope, maxScope));
+            case TIMEFRAME_VERY_LONG -> paramsInput = paramsInput
+                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 6, minPatternLength, maxPatternLength))
+                    .granularity(defaultGranularity)
+                    .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, minScope, maxScope));
             case MINIMIZE -> paramsInput = paramsInput
                     .length(minPatternLength)
                     .granularity(minGranularity)
@@ -172,9 +178,9 @@ public class PatternFactory {
 
         List<Pattern> patterns = new ArrayList<>();
 
-        if (settingsAreValid(patternSettings))  {
+        if (settingsAreValid(patternSettings)) {
 
-            List<List<FloatCandle>> graphChunks = partition(patternSettings.getGraph().getFloatCandles(), patternSettings.getLength());
+            List<List<FloatCandle>> graphChunks = partitionGraph(patternSettings);
 
             for (List<FloatCandle> graphChunk : graphChunks) {
                 if (graphChunk.size() >= patternSettings.getLength()) {
@@ -199,7 +205,27 @@ public class PatternFactory {
         return patterns;
     }
 
-    private boolean settingsAreValid(PatternSettings patternSettings)    {
+    private List<List<FloatCandle>> partitionGraph(PatternSettings patternSettings) {
+
+        List<List<FloatCandle>> graphChunks = partition(patternSettings.getGraph().getFloatCandles(), patternSettings.getLength());
+        List<List<FloatCandle>> consolidatedChunks = new ArrayList<>(graphChunks);
+
+        if (patternSettings.isAtomicPartition()) {
+
+            for (int i = 0; i < patternSettings.getLength() - 1; i++) {
+
+                List<FloatCandle> shrunkFloatCandles = new ArrayList<>(patternSettings.getGraph().getFloatCandles());
+
+                shrunkFloatCandles.subList(0, i + 1).clear();
+
+                graphChunks = partition(shrunkFloatCandles, patternSettings.getLength());
+                consolidatedChunks.addAll(graphChunks);
+            }
+        }
+        return consolidatedChunks;
+    }
+
+    private boolean settingsAreValid(PatternSettings patternSettings) {
         return patternSettings.getGraph() != null
                 && patternSettings.getGraph().getFloatCandles() != null
                 && patternSettings.getLength() > 0
@@ -212,7 +238,7 @@ public class PatternFactory {
 
         if (settingsAreValid(patternSettings)) {
 
-            List<List<FloatCandle>> graphChunks = partition(patternSettings.getGraph().getFloatCandles(), patternSettings.getLength());
+            List<List<FloatCandle>> graphChunks = partitionGraph(patternSettings);
 
             for (List<FloatCandle> graphChunk : graphChunks) {
                 if (graphChunk.size() >= patternSettings.getLength()) {
@@ -249,20 +275,21 @@ public class PatternFactory {
 
         if (!patterns.isEmpty()) {
 
-            switch (patterns.get(0).getPatternType())  {
+            switch (patterns.get(0).getPatternType()) {
                 case LIGHT_BASIC -> {
                     return convertFromLightBasicToLightPredictivePatterns(patterns, patternSettings);
                 }
                 case BASIC -> {
                     return convertFromBasicToPredictivePatterns(patterns, patternSettings);
                 }
-                default -> log.error("Could not convert patterns because of unrecognized pattern type: {}", patterns.get(0).getPatternType());
+                default ->
+                        log.error("Could not convert patterns because of unrecognized pattern type: {}", patterns.get(0).getPatternType());
             }
         }
         return predictivePatterns;
     }
 
-    private List<Pattern> convertFromLightBasicToLightPredictivePatterns(List<Pattern> lightBasicPatterns, PatternSettings patternSettings)    {
+    private List<Pattern> convertFromLightBasicToLightPredictivePatterns(List<Pattern> lightBasicPatterns, PatternSettings patternSettings) {
 
         List<Pattern> lightPredictivePatterns = new ArrayList<>();
 

@@ -125,13 +125,17 @@ public class DataService {
             List<Pattern> tradingPatternsList = new ArrayList<>();
 
             for (Pattern pattern : entry.getValue()) {
-                switch (pattern.getPatternType())   {
-                    case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
-                    case LIGHT_PREDICTIVE -> tradingPatternsList.add(new LightTradingPattern((LightPredictivePattern) pattern));
-                    default -> {
-                        return patterns;
+
+                if (((ComputablePattern) pattern).getPriceVariationPrediction() != 0) {
+
+                    switch (pattern.getPatternType()) {
+                        case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
+                        case LIGHT_PREDICTIVE -> tradingPatternsList.add(new LightTradingPattern((LightPredictivePattern) pattern));
+                        default -> {
+                            return patterns;
+                        }
                     }
-                }
+            }
             }
             tradingPatterns.put(entry.getKey(), tradingPatternsList);
         }

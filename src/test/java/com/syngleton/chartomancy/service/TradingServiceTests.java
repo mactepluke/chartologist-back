@@ -54,10 +54,11 @@ class TradingServiceTests {
                 false,
                 false,
                 false,
-                PatternSettings.Autoconfig.TIMEFRAME,
+                PatternSettings.Autoconfig.TIMEFRAME_LONG,
                 ComputationSettings.Autoconfig.TEST,
                 ComputationType.BASIC_ITERATION,
                 PatternType.LIGHT_PREDICTIVE,
+                true,
                 true,
                 true
         );

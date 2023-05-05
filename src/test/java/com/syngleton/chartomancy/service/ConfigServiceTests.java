@@ -68,6 +68,7 @@ class ConfigServiceTests {
                 ComputationType.BASIC_ITERATION,
                 PatternType.LIGHT_PREDICTIVE,
                 false,
+                false,
                 false
         );
         assertNotNull(coreData.getTradingPatternBoxes());

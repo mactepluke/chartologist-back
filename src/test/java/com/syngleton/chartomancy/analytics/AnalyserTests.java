@@ -67,6 +67,6 @@ class AnalyserTests {
         log.debug(intCandlesToMatch1);
         log.debug(intCandlesToMatch2);
 
-        assertEquals(38, analyzer.calculateMatchScoreWithExponentialSmoothing(intCandlesToMatch1, intCandlesToMatch2));
+        assertEquals(38, analyzer.calculateMatchScore(intCandlesToMatch1, intCandlesToMatch2));
     }
 }

@@ -5,7 +5,9 @@ import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
 import com.syngleton.chartomancy.model.charting.patterns.*;
 import com.syngleton.chartomancy.util.Calc;
+import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,13 +18,30 @@ import static java.lang.Math.*;
 @Component
 public class Analyzer {
 
+    @Value("${match_score_smoothing:NONE}")
+    private Smoothing matchScoreSmoothing;
+    @Value("${match_score_threshold:0}")
+    private int matchScoreThreshold;
+    @Value("${price_variation_threshold:0}")
+    private int priceVariationThreshold;
+    @Value("${extrapolate_price_variation:false}")
+    private boolean extrapolatePriceVariation;
+    @Value("${extrapolate_match_score:false}")
+    private boolean extrapolateMatchScore;
+
+    enum Smoothing {
+        NONE,
+        LINEAR,
+        EXPONENTIAL
+    }
+
     public float calculatePriceVariation(List<FloatCandle> floatFollowingCandles, int scope) {
 
         if (floatFollowingCandles.size() >= scope) {
             FloatCandle firstCandle = floatFollowingCandles.get(0);
             FloatCandle predictionCandle = floatFollowingCandles.get(scope - 1);
 
-            return Calc.variationPercentage(firstCandle.open(), predictionCandle.close());
+            return filterPricePrediction(Calc.variationPercentage(firstCandle.open(), predictionCandle.close()));
 
         } else {
             log.error("Unable to calculate price variation prediction : target candles size {} in smaller than scope {}",
@@ -64,88 +83,16 @@ public class Analyzer {
         return Calc.positivePercentage(matchScore, inkedPixels);
     }
 
-    public int calculateMatchScoreWithExponentialSmoothing(IntPattern pattern, List<IntCandle> intCandlesToMatch) {
+    public int calculateMatchScore(IntPattern pattern, List<IntCandle> intCandlesToMatch) {
 
-        return calculateMatchScoreWithExponentialSmoothing(pattern.getIntCandles(), intCandlesToMatch);
-    }
-
-    public int calculateMatchScoreWithExponentialSmoothing(List<IntCandle> intCandles, List<IntCandle> intCandlesToMatch) {
-
-        int length = intCandles.size();
-        int matchScore = 0;
-        int patternCandlesSurface = 0;
-
-        if (length != intCandlesToMatch.size()) {
-            log.error("Pattern size does not match graph sample size.");
-            return 0;
-        }
-
-        for (var i = 0; i < length; i++) {
-
-            patternCandlesSurface = patternCandlesSurface + (1 + i) * (
-                    abs(intCandles.get(i).open() - intCandles.get(i).close())
-                    + (intCandles.get(i).open() > intCandles.get(i).close() ?
-                    intCandles.get(i).close() - intCandles.get(i).low() + intCandles.get(i).high() - intCandles.get(i).open()
-                    : intCandles.get(i).open() - intCandles.get(i).low() + intCandles.get(i).high() - intCandles.get(i).close()));
-
-            if ((intCandles.get(i).open() < intCandles.get(i).close()
-                    && intCandlesToMatch.get(i).open() < intCandlesToMatch.get(i).close())
-                    || (intCandles.get(i).open() > intCandles.get(i).close()
-                    && intCandlesToMatch.get(i).open() > intCandlesToMatch.get(i).close())) {
-
-                int bodyOverlap;
-                int wickOverlap;
-
-                if (intCandles.get(i).open() > intCandles.get(i).close()) {
-                    wickOverlap = overlapAmount(
-                            intCandles.get(i).high(),
-                            intCandles.get(i).open(),
-                            intCandlesToMatch.get(i).high(),
-                            intCandlesToMatch.get(i).open()) * (1 + i)
-                            + overlapAmount(
-                            intCandles.get(i).close(),
-                            intCandles.get(i).low(),
-                            intCandlesToMatch.get(i).close(),
-                            intCandlesToMatch.get(i).low()) * (1 + i);
-                } else {
-                    wickOverlap = overlapAmount(
-                            intCandles.get(i).low(),
-                            intCandles.get(i).open(),
-                            intCandlesToMatch.get(i).low(),
-                            intCandlesToMatch.get(i).open()) * (1 + i)
-                            + overlapAmount(
-                            intCandles.get(i).close(),
-                            intCandles.get(i).high(),
-                            intCandlesToMatch.get(i).close(),
-                            intCandlesToMatch.get(i).high() * (1 + i)
-                    );
-                }
-                bodyOverlap = overlapAmount(
-                        intCandles.get(i).open(),
-                        intCandles.get(i).close(),
-                        intCandlesToMatch.get(i).open(),
-                        intCandlesToMatch.get(i).close()) * (1 + i);
-
-                matchScore = matchScore + bodyOverlap + wickOverlap;
-            }
-        }
-        //TODO Refactor the threshold function to apply an exponential result
-        int result = Calc.positivePercentage(matchScore, patternCandlesSurface);
-        if (result < 30)    {
-            result = 0;
-        }
-        return result;
-    }
-
-    private int applyThreshold(int result)  {
-        return 0;
+        return calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
     }
 
     public int calculateMatchScore(List<IntCandle> intCandles, List<IntCandle> intCandlesToMatch) {
 
         int length = intCandles.size();
-        int matchScore = 0;
-        int patternCandlesSurface = 0;
+        double matchScore = 0;
+        double patternCandlesSurface = 0;
 
         if (length != intCandlesToMatch.size()) {
             log.error("Pattern size does not match graph sample size.");
@@ -154,55 +101,107 @@ public class Analyzer {
 
         for (var i = 0; i < length; i++) {
 
-            patternCandlesSurface = patternCandlesSurface +
-                    abs(intCandles.get(i).open() - intCandles.get(i).close())
-                    + (intCandles.get(i).open() > intCandles.get(i).close() ?
-                    intCandles.get(i).close() - intCandles.get(i).low() + intCandles.get(i).high() - intCandles.get(i).open()
-                    : intCandles.get(i).open() - intCandles.get(i).low() + intCandles.get(i).high() - intCandles.get(i).close());
+            patternCandlesSurface = patternCandlesSurface + smooth(calculateCandleSurface(intCandles.get(i)), i);
 
-            if ((intCandles.get(i).open() < intCandles.get(i).close()
-                    && intCandlesToMatch.get(i).open() < intCandlesToMatch.get(i).close())
-                    || (intCandles.get(i).open() > intCandles.get(i).close()
-                    && intCandlesToMatch.get(i).open() > intCandlesToMatch.get(i).close())) {
+            if (haveSameColor(intCandles.get(i), intCandlesToMatch.get(i))) {
 
-                int bodyOverlap;
-                int wickOverlap;
-
-                if (intCandles.get(i).open() > intCandles.get(i).close()) {
-                    wickOverlap = overlapAmount(
-                            intCandles.get(i).high(),
-                            intCandles.get(i).open(),
-                            intCandlesToMatch.get(i).high(),
-                            intCandlesToMatch.get(i).open())
-                            + overlapAmount(
-                            intCandles.get(i).close(),
-                            intCandles.get(i).low(),
-                            intCandlesToMatch.get(i).close(),
-                            intCandlesToMatch.get(i).low()
-                    );
-                } else {
-                    wickOverlap = overlapAmount(
-                            intCandles.get(i).low(),
-                            intCandles.get(i).open(),
-                            intCandlesToMatch.get(i).low(),
-                            intCandlesToMatch.get(i).open())
-                            + overlapAmount(
-                            intCandles.get(i).close(),
-                            intCandles.get(i).high(),
-                            intCandlesToMatch.get(i).close(),
-                            intCandlesToMatch.get(i).high()
-                    );
-                }
-                bodyOverlap = overlapAmount(
-                        intCandles.get(i).open(),
-                        intCandles.get(i).close(),
-                        intCandlesToMatch.get(i).open(),
-                        intCandlesToMatch.get(i).close());
-
-                matchScore = matchScore + bodyOverlap + wickOverlap;
+                matchScore = matchScore +
+                        smooth(
+                                calculateBodyOverlap(intCandles.get(i), intCandlesToMatch.get(i))
+                                        + calculateWickOverlap(intCandles.get(i), intCandlesToMatch.get(i)),
+                                i
+                        );
             }
         }
-        return Calc.positivePercentage(matchScore, patternCandlesSurface);
+        return filterMatchScore(Calc.positivePercentage(matchScore, patternCandlesSurface));
+    }
+
+    private double smooth(double value, int step) {
+
+        switch (matchScoreSmoothing)    {
+            case LINEAR -> {
+                return value * (1 + step);
+            }
+            case EXPONENTIAL -> {
+                return value * Math.exp(step);
+            }
+            default -> {
+                return value;
+            }
+        }
+    }
+
+    private int calculateBodyOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
+        return overlapAmount(
+                intCandle.open(),
+                intCandle.close(),
+                intCandleToMatch.open(),
+                intCandleToMatch.close());
+    }
+
+    private int calculateWickOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
+
+        if (intCandle.open() > intCandle.close()) {
+            return overlapAmount(
+                    intCandle.high(),
+                    intCandle.open(),
+                    intCandleToMatch.high(),
+                    intCandleToMatch.open())
+                    + overlapAmount(
+                    intCandle.close(),
+                    intCandle.low(),
+                    intCandleToMatch.close(),
+                    intCandleToMatch.low());
+        } else {
+            return overlapAmount(
+                    intCandle.low(),
+                    intCandle.open(),
+                    intCandleToMatch.low(),
+                    intCandleToMatch.open())
+                    + overlapAmount(
+                    intCandle.close(),
+                    intCandle.high(),
+                    intCandleToMatch.close(),
+                    intCandleToMatch.high());
+        }
+    }
+
+    private int filterMatchScore(int matchScore) {
+
+        if (matchScore < matchScoreThreshold)  {
+            return 0;
+        }
+        if (extrapolateMatchScore)  {
+            matchScore = max(matchScore + matchScore * matchScore / 100, 100);
+        }
+        return matchScore;
+    }
+
+    public float filterPricePrediction(float priceVariation) {
+
+        if (abs(priceVariation) < priceVariationThreshold)  {
+            return 0;
+        }
+        if (extrapolatePriceVariation)  {
+            priceVariation = Format.streamline(priceVariation + priceVariation * abs(priceVariation) / 100, -100, 100);
+        }
+        return priceVariation;
+    }
+
+    private boolean haveSameColor(IntCandle intCandle, IntCandle intCandleToMatch) {
+
+        return (intCandle.open() < intCandle.close()
+                && intCandleToMatch.open() < intCandleToMatch.close())
+                || (intCandle.open() > intCandle.close()
+                && intCandleToMatch.open() > intCandleToMatch.close());
+    }
+
+    private int calculateCandleSurface(IntCandle intCandle) {
+
+        return abs(intCandle.open() - intCandle.close())
+                + (intCandle.open() > intCandle.close() ?
+                intCandle.close() - intCandle.low() + intCandle.high() - intCandle.open()
+                : intCandle.open() - intCandle.low() + intCandle.high() - intCandle.close());
     }
 
     private int overlapAmount(int aStart, int aEnd, int bStart, int bEnd) {
