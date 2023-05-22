@@ -99,7 +99,6 @@ public class PatternFactory {
         }
     }
 
-
     private void initializeCheckVariables() {
         minGranularity = setIfZero(minGranularity, MIN_GRANULARITY);
         maxGranularity = setIfZero(maxGranularity, MAX_GRANULARITY);

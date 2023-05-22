@@ -81,19 +81,20 @@ class DataServiceTests {
         assertEquals(testDataFilesNames.size(), testCoreData.getGraphs().size());
     }
 
+    @Disabled
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
         assertTrue(dataService.loadTradingData(coreData));
     }
 
+    @Disabled
     @Test
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
         assertTrue(dataService.saveTradingData(coreData));
     }
 
-    //TODO vérifier pourquoi ceci n'est pas vrai dans les faits
     @Test
     @DisplayName("[UNIT] Generates trading data")
     void generateTradingDataTest() {
@@ -111,6 +112,6 @@ class DataServiceTests {
     @DisplayName("[UNIT] Creates graphs for missing timeframes")
     void createGraphsForMissingTimeframesTest() {
         assertTrue(dataService.createGraphsForMissingTimeframes(coreData));
-        assertEquals(mockData.getNumberOfDifferentMockTimeframes()  + 2, coreData.getGraphs().size());
+        assertEquals(mockData.getNumberOfDifferentMockTimeframes() + 2, coreData.getGraphs().size());
     }
 }

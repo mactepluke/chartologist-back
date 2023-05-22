@@ -103,12 +103,15 @@ public class DataService {
 
                 Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
 
+                List<Pattern> anyPatternList = null;
+
                 if (Check.notNullNotEmpty(patternBox.getPatterns())) {
                     tradingPatterns = convertPatternsToTrading(patternBox.getPatterns());
+                    anyPatternList = tradingPatterns.entrySet().iterator().next().getValue();
                 }
-                ChartObject anyPattern = tradingPatterns.entrySet().iterator().next().getValue().get(0);
-                if (!tradingPatterns.isEmpty() && anyPattern != null) {
-                    tradingData.add(new PatternBox(anyPattern, tradingPatterns));
+
+                if (Check.notNullNotEmpty(anyPatternList) && !tradingPatterns.isEmpty() && anyPatternList.get(0) != null) {
+                    tradingData.add(new PatternBox(anyPatternList.get(0), tradingPatterns));
                 }
             }
             coreData.setTradingPatternBoxes(tradingData);
@@ -126,8 +129,6 @@ public class DataService {
 
             for (Pattern pattern : entry.getValue()) {
 
-                if (((ComputablePattern) pattern).getPriceVariationPrediction() != 0) {
-
                     switch (pattern.getPatternType()) {
                         case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
                         case LIGHT_PREDICTIVE -> tradingPatternsList.add(new LightTradingPattern((LightPredictivePattern) pattern));
@@ -135,7 +136,6 @@ public class DataService {
                             return patterns;
                         }
                     }
-            }
             }
             tradingPatterns.put(entry.getKey(), tradingPatternsList);
         }

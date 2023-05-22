@@ -14,7 +14,15 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Arrays.stream;
 
 @Log4j2
 @Component
@@ -36,7 +44,15 @@ public class PatternComputer {
 
         switch (computationSettings.getComputationType()) {
             case BASIC_ITERATION -> {
-                return computeBasicIterationPatterns(computationSettings);
+                try {
+                    return computeBasicIterationPatterns(computationSettings);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                    return Collections.emptyList();
+                } catch (InterruptedException e) {
+                    log.error("Interrupted!", e);
+                    Thread.currentThread().interrupt();
+                }
             }
             default -> {
                 log.error("Undefined pattern type.");
@@ -54,7 +70,8 @@ public class PatternComputer {
         //TODO define, initialize computation settings and implement their use in corresponding methods
     }
 
-    private List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) {
+
+    private List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) throws ExecutionException, InterruptedException {
 
         List<Pattern> patterns = computationSettings.getPatterns();
         Graph graph = computationSettings.getGraph();
@@ -62,28 +79,50 @@ public class PatternComputer {
 
         String pbMessage = "Processing " + graph.getSymbol() + ", " + graph.getTimeframe();
 
-        if (!patterns.isEmpty()
-                && (patterns.get(0).getPatternType() == PatternType.PREDICTIVE
-                || patterns.get(0).getPatternType() == PatternType.LIGHT_PREDICTIVE)) {
+        if (areComputable(patterns)) {
 
             ProgressBar pb = new ProgressBar(pbMessage, patterns.size());
-
             pb.start();
-            for (Pattern pattern : patterns) {
-                pb.step();
-                computedPatterns.add(computeBasicIterationPattern((ComputablePattern) pattern, graph));
-            }
+
+            List<CompletableFuture<Pattern>> futurePatterns;
+
+            futurePatterns = patterns.stream().map(pattern -> CompletableFuture.supplyAsync(
+                            () -> computeBasicIterationPattern((ComputablePattern) pattern, graph, pb)
+                    ))
+                    .toList();
+
+            CompletableFuture<Void> allFutures = CompletableFuture
+                    .allOf(futurePatterns.toArray(new CompletableFuture[futurePatterns.size()]));
+
+            CompletableFuture<List<Pattern>> futureComputedPatterns = allFutures.thenApply(pattern ->
+                    futurePatterns.stream()
+                            .map(CompletableFuture::join)
+                            .toList());
+
+            computedPatterns = futureComputedPatterns.get().stream()
+                    .filter(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction() != 0)
+                    .toList();
+
             pb.stop();
         } else {
             log.error("Could not compute: no computable patterns found.");
         }
+        if (computedPatterns.isEmpty()) {
+            computedPatterns = null;
+        }
         return computedPatterns;
     }
 
-    private Pattern computeBasicIterationPattern(ComputablePattern computablePattern, Graph graph) {
+    private boolean areComputable(List<Pattern> patterns) {
+        return (!patterns.isEmpty()
+                && (patterns.get(0).getPatternType() == PatternType.PREDICTIVE
+                || patterns.get(0).getPatternType() == PatternType.LIGHT_PREDICTIVE));
+    }
+
+    private Pattern computeBasicIterationPattern(ComputablePattern computablePattern, Graph graph, ProgressBar pb) {
 
         int matchScore = 0;
-        float priceVariation = 0;
+        float priceVariation;
 
         if (computablePattern != null) {
 
@@ -114,7 +153,8 @@ public class PatternComputer {
                             assert computablePattern instanceof PredictivePattern;
                             matchScore = analyzer.calculateMatchScore((PredictivePattern) computablePattern, pixelatedCandlesToMatch);
                         }
-                        default -> log.error("Could not compute patterns because of unrecognized pattern type: {}", computablePattern.getPatternType());
+                        default ->
+                                log.error("Could not compute patterns because of unrecognized pattern type: {}", computablePattern.getPatternType());
                     }
 
                     computablePattern.setPriceVariationPrediction(
@@ -135,6 +175,7 @@ public class PatternComputer {
                     computablePattern.getPriceVariationPrediction()
             ));
         }
+        pb.step();
         return (Pattern) computablePattern;
     }
 

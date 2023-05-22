@@ -1,12 +1,10 @@
 package com.syngleton.chartomancy.util;
 
-import lombok.extern.log4j.Log4j2;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-@Log4j2
 public final class Check {
 
     private Check() throws IllegalAccessException {
@@ -32,5 +30,20 @@ public final class Check {
         if (condition)  {
             function.accept(param);
         }
+    }
+
+    public static boolean passwordIsValid(String password) {
+        if (password == null) {
+            return false;
+        }
+        return password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{8,20}$");
+    }
+
+    public static boolean emailIsValid(String email) {
+        if (email == null) {
+            return false;
+        }
+        return email.matches("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
+                + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
     }
 }

@@ -3,36 +3,35 @@ package com.syngleton.chartomancy.analytics;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
-import com.syngleton.chartomancy.model.charting.patterns.*;
+import com.syngleton.chartomancy.model.charting.patterns.IntPattern;
+import com.syngleton.chartomancy.model.charting.patterns.PixelatedPattern;
 import com.syngleton.chartomancy.util.Calc;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static java.lang.Math.*;
 
 @Log4j2
-@Component
 public class Analyzer {
 
-    @Value("${match_score_smoothing:NONE}")
-    private Smoothing matchScoreSmoothing;
-    @Value("${match_score_threshold:0}")
-    private int matchScoreThreshold;
-    @Value("${price_variation_threshold:0}")
-    private int priceVariationThreshold;
-    @Value("${extrapolate_price_variation:false}")
-    private boolean extrapolatePriceVariation;
-    @Value("${extrapolate_match_score:false}")
-    private boolean extrapolateMatchScore;
+    private final Smoothing matchScoreSmoothing;
+    private final int matchScoreThreshold;
+    private final int priceVariationThreshold;
+    private final boolean extrapolatePriceVariation;
+    private final boolean extrapolateMatchScore;
 
-    enum Smoothing {
-        NONE,
-        LINEAR,
-        EXPONENTIAL
+    public Analyzer(Smoothing matchScoreSmoothing,
+                    int matchScoreThreshold,
+                    int priceVariationThreshold,
+                    boolean extrapolatePriceVariation,
+                    boolean extrapolateMatchScore) {
+        this.matchScoreSmoothing = matchScoreSmoothing;
+        this.matchScoreThreshold = matchScoreThreshold;
+        this.priceVariationThreshold = priceVariationThreshold;
+        this.extrapolatePriceVariation = extrapolatePriceVariation;
+        this.extrapolateMatchScore = extrapolateMatchScore;
     }
 
     public float calculatePriceVariation(List<FloatCandle> floatFollowingCandles, int scope) {
@@ -172,7 +171,9 @@ public class Analyzer {
             return 0;
         }
         if (extrapolateMatchScore)  {
-            matchScore = max(matchScore + matchScore * matchScore / 100, 100);
+
+            float adjustedMatchScore =  matchScore * (matchScore / 100f) + (float) matchScore;
+            matchScore = Format.streamline((int) adjustedMatchScore, 0, 100);
         }
         return matchScore;
     }

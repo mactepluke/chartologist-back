@@ -66,6 +66,8 @@ public class PatternService {
 
     public boolean computePatternBoxes(CoreData coreData, ComputationSettings.Builder settingsInput) {
 
+        boolean result = false;
+
         Set<PatternBox> computedPatternBoxes = new HashSet<>();
 
         if (coreData != null
@@ -79,25 +81,30 @@ public class PatternService {
                     Graph matchingGraph = patternBox.getFirstMatchingChartObjectIn(coreData.getGraphs());
 
                     if (matchingGraph != null) {
-                        computedPatternBoxes.add(
-                                new PatternBox(
-                                        matchingGraph,
-                                        computePatterns(
-                                                settingsInput
-                                                        .patterns(patternBox.getListOfAllPatterns())
-                                                        .graph(matchingGraph)
-                                        )
-                                )
+
+                        List<Pattern> computedPatterns = computePatterns(
+                                settingsInput
+                                        .patterns(patternBox.getListOfAllPatterns())
+                                        .graph(matchingGraph)
                         );
+
+                        if (Check.notNullNotEmpty(computedPatterns)) {
+                            computedPatternBoxes.add(
+                                    new PatternBox(
+                                            matchingGraph,
+                                            computedPatterns
+                                    )
+                            );
+                        }
                     }
                 }
             }
             if (Check.notNullNotEmpty(computedPatternBoxes))   {
                 coreData.setPatternBoxes(computedPatternBoxes);
-                return true;
             }
+            result = true;
         }
-        return false;
+        return result;
     }
 
     public List<Pattern> computePatterns(ComputationSettings.Builder settingsInput) {

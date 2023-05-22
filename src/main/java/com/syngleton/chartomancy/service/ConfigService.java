@@ -128,11 +128,12 @@ public class ConfigService {
         //PRINTING CORE DATA CONTENTS IF APPLICABLE
         Check.executeIfTrue(printCoreData, dataService::printCoreData, coreData);
 
+/*
 
         //_______________TEST_______________
-        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.DAY);
+        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.HOUR);
 
-        for (var i = 1; i < 1000; i++) {
+        for (var i = 1; i < 3000; i++) {
             Trade trade = tradingService.generateOptimalBasicTrade(graph, coreData, 20 * i, -1, 0);
             if (trade == null) {
                 break;
@@ -140,6 +141,7 @@ public class ConfigService {
             log.debug("TRADE# {} -------> {}", i + 1, trade);
         }
         //______________________________
+*/
 
 
         return coreData;

@@ -28,7 +28,6 @@ public class TradingBot {
     }
 
 
-    //TODO Let a dedicated trade history analysis service do the job?
     public int getSharpeRatio() {
         return 0;
     }

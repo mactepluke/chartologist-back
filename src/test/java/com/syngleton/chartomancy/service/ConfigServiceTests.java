@@ -73,7 +73,8 @@ class ConfigServiceTests {
         );
         assertNotNull(coreData.getTradingPatternBoxes());
         assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES + 2, coreData.getGraphs().size());
-        assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES + 1, coreData.getPatternBoxes().size());
-        assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES + 1, coreData.getTradingPatternBoxes().size());
+        //Data set is too small to generate patterns with non-zero predictive price value for 2/3 graphs
+        assertEquals(1, coreData.getPatternBoxes().size());
+        assertEquals(1, coreData.getTradingPatternBoxes().size());
     }
 }

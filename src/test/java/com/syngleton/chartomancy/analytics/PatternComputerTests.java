@@ -1,5 +1,6 @@
 package com.syngleton.chartomancy.analytics;
 
+import com.syngleton.chartomancy.configuration.AnalyzerConfigTest;
 import com.syngleton.chartomancy.configuration.DataConfigTest;
 import com.syngleton.chartomancy.factory.CandleFactory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
@@ -27,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = DataConfigTest.class)
+@ContextConfiguration(classes = {DataConfigTest.class, AnalyzerConfigTest.class})
 class PatternComputerTests {
 
     @Autowired
