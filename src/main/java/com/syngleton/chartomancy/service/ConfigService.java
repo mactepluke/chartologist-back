@@ -128,7 +128,6 @@ public class ConfigService {
         //PRINTING CORE DATA CONTENTS IF APPLICABLE
         Check.executeIfTrue(printCoreData, dataService::printCoreData, coreData);
 
-/*
 
         //_______________TEST_______________
         Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.HOUR);
@@ -141,7 +140,6 @@ public class ConfigService {
             log.debug("TRADE# {} -------> {}", i + 1, trade);
         }
         //______________________________
-*/
 
 
         return coreData;

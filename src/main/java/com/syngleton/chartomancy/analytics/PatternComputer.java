@@ -14,15 +14,9 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Arrays.stream;
 
 @Log4j2
 @Component
@@ -52,6 +46,7 @@ public class PatternComputer {
                 } catch (InterruptedException e) {
                     log.error("Interrupted!", e);
                     Thread.currentThread().interrupt();
+                    return Collections.emptyList();
                 }
             }
             default -> {

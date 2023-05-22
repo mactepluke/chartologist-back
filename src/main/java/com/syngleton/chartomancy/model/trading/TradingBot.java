@@ -1,10 +1,7 @@
 package com.syngleton.chartomancy.model.trading;
 
 import com.syngleton.chartomancy.analytics.Analyzer;
-import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
-import com.syngleton.chartomancy.model.charting.misc.Graph;
-import com.syngleton.chartomancy.model.charting.patterns.*;
-import com.syngleton.chartomancy.util.Check;
+import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import lombok.Data;
 import lombok.ToString;
 
