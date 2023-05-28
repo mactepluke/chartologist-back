@@ -45,8 +45,8 @@ public class DataConfig {
     private boolean atomicPartition;
     @Value("${full_scope:false}")
     private boolean fullScope;
-    @Value("${print_core_data:false}")
-    private boolean printCoreData;
+    @Value("${launch_automation:false}")
+    private boolean launchAutomation;
 
     private final ConfigService configService;
 
@@ -72,7 +72,7 @@ public class DataConfig {
                 computablePatternType,
                 atomicPartition,
                 fullScope,
-                printCoreData
+                launchAutomation
         );
     }
 }

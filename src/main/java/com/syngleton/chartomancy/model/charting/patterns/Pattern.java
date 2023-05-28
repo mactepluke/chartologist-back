@@ -6,7 +6,7 @@ import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import lombok.Getter;
 import lombok.ToString;
 
-@ToString
+@ToString(callSuper = true)
 @Getter
 public abstract class Pattern extends ChartObject {
     private final PatternType patternType;

@@ -4,6 +4,7 @@ import com.syngleton.chartomancy.analytics.Analyzer;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.CandleFactory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.patterns.IntPattern;
 import com.syngleton.chartomancy.model.charting.patterns.LightTradingPattern;
@@ -108,7 +109,6 @@ public class TradingService {
 
                 float priceVariationForScope = predictPriceVariationForScope(graph, patternBox, eventHorizon, entry.getKey());
 //TODO Faire une moyenne des pricePrediction de tous les scopes ? Ou plutôt une courbe d'évolution ?
-                log.debug("SCOPE={}, PRICE PREDICTION={}", entry.getKey(), priceVariationForScope);
 
                 if (highestPrice == 0) {
                     highestPrice = priceVariationForScope;
@@ -151,31 +151,26 @@ public class TradingService {
         List<Pattern> patterns = patternBox.getPatterns().get(scope);
         float pricePrediction = 0;
 
-        if (Check.notNullNotEmpty(patterns)) {
+        if (Check.notNullNotEmpty(patterns)
+                && patterns.get(0).getLength() < eventHorizon) {
 
             float divider = 1;
+            List<FloatCandle> floatCandles = graph.getFloatCandles().subList(eventHorizon - patterns.get(0).getLength(), eventHorizon);
+            List<IntCandle> intCandles = candleFactory.streamlineToIntCandles(floatCandles, patterns.get(0).getGranularity());
 
             for (Pattern pattern : patterns) {
-
-                int patternLength = pattern.getLength();
-
-                if (patternLength < eventHorizon) {
 
                     float patternPricePrediction = ((LightTradingPattern) pattern).getPriceVariationPrediction();
                     IntPattern tradingPattern = (IntPattern) pattern;
 
-                    List<FloatCandle> floatCandles = graph.getFloatCandles().subList(eventHorizon - patternLength, eventHorizon);
-
-                    int matchScore = analyzer.calculateMatchScore(tradingPattern, candleFactory.streamlineToIntCandles(floatCandles, tradingPattern.getGranularity()));
-
-                    //TODO Check this code
-                    float price = analyzer.filterPricePrediction(patternPricePrediction * (matchScore / 100f));
+                    float price = analyzer.filterPricePrediction(patternPricePrediction);
 
                     if (price != 0) {
-                        pricePrediction = pricePrediction + price;
+                        int matchScore = analyzer.calculateMatchScore(tradingPattern, intCandles);
+
+                        pricePrediction = pricePrediction + price * (matchScore / 100f);
                         divider = divider + matchScore / 100f;
                     }
-                }
             }
             pricePrediction = pricePrediction / divider;
         }

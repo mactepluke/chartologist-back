@@ -4,7 +4,7 @@ import com.syngleton.chartomancy.configuration.DataConfigTest;
 import com.syngleton.chartomancy.controller.root.DataController;
 import com.syngleton.chartomancy.controller.root.PatternController;
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.service.ShellService;
+import com.syngleton.chartomancy.service.LaunchService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ class ShellControllerTests {
     @Autowired
     private PatternController patternController;
     @MockBean
-    private ShellService shellService;
+    private LaunchService launchService;
 
     ShellControllerTests() {
     }
@@ -53,7 +53,7 @@ class ShellControllerTests {
     @DisplayName("[UNIT] Launch shell endpoint")
     void launchShellTest() throws Exception {
 
-        when(shellService.launchShell(dataController, patternController, null)).thenReturn(true);
+        when(launchService.launchShell(dataController, patternController, null)).thenReturn(true);
 
         mockMvc.perform(get("/devtools/launch-shell/{password}", "dummyPassword"))
                 .andExpect(status().isUnauthorized());

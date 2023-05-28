@@ -4,33 +4,37 @@ import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.misc.Graph;
-import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
+import com.syngleton.chartomancy.model.charting.patterns.ComputablePattern;
+import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import com.syngleton.chartomancy.model.charting.patterns.PatternType;
-import com.syngleton.chartomancy.model.trading.Trade;
 import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Service
 public class ConfigService {
 
-    private final TradingService tradingService;
+    private final LaunchService launchService;
     private final DataService dataService;
     private final PatternService patternService;
+    private final TradingService tradingService;
     private static final String NEW_LINE = System.getProperty("line.separator");
 
     @Autowired
     public ConfigService(DataService dataService,
                          PatternService patternService,
+                         LaunchService launchService,
                          TradingService tradingService) {
         this.dataService = dataService;
         this.patternService = patternService;
+        this.launchService = launchService;
         this.tradingService = tradingService;
     }
 
@@ -48,18 +52,20 @@ public class ConfigService {
                                        PatternType computablePatternType,
                                        boolean atomicPartition,
                                        boolean fullScope,
-                                       boolean printCoreData
+                                       boolean launchAutomation
     ) {
 
         CoreData coreData = new CoreData();
 
-        log.info("INITIALIZING CORE DATA (pattern settings={}, , pattern type={}, computation={}, computation settings={})",
+        log.info(NEW_LINE +
+                        "INITIALIZING CORE DATA (pattern settings={}, , pattern type={}, computation={}, computation settings={})",
                 patternSettingsAutoconfig,
                 computablePatternType,
                 computationType,
                 computationSettings);
 
-        log.debug("Initialization parameters:" + NEW_LINE +
+        log.debug(NEW_LINE +
+                        "Initialization parameters:" + NEW_LINE +
                         "Data folder name: {}" + NEW_LINE +
                         "Data file names: {}" + NEW_LINE +
                         "Run analysis at startup: {}" + NEW_LINE +
@@ -74,7 +80,7 @@ public class ConfigService {
                         "Computable pattern type: {}" + NEW_LINE +
                         "Atomic graph partition: {}" + NEW_LINE +
                         "Full scope prediction range: {}" + NEW_LINE +
-                        "Print core data after analysis: {}" + NEW_LINE,
+                        "Launching automation after analysis: {}",
                 dataFolderName,
                 dataFilesNames,
                 runAnalysisAtStartup,
@@ -89,11 +95,11 @@ public class ConfigService {
                 computablePatternType,
                 atomicPartition,
                 fullScope,
-                printCoreData);
+                launchAutomation);
 
         //RUNNING ANALYSIS IF APPLICABLE
         if (runAnalysisAtStartup) {
-            log.debug("Performed data analysis: {}", runAnalysis(
+            log.info("Performed data analysis: {}", runAnalysis(
                     coreData,
                     dataFolderName,
                     dataFilesNames,
@@ -112,7 +118,7 @@ public class ConfigService {
                 }
                 log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
 
-                log.info("Overriden saved trading data with newly generated data: {}",
+                log.info("Saved trading data overriden with newly generated data: {}",
                         Check.executeIfTrue(overrideSavedTradingData, dataService::saveTradingData, coreData));
 
                 log.info("Purged non-trading data: {}",
@@ -125,22 +131,10 @@ public class ConfigService {
                 Check.executeIfTrue(loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData),
                         dataService::loadTradingData,
                         coreData));
-        //PRINTING CORE DATA CONTENTS IF APPLICABLE
-        Check.executeIfTrue(printCoreData, dataService::printCoreData, coreData);
-
-
-        //_______________TEST_______________
-        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.HOUR);
-
-        for (var i = 1; i < 3000; i++) {
-            Trade trade = tradingService.generateOptimalBasicTrade(graph, coreData, 20 * i, -1, 0);
-            if (trade == null) {
-                break;
-            }
-            log.debug("TRADE# {} -------> {}", i + 1, trade);
+        //PRINTING LAUNCHING AUTOMATION IF APPLICABLE
+        if (launchAutomation) {
+            launchService.launchAutomation(coreData, dataService, patternService, tradingService);
         }
-        //______________________________
-
 
         return coreData;
     }
@@ -155,6 +149,10 @@ public class ConfigService {
                                 boolean createGraphsForMissingTimeframes,
                                 boolean atomicPartition,
                                 boolean fullScope) {
+
+        StopWatch stopWatch = new StopWatch();
+
+        stopWatch.start();
 
         //LOADING GRAPHS
         if (dataService.loadGraphs(coreData, dataFolderName, dataFilesNames)) {
@@ -193,6 +191,10 @@ public class ConfigService {
         } else {
             log.error("Application could not initialize its data: no pattern boxes format could be computed.");
         }
+
+        stopWatch.stop();
+
+        log.info("Analysis time: {} seconds.", TimeUnit.MILLISECONDS.toSeconds(stopWatch.getLastTaskTimeMillis()));
 
         return Check.notNullNotEmpty(coreData.getPatternBoxes());
     }

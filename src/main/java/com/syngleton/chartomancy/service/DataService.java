@@ -237,8 +237,7 @@ public class DataService {
                         .append(", ")
                         .append(graph.getFloatCandles().size())
                         .append(" candles")
-                        .append(NEW_LINE)
-                        .append("***");
+                        .append(NEW_LINE);
             }
         } else {
             graphsBuilder
@@ -290,7 +289,8 @@ public class DataService {
 
                 }
                 patternBoxesBuilder
-                        .append("***");
+                        .append("***")
+                        .append(NEW_LINE);
             }
         } else {
             patternBoxesBuilder

@@ -2,6 +2,7 @@ package com.syngleton.chartomancy.misc;
 
 import com.syngleton.chartomancy.configuration.DataConfigTest;
 import com.syngleton.chartomancy.util.Calc;
+import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -9,7 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Log4j2
@@ -17,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 class UtilTests {
+
+    private boolean result;
 
     @BeforeAll
     void setUp() {
@@ -72,6 +75,5 @@ class UtilTests {
         assertEquals(0.0004583f, Format.roundAccordingly(0.00045832106f));
         assertEquals(0.00005f, Format.roundAccordingly(0.000045832106f));
     }
-
 
 }

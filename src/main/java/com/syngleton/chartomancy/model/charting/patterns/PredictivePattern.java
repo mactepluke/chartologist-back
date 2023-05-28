@@ -1,6 +1,5 @@
 package com.syngleton.chartomancy.model.charting.patterns;
 
-import com.syngleton.chartomancy.analytics.ComputationData;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
 import com.syngleton.chartomancy.util.Format;
 import lombok.EqualsAndHashCode;
@@ -9,7 +8,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @ToString(callSuper = true)
@@ -20,8 +18,6 @@ public class PredictivePattern extends Pattern implements PixelatedPattern, Comp
     private final List<PixelatedCandle> pixelatedCandles;
     @Getter
     private final int scope;
-    @Getter
-    private final List<ComputationData> computationsHistory;
     @Getter
     @Setter
     private float priceVariationPrediction = 0;
@@ -39,7 +35,6 @@ public class PredictivePattern extends Pattern implements PixelatedPattern, Comp
         this.pixelatedCandles = pattern.getPixelatedCandles();
         this.startDate = pattern.getStartDate();
         this.scope = Format.streamline(scope, 1, this.getLength());
-        this.computationsHistory = new ArrayList<>();
     }
 
     @Override

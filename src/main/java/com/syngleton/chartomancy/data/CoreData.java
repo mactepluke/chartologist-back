@@ -4,10 +4,11 @@ import com.syngleton.chartomancy.model.charting.misc.ChartObject;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.*;
 
 @Data
 public class CoreData {
@@ -28,6 +29,14 @@ public class CoreData {
             }
         }
         return null;
+    }
+
+    public Optional<PatternBox> getPatternBox(Timeframe timeframe)   {
+        return this.patternBoxes.stream().filter(patternBox -> patternBox.getTimeframe() == timeframe).findAny();
+    }
+
+    public Optional<PatternBox> getTradingPatternBox(Timeframe timeframe)   {
+        return this.tradingPatternBoxes.stream().filter(patternBox -> patternBox.getTimeframe() == timeframe).findAny();
     }
 
 }

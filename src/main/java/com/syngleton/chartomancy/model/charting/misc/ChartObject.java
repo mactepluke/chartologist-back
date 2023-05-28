@@ -2,10 +2,12 @@ package com.syngleton.chartomancy.model.charting.misc;
 
 import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Collection;
 
 @Getter
+@ToString
 public abstract class ChartObject {
     private final Symbol symbol;
     private final Timeframe timeframe;

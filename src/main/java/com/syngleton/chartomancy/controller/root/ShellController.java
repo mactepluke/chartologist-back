@@ -1,7 +1,7 @@
 package com.syngleton.chartomancy.controller.root;
 
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.service.ShellService;
+import com.syngleton.chartomancy.service.LaunchService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +25,7 @@ public class ShellController {
     @Value("${root_password}")
     private String rootPassword;
 
-    private final ShellService shellService;
+    private final LaunchService launchService;
     private final DataController dataController;
     private final PatternController patternController;
     private final CoreData coreData;
@@ -34,12 +34,12 @@ public class ShellController {
     @Autowired
     public ShellController(DataController dataController,
                            PatternController patternController,
-                           ShellService shellService,
+                           LaunchService launchService,
                            CoreData coreData,
                            PasswordEncoder passwordEncoder) {
         this.dataController = dataController;
         this.patternController = patternController;
-        this.shellService = shellService;
+        this.launchService = launchService;
         this.coreData = coreData;
         this.passwordEncoder = passwordEncoder;
     }
@@ -52,7 +52,7 @@ public class ShellController {
 
         if (passwordEncoder.matches(password, rootPassword)) {
             status = OK;
-            result = shellService.launchShell(dataController, patternController, coreData);
+            result = launchService.launchShell(dataController, patternController, coreData);
         } else {
             log.error("Invalid password for devToolsUser.");
             status = UNAUTHORIZED;

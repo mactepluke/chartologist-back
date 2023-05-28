@@ -7,6 +7,7 @@ import com.syngleton.chartomancy.model.charting.patterns.IntPattern;
 import com.syngleton.chartomancy.model.charting.patterns.PixelatedPattern;
 import com.syngleton.chartomancy.util.Calc;
 import com.syngleton.chartomancy.util.Format;
+import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 import static java.lang.Math.*;
 
 @Log4j2
+@ToString
 public class Analyzer {
 
     private final Smoothing matchScoreSmoothing;

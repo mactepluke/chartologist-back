@@ -6,12 +6,13 @@ import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.patterns.*;
+import com.syngleton.chartomancy.util.Futures;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,13 +23,18 @@ import java.util.concurrent.ExecutionException;
 @Component
 public class PatternComputer {
 
+    @Setter
+    private Analyzer analyzer;
     private final CandleFactory candleFactory;
-    private final Analyzer analyzer;
 
     @Autowired
     public PatternComputer(CandleFactory candleFactory, Analyzer analyzer) {
         this.candleFactory = candleFactory;
         this.analyzer = analyzer;
+    }
+
+    public String printAnalyserConfig() {
+        return analyzer.toString();
     }
 
     public List<Pattern> compute(ComputationSettings.Builder paramsInput) {
@@ -79,22 +85,13 @@ public class PatternComputer {
             ProgressBar pb = new ProgressBar(pbMessage, patterns.size());
             pb.start();
 
-            List<CompletableFuture<Pattern>> futurePatterns;
-
-            futurePatterns = patterns.stream().map(pattern -> CompletableFuture.supplyAsync(
-                            () -> computeBasicIterationPattern((ComputablePattern) pattern, graph, pb)
-                    ))
-                    .toList();
-
-            CompletableFuture<Void> allFutures = CompletableFuture
-                    .allOf(futurePatterns.toArray(new CompletableFuture[futurePatterns.size()]));
-
-            CompletableFuture<List<Pattern>> futureComputedPatterns = allFutures.thenApply(pattern ->
-                    futurePatterns.stream()
-                            .map(CompletableFuture::join)
-                            .toList());
-
-            computedPatterns = futureComputedPatterns.get().stream()
+            computedPatterns = Futures.listCompleted(
+                            patterns.stream().map(pattern -> CompletableFuture.supplyAsync(
+                                            () -> computeBasicIterationPattern((ComputablePattern) pattern, graph, pb)
+                                    ))
+                                    .toList()
+                    )
+                    .stream()
                     .filter(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction() != 0)
                     .toList();
 
@@ -120,9 +117,6 @@ public class PatternComputer {
         float priceVariation;
 
         if (computablePattern != null) {
-
-            float startPricePrediction = computablePattern.getPriceVariationPrediction();
-            LocalDateTime startTime = LocalDateTime.now();
 
             int computations = graph.getFloatCandles().size() - computablePattern.getLength() - computablePattern.getScope() + 1;
 
@@ -161,14 +155,6 @@ public class PatternComputer {
 
             computablePattern.setPriceVariationPrediction(computablePattern.getPriceVariationPrediction() / divider);
 
-            computablePattern.getComputationsHistory().add(new ComputationData(
-                    startTime,
-                    LocalDateTime.now(),
-                    ComputationType.BASIC_ITERATION,
-                    computations,
-                    startPricePrediction,
-                    computablePattern.getPriceVariationPrediction()
-            ));
         }
         pb.step();
         return (Pattern) computablePattern;

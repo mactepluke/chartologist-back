@@ -7,12 +7,14 @@ import com.syngleton.chartomancy.factory.PatternFactory;
 import com.syngleton.chartomancy.factory.PatternSettings;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.patterns.IntPattern;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import com.syngleton.chartomancy.model.charting.patterns.PixelatedPattern;
 import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -33,6 +35,10 @@ public class PatternService {
                           PatternComputer patternComputer) {
         this.patternFactory = patternFactory;
         this.patternComputer = patternComputer;
+    }
+
+    public String printAnalyzerConfig()   {
+        return patternComputer.printAnalyserConfig();
     }
 
     public boolean createPatternBoxes(CoreData coreData, PatternSettings.Builder settingsInput) {

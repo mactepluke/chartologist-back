@@ -1,6 +1,7 @@
 package com.syngleton.chartomancy.model.charting.patterns;
 
 import com.syngleton.chartomancy.model.charting.misc.ChartObject;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -41,9 +42,7 @@ public class PatternBox extends ChartObject {
     }
 
     public PatternBox(ChartObject chartObject, Map<Integer, List<Pattern>> patterns) {
-
         super(chartObject);
-
         this.patterns = patterns;
     }
 
