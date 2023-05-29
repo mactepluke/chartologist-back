@@ -3,6 +3,7 @@ package com.syngleton.chartomancy.service;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.GraphFactory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.util.csv.CsvExportable;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.charting.patterns.*;
@@ -30,6 +31,20 @@ public class DataService {
     @Autowired
     public DataService(GraphFactory graphFactory) {
         this.graphFactory = graphFactory;
+    }
+
+    public void writeCsvFile(String fileName, CsvExportable content)   {
+        writeToFile(fileName, generateCsv(content));
+    }
+
+    private void writeToFile(String fileName, String content)  {
+        //TODO Implement this method
+    }
+
+    public String generateCsv(CsvExportable content)  {
+        //TODO Implement this method
+
+        return "";
     }
 
     public boolean loadGraphs(CoreData coreData, String dataFolderName, List<String> dataFilesNames) {

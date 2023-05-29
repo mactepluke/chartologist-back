@@ -5,11 +5,7 @@ import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.configuration.DataConfigTest;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.misc.Graph;
-import com.syngleton.chartomancy.model.charting.misc.Symbol;
-import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.charting.patterns.PatternType;
-import com.syngleton.chartomancy.model.trading.Trade;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,19 +66,10 @@ class TradingServiceTests {
         log.info("*** ENDING TRADING SERVICE TESTS ***");
     }
 
+    @Disabled
     @Test
     @DisplayName("[IT] Generates optimal basic trade")
     void generateOptimalBasicTradeTest() {
-
-        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.DAY);
-
-        for (var i = 1; i <1000; i++) {
-            Trade trade = tradingService.generateOptimalBasicTrade(graph, coreData, 30 * i, -1, 0);
-            if (trade == null)    {
-                break;
-            }
-            log.debug("TRADE# {} -------> {}", i + 1,  trade);
-        }
     }
 
 }

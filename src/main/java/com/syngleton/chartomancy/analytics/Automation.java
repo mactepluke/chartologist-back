@@ -1,12 +1,9 @@
 package com.syngleton.chartomancy.analytics;
 
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.model.charting.misc.Graph;
-import com.syngleton.chartomancy.model.charting.misc.Symbol;
-import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.charting.patterns.ComputablePattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
-import com.syngleton.chartomancy.model.trading.Trade;
+import com.syngleton.chartomancy.model.trading.TradingAccount;
 import com.syngleton.chartomancy.service.DataService;
 import com.syngleton.chartomancy.service.PatternService;
 import com.syngleton.chartomancy.service.TradingService;
@@ -167,7 +164,10 @@ public class Automation implements Runnable {
 
     private void runBasicDummyTrades() {
 
-        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.HOUR);
+        TradingAccount account = new TradingAccount();
+
+        //dataService.generateCsv(account.exportTradesToCsv());
+/*        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.HOUR);
 
         for (var i = 1; i < 3000; i++) {
             Trade trade = tradingService.generateOptimalBasicTrade(graph, coreData, 200 * i, -1, 0);
@@ -175,7 +175,7 @@ public class Automation implements Runnable {
                 break;
             }
             log.info("TRADE# {} -------> {}", i + 1, trade);
-        }
+        }*/
     }
 
     private void runAdvancedDummyTrades()   {

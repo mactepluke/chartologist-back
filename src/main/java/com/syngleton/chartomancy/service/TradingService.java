@@ -11,13 +11,14 @@ import com.syngleton.chartomancy.model.charting.patterns.LightTradingPattern;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import com.syngleton.chartomancy.model.trading.Trade;
+import com.syngleton.chartomancy.model.trading.TradingAccount;
 import com.syngleton.chartomancy.util.Check;
-import com.syngleton.chartomancy.util.Format;
 import com.syngleton.chartomancy.util.Triad;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -36,62 +37,113 @@ public class TradingService {
         this.candleFactory = candleFactory;
     }
 
-    //TODO Harmonize the "most current price", "event horizon" and open date time and price parameters so they are all consistent
-    public Trade generateOptimalBasicTrade(Graph graph, CoreData coreData, int eventHorizon, int maxDuration, float safetyMargin) {
+
+    public Trade generateOptimalBasicTimingBasedTrade(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
 
         Trade trade = null;
 
-        if (graph != null
-                && eventHorizon >= 0
-                && graph.getFloatCandles().size() > eventHorizon
-                && graph.getFloatCandles().get(eventHorizon) != null) {
+        if (tradingInputDataAreLegit(tradingAccount, graph, coreData, tradeOpenCandle)) {
 
-            safetyMargin = Format.streamline(safetyMargin, 0, 90);
+            Triad<Integer, Float, Float> mostProfitableMomentAndPriceVariationAndStopLoss = findMostProfitableMomentAndPriceAndStopLoss(
+                    graph,
+                    coreData,
+                    tradeOpenCandle,
+                    -1);
 
-            Triad<Integer, Float, Float> mostProfitableMomentAndPriceVariationAndStopLoss = findMostProfitableMomentAndPriceAndStopLoss(graph, coreData, eventHorizon, maxDuration);
+            boolean side = mostProfitableMomentAndPriceVariationAndStopLoss.second() > 0;
 
-            int mostProfitableMoment = mostProfitableMomentAndPriceVariationAndStopLoss.first();
-            float mostProfitablePriceVariation = mostProfitableMomentAndPriceVariationAndStopLoss.second();
-            float stopLossVariation = mostProfitableMomentAndPriceVariationAndStopLoss.third();
-
-            boolean side = mostProfitablePriceVariation > 0;
-
-            float mostCurrentPrice = getMostCurrentPrice(graph, eventHorizon);
-            float takeProfit = mostCurrentPrice + mostCurrentPrice * mostProfitablePriceVariation / 100;
-            float stopLoss = mostCurrentPrice + mostCurrentPrice * stopLossVariation / 100;
-
-            trade = new Trade(graph.getTimeframe(),
+            trade = new Trade(graph.getName(),
+                    graph.getTimeframe(),
                     graph.getSymbol(),
-                    graph.getFloatCandles().get(eventHorizon).dateTime(),
-                    graph.getFloatCandles().get(eventHorizon).dateTime().plusSeconds(
-                            mostProfitableMoment
-                                    * graph.getTimeframe().durationInSeconds),
+                    tradingAccount.getBalance(),
+                    graph.getFloatCandles().get(tradeOpenCandle).dateTime(),
+                    graph.getFloatCandles()
+                            .get(tradeOpenCandle)
+                            .dateTime()
+                            .plusSeconds(mostProfitableMomentAndPriceVariationAndStopLoss.first() * graph.getTimeframe().durationInSeconds),
+                    graph.getFloatCandles()
+                            .get(tradeOpenCandle)
+                            .dateTime()
+                            .plusSeconds(mostProfitableMomentAndPriceVariationAndStopLoss.first() * graph.getTimeframe().durationInSeconds),
                     side,
-                    mostCurrentPrice,
-                    takeProfit,
-                    stopLoss,
+                    getCandleClosePrice(graph, tradeOpenCandle),
                     1);
-            if (maxDuration != -1) {
-                trade.setClose(trade.getOpen().plusSeconds(maxDuration * trade.getTimeframe().durationInSeconds));
+
+            if (trade.getStatus() == TradeStatus.UNFUNDED) {
+                log.error("Could not open trade: not enough funds (account balance: {})", tradingAccount.getBalance());
+                trade = null;
             }
         }
         return trade;
     }
 
-    private float getMostCurrentPrice(Graph graph, int eventHorizon) {
+    //TODO Implement this method by calculating the leverage based on the take profit result and the available balance
+    public Trade generateOptimalLeveragedTakeProfitBasedTrade(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
+
+        Trade trade = null;
+
+        if (tradingInputDataAreLegit(tradingAccount, graph, coreData, tradeOpenCandle)) {
+
+            Triad<Integer, Float, Float> mostProfitableMomentAndPriceVariationAndStopLoss = findMostProfitableMomentAndPriceAndStopLoss(
+                    graph,
+                    coreData,
+                    tradeOpenCandle,
+                    -1);
+
+            int mostProfitableMoment = mostProfitableMomentAndPriceVariationAndStopLoss.first();
+            float mostProfitablePriceVariation = mostProfitableMomentAndPriceVariationAndStopLoss.second();
+
+            boolean side = mostProfitablePriceVariation > 0;
+
+            float candleClosePrice = getCandleClosePrice(graph, tradeOpenCandle);
+            LocalDateTime tradeOpen = graph.getFloatCandles().get(tradeOpenCandle).dateTime();
+            float takeProfit = candleClosePrice + candleClosePrice * mostProfitablePriceVariation / 100;
+
+
+            trade = new Trade(graph.getName(),
+                    graph.getTimeframe(),
+                    graph.getSymbol(),
+                    tradingAccount.getBalance(),
+                    tradeOpen,
+                    graph.getFloatCandles().get(tradeOpenCandle).dateTime().plusSeconds(mostProfitableMoment * graph.getTimeframe().durationInSeconds),
+                    tradeOpen.plusSeconds(mostProfitableMoment * graph.getTimeframe().durationInSeconds),
+                    side,
+                    candleClosePrice,
+                    1);
+
+            if (trade.getStatus() == TradeStatus.UNFUNDED) {
+                log.error("Could not open trade: not enough funds (account balance: {})", tradingAccount.getBalance());
+                trade = null;
+            }
+        }
+        return trade;
+    }
+
+    private boolean tradingInputDataAreLegit(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle)    {
+        return graph != null
+                && coreData != null
+                && Check.notNullNotEmpty(coreData.getTradingPatternBoxes())
+                && tradeOpenCandle >= 0
+                && graph.getFloatCandles().size() > tradeOpenCandle
+                && graph.getFloatCandles().get(tradeOpenCandle) != null
+                && tradingAccount != null
+                && tradingAccount.getBalance() > 0;
+    }
+
+    private float getCandleClosePrice(Graph graph, int tradeOpenCandle) {
 
         float mostCurrentPrice = 0;
 
         if (graph != null
-                && eventHorizon >= 0
-                && graph.getFloatCandles().size() > eventHorizon
-                && graph.getFloatCandles().get(eventHorizon) != null) {
-            mostCurrentPrice = graph.getFloatCandles().get(eventHorizon).close();
+                && tradeOpenCandle >= 0
+                && graph.getFloatCandles().size() > tradeOpenCandle
+                && graph.getFloatCandles().get(tradeOpenCandle) != null) {
+            mostCurrentPrice = graph.getFloatCandles().get(tradeOpenCandle).close();
         }
         return mostCurrentPrice;
     }
 
-    private Triad<Integer, Float, Float> findMostProfitableMomentAndPriceAndStopLoss(Graph graph, CoreData coreData, int eventHorizon, int maxDuration) {
+    private Triad<Integer, Float, Float> findMostProfitableMomentAndPriceAndStopLoss(Graph graph, CoreData coreData, int tradeOpenCandle, int maxDuration) {
 
         int mostProfitableMoment = 0;
         float mostProfitablePrice = 0;
@@ -107,7 +159,7 @@ public class TradingService {
 
             for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
 
-                float priceVariationForScope = predictPriceVariationForScope(graph, patternBox, eventHorizon, entry.getKey());
+                float priceVariationForScope = predictPriceVariationForScope(graph, patternBox, tradeOpenCandle, entry.getKey());
 //TODO Faire une moyenne des pricePrediction de tous les scopes ? Ou plutôt une courbe d'évolution ?
 
                 if (highestPrice == 0) {
@@ -133,7 +185,7 @@ public class TradingService {
                     }
                 }
             }
-            if (abs(highestPrice) > abs(lowestPrice))   {
+            if (abs(highestPrice) > abs(lowestPrice)) {
                 mostProfitablePrice = highestPrice;
                 mostProfitableMoment = highestPriceMoment;
                 stopLoss = lowestPrice;
@@ -146,31 +198,31 @@ public class TradingService {
         return new Triad<>(mostProfitableMoment, mostProfitablePrice, stopLoss);
     }
 
-    private float predictPriceVariationForScope(Graph graph, PatternBox patternBox, int eventHorizon, int scope) {
+    private float predictPriceVariationForScope(Graph graph, PatternBox patternBox, int tradeOpenCandle, int scope) {
 
         List<Pattern> patterns = patternBox.getPatterns().get(scope);
         float pricePrediction = 0;
 
         if (Check.notNullNotEmpty(patterns)
-                && patterns.get(0).getLength() < eventHorizon) {
+                && patterns.get(0).getLength() < tradeOpenCandle) {
 
             float divider = 1;
-            List<FloatCandle> floatCandles = graph.getFloatCandles().subList(eventHorizon - patterns.get(0).getLength(), eventHorizon);
+            List<FloatCandle> floatCandles = graph.getFloatCandles().subList(tradeOpenCandle - patterns.get(0).getLength(), tradeOpenCandle);
             List<IntCandle> intCandles = candleFactory.streamlineToIntCandles(floatCandles, patterns.get(0).getGranularity());
 
             for (Pattern pattern : patterns) {
 
-                    float patternPricePrediction = ((LightTradingPattern) pattern).getPriceVariationPrediction();
-                    IntPattern tradingPattern = (IntPattern) pattern;
+                float patternPricePrediction = ((LightTradingPattern) pattern).getPriceVariationPrediction();
+                IntPattern tradingPattern = (IntPattern) pattern;
 
-                    float price = analyzer.filterPricePrediction(patternPricePrediction);
+                float price = analyzer.filterPricePrediction(patternPricePrediction);
 
-                    if (price != 0) {
-                        int matchScore = analyzer.calculateMatchScore(tradingPattern, intCandles);
+                if (price != 0) {
+                    int matchScore = analyzer.calculateMatchScore(tradingPattern, intCandles);
 
-                        pricePrediction = pricePrediction + price * (matchScore / 100f);
-                        divider = divider + matchScore / 100f;
-                    }
+                    pricePrediction = pricePrediction + price * (matchScore / 100f);
+                    divider = divider + matchScore / 100f;
+                }
             }
             pricePrediction = pricePrediction / divider;
         }
