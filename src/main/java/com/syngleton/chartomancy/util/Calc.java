@@ -94,4 +94,13 @@ public final class Calc {
         }
         return result;
     }
+
+    public static double variationPercentage(double start, double end) {
+        double result = 0;
+
+        if ((start != 0) && (start != end)) {
+            result = ((end - start) * 100) / start;
+        }
+        return result;
+    }
 }

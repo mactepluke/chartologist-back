@@ -1,15 +1,21 @@
 package com.syngleton.chartomancy.analytics;
 
 import com.syngleton.chartomancy.data.CoreData;
+import com.syngleton.chartomancy.model.charting.misc.Symbol;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.charting.patterns.ComputablePattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
+import com.syngleton.chartomancy.model.trading.Trade;
 import com.syngleton.chartomancy.model.trading.TradingAccount;
 import com.syngleton.chartomancy.service.DataService;
 import com.syngleton.chartomancy.service.PatternService;
+import com.syngleton.chartomancy.service.TradeStatus;
 import com.syngleton.chartomancy.service.TradingService;
+import com.syngleton.chartomancy.util.pdt.PDT;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.util.StopWatch;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -60,28 +66,28 @@ public class Automation implements Runnable {
         stopWatch.start();
 
         log.debug("printCoreData {}," + NEW_LINE
-                + "printPricePredictionSummary {}," + NEW_LINE
-                + "runBasicDummyTrades {}," + NEW_LINE
-                + "printTasksHistory {}," + NEW_LINE,
+                        + "printPricePredictionSummary {}," + NEW_LINE
+                        + "runBasicDummyTrades {}," + NEW_LINE
+                        + "printTasksHistory {}," + NEW_LINE,
                 printCoreData,
                 printPricePredictionSummary,
                 runBasicDummyTrades,
                 printTasksHistory
-                );
+        );
 
-        if (printCoreData)  {
+        if (printCoreData) {
             printCoreData();
             tasksHistory.add("PRINTED CORE DATA");
         }
-        if (printPricePredictionSummary)  {
+        if (printPricePredictionSummary) {
             printPricePredictionSummary();
             tasksHistory.add("PRINTED PRICE PREDICTION SUMMARY");
         }
-        if (runBasicDummyTrades)  {
+        if (runBasicDummyTrades) {
             runBasicDummyTrades();
             tasksHistory.add("RAN BASIC DUMMY TRADES");
         }
-        if (printTasksHistory)  {
+        if (printTasksHistory) {
             printTasksHistory();
         }
 
@@ -165,20 +171,62 @@ public class Automation implements Runnable {
     private void runBasicDummyTrades() {
 
         TradingAccount account = new TradingAccount();
+        account.credit(100000);
+        account.setName("Test Account");
 
-        //dataService.generateCsv(account.exportTradesToCsv());
-/*        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.HOUR);
+        Trade trade1 = new Trade("Binance",
+                Timeframe.DAY,
+                Symbol.BTC_USD,
+                account,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                true,
+                1000,
+                1);
 
-        for (var i = 1; i < 3000; i++) {
-            Trade trade = tradingService.generateOptimalBasicTrade(graph, coreData, 200 * i, -1, 0);
-            if (trade == null) {
-                break;
-            }
-            log.info("TRADE# {} -------> {}", i + 1, trade);
-        }*/
+        Trade trade2 = new Trade("Coinbase",
+                Timeframe.HOUR,
+                Symbol.BTC_USD,
+                account,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                false,
+                500,
+                2);
+
+        Trade trade3 = new Trade("Bitfinex",
+                Timeframe.FOUR_HOUR,
+                Symbol.BTC_USD,
+                account,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                true,
+                300,
+                1);
+
+        trade3.closeTrade(30000, TradeStatus.CLOSED_MANUALLY);
+
+        log.debug(trade1);
+        log.debug(trade2);
+        log.debug(trade3);
+
+        account.getTrades().addAll(List.of(trade1, trade2, trade3));
+
+
+
+        log.debug("TRADES TABLE SIZE={}", account.getTrades().size());
+        log.debug("TRADES TABLE SIZE (ROWS)={}", account.getPrintableData().size());
+        log.debug("TRADES TABLE HEADER SIZE={}", account.getHeader().size());
+        log.debug("TRADES TABLE HEADER SIZE={}", account.getPrintableData().get(0).toRow().size());
+        log.debug("TRADES TABLE VALUE SEPARATOR={}", account.getRowValuesSeparator());
+
+        PDT.writeDataTableToFile("./trades_history/" + account.getName() + "_" + LocalDateTime.now() +
+                "", account);
+
+
     }
 
-    private void runAdvancedDummyTrades()   {
+    private void runAdvancedDummyTrades() {
 
 
     }

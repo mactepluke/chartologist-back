@@ -4,15 +4,19 @@ import com.syngleton.chartomancy.model.charting.misc.*;
 import com.syngleton.chartomancy.service.TradeStatus;
 import com.syngleton.chartomancy.util.Calc;
 import com.syngleton.chartomancy.util.Format;
-import com.syngleton.chartomancy.util.csv.CsvRow;
+import com.syngleton.chartomancy.util.Measurable;
+import com.syngleton.chartomancy.util.pdt.PrintableData;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Math.abs;
 
 @Getter
-public class Trade extends ChartObject implements CsvRow {
+public class Trade extends ChartObject implements PrintableData {
 
     private static final String OPEN_NAME = "Open";
     private static final String LAST_UPDATE_NAME = "Last update";
@@ -39,22 +43,23 @@ public class Trade extends ChartObject implements CsvRow {
     
     private static final int DEFAULT_TP_TO_SL_RATIO = 3;
     private static final int DEFAULT_RISK_PERCENTAGE = 2;
+    private static final long MAX_TRADE_DURATION_IN_SECONDS = Timeframe.WEEK.durationInSeconds * 4;
 
     private LocalDateTime lastUpdate;
     private final String platform;
-    private final float accountBalanceAtOpen;
+    private final double accountBalanceAtOpen;
     private final int riskPercentage;
-    private final float leverageX;
+    private final double leverageX;
     private final boolean side;
-    private final float openingPrice;
+    private final double openingPrice;
     private final LocalDateTime open;
     private final LocalDateTime expectedClose;
     private LocalDateTime expiry;
     private LocalDateTime close;
     private TradeStatus status;
-    private float closingPrice;
-    private float takeProfit;
-    private float stopLoss;
+    private double closingPrice;
+    private double takeProfit;
+    private double stopLoss;
 
     /**
      * Calls the constructor with default values for riskPercentage, and sets takeProfit and stopLoss
@@ -63,22 +68,20 @@ public class Trade extends ChartObject implements CsvRow {
     public Trade(String platform,
                  Timeframe timeframe,
                  Symbol symbol,
-                 float accountBalanceAtOpen,
+                 Measurable account,
                  LocalDateTime open,
                  LocalDateTime expectedClose,
-                 LocalDateTime expiry,
                  boolean side,
-                 float openingPrice,
+                 double openingPrice,
                  float leverageX) {
 
         this(platform,
                 timeframe,
                 symbol,
-                accountBalanceAtOpen,
-                DEFAULT_RISK_PERCENTAGE,
+                account,
                 open,
+                DEFAULT_RISK_PERCENTAGE,
                 expectedClose,
-                expiry,
                 side,
                 openingPrice,
                 -1,
@@ -91,11 +94,10 @@ public class Trade extends ChartObject implements CsvRow {
      * @param platform
      * @param timeframe
      * @param symbol
-     * @param accountBalanceAtOpen
-     * @param riskPercentage
+     * @param account
      * @param open
+     * @param riskPercentage
      * @param expectedClose
-     * @param expiry
      * @param side
      * @param openingPrice
      * @param takeProfit
@@ -105,15 +107,14 @@ public class Trade extends ChartObject implements CsvRow {
     public Trade(String platform,
                  Timeframe timeframe,
                  Symbol symbol,
-                 float accountBalanceAtOpen,
-                 int riskPercentage,
+                 Measurable account,
                  LocalDateTime open,
+                 int riskPercentage,
                  LocalDateTime expectedClose,
-                 LocalDateTime expiry,
                  boolean side,
-                 float openingPrice,
-                 float takeProfit,
-                 float stopLoss,
+                 double openingPrice,
+                 double takeProfit,
+                 double stopLoss,
                  float leverageX) {
 
         super(symbol, timeframe);
@@ -124,11 +125,13 @@ public class Trade extends ChartObject implements CsvRow {
         setStopLoss(stopLoss);
         setTakeProfit(takeProfit);
 
-        this.platform = platform;
-        this.accountBalanceAtOpen = accountBalanceAtOpen;
-        this.open = open;
-        this.expectedClose = expectedClose;
-        this.expiry = expiry;
+        this.platform = platform == null ? "unknown" : platform;
+        this.accountBalanceAtOpen = account.getMeasure();
+        this.open = open == null ? LocalDateTime.now() : open;
+        this.expectedClose = expectedClose == null ?
+                LocalDateTime.now().plusSeconds(timeframe.durationInSeconds * timeframe.scope)
+                : expectedClose;
+        this.expiry = LocalDateTime.now().plusSeconds(MAX_TRADE_DURATION_IN_SECONDS);
         this.close = null;
         this.side = side;
         this.openingPrice = openingPrice;
@@ -170,61 +173,64 @@ public class Trade extends ChartObject implements CsvRow {
     }
 
     @Override
-    public String toCsv()   {
-        return open.toString() + "," +
-                lastUpdate.toString() + "," +
-                platform + "," +
-                getSymbol() + "," +
-                getTimeframe() + "," +
-                accountBalanceAtOpen + "," +
-                expectedClose.toString() + "," +
-                expiry.toString() + "," +
-                close.toString() + "," +
-                status + "," +
-                (side ? "LONG" : "SHORT") + "," +
-                openingPrice + "," +
-                closingPrice + "," +
-                takeProfit + "," +
-                stopLoss + "," +
-                leverageX + "," +
-                getTakeProfitPricePercentage() + "," +
-                getStopLossPricePercentage() + "," +
-                getExpectedProfit() + "," +
-                riskPercentage + "," +
-                getSize() + "," +
-                getRewardToRiskRatio() + "," +
+    public List<Serializable> toRow()   {
+        return new ArrayList<>(List.of(
+                open,
+                lastUpdate,
+                platform,
+                getSymbol(),
+                getTimeframe(),
+                accountBalanceAtOpen,
+                expectedClose,
+                expiry,
+                close == null ? "Not closed yet." : close,
+                status,
+                (side ? "LONG" : "SHORT"),
+                openingPrice,
+                closingPrice,
+                takeProfit,
+                stopLoss,
+                leverageX,
+                getTakeProfitPricePercentage(),
+                getStopLossPricePercentage(),
+                getExpectedProfit(),
+                riskPercentage,
+                getSize(),
+                getRewardToRiskRatio(),
                 getPnL()
-                ;
+        ));
+
+
     }
 
-    public String extractCsvHeader()   {
-        return OPEN_NAME + "," +
-                LAST_UPDATE_NAME + "," +
-                PLATFORM_NAME + "," +
-                SYMBOL_NAME + "," +
-                TIMEFRAME_NAME + "," +
-                ACCOUNT_BALANCE_NAME + "," +
-                EXPECTED_CLOSE_NAME + "," +
-                EXPIRY_NAME + "," +
-                CLOSE_NAME + "," +
-                STATUS_NAME + "," +
-                SIDE_NAME + "," +
-                OPENING_PRICE_NAME + "," +
-                CLOSING_PRICE_NAME + "," +
-                TP_NAME + "," +
-                SL_NAME + "," +
-                LEVERAGE_NAME + "," +
-                TP_PRICE_PER_NAME + "," +
-                SL_PRICE_PER_NAME + "," +
-                EXPECTED_PROFIT_NAME + "," +
-                RISK_PER_NAME + "," +
-                SIDE_NAME + "," +
-                RR_RATIO_NAME + "," +
+    public List<String> extractCsvHeader()   {
+        return new ArrayList<>(List.of(OPEN_NAME,
+                LAST_UPDATE_NAME,
+                PLATFORM_NAME,
+                SYMBOL_NAME,
+                TIMEFRAME_NAME,
+                ACCOUNT_BALANCE_NAME,
+                EXPECTED_CLOSE_NAME,
+                EXPIRY_NAME,
+                CLOSE_NAME,
+                STATUS_NAME,
+                SIDE_NAME,
+                OPENING_PRICE_NAME,
+                CLOSING_PRICE_NAME,
+                TP_NAME,
+                SL_NAME,
+                LEVERAGE_NAME,
+                TP_PRICE_PER_NAME,
+                SL_PRICE_PER_NAME,
+                EXPECTED_PROFIT_NAME,
+                RISK_PER_NAME,
+                SIDE_NAME,
+                RR_RATIO_NAME,
                 PNL_NAME
-                ;
+        ));
     }
 
-    public void closeTrade(float closingPrice, TradeStatus status) {
+    public void closeTrade(double closingPrice, TradeStatus status) {
         this.closingPrice = closingPrice;
         this.status = status;
         this.close = LocalDateTime.now();
@@ -238,7 +244,7 @@ public class Trade extends ChartObject implements CsvRow {
     /**
      * @param takeProfit if is negative, take profit is set to price +/- riskPercentage * DEFAULT_TP_TO_SL_RATIO ; if equals zero, is set to zero (no take profit)
      */
-    public void setTakeProfit(float takeProfit) {
+    public void setTakeProfit(double takeProfit) {
 
         if (status == TradeStatus.OPENED) {
             takeProfit = Format.roundAccordingly(takeProfit);
@@ -249,7 +255,7 @@ public class Trade extends ChartObject implements CsvRow {
                             || (!side && takeProfit >= openingPrice)
                     ))
             ) {
-                float reward = Format.roundAccordingly((accountBalanceAtOpen * riskPercentage * DEFAULT_TP_TO_SL_RATIO) / 100);
+                double reward = Format.roundAccordingly((accountBalanceAtOpen * riskPercentage * DEFAULT_TP_TO_SL_RATIO) / 100);
 
                 takeProfit = side ? openingPrice + reward : openingPrice - reward;
             }
@@ -261,12 +267,12 @@ public class Trade extends ChartObject implements CsvRow {
     /**
      * @param stopLoss if is negative, stop loss is set to price +/- riskPercentage ; if equals zero, is set to zero (no stop loss)
      */
-    public void setStopLoss(float stopLoss) {
+    public void setStopLoss(double stopLoss) {
 
         if (status == TradeStatus.OPENED) {
             stopLoss = Format.roundAccordingly(stopLoss);
 
-            float risk = Format.roundAccordingly((accountBalanceAtOpen * riskPercentage) / 100);
+            double risk = Format.roundAccordingly((accountBalanceAtOpen * riskPercentage) / 100);
 
             if ((stopLoss != 0) && (
                     (stopLoss < 0)
@@ -284,17 +290,17 @@ public class Trade extends ChartObject implements CsvRow {
         }
     }
 
-    public float getTakeProfitPricePercentage() {
+    public double getTakeProfitPricePercentage() {
         return Format.roundTwoDigits(abs(Calc.variationPercentage(this.takeProfit, this.openingPrice)));
     }
 
-    public float getStopLossPricePercentage() {
+    public double getStopLossPricePercentage() {
         return Format.roundTwoDigits(abs(Calc.variationPercentage(this.stopLoss, this.openingPrice)));
     }
 
-    public float getExpectedProfit() {
+    public double getExpectedProfit() {
 
-        float expectedProfit = 0;
+        double expectedProfit = 0;
 
         if (!(this.side && takeProfit == 0)) {
             expectedProfit = abs(this.takeProfit - this.openingPrice) * this.leverageX;
@@ -303,9 +309,9 @@ public class Trade extends ChartObject implements CsvRow {
         return Format.roundAccordingly(expectedProfit, this.openingPrice);
     }
 
-    public float getSize() {
+    public double getSize() {
 
-        float size = 0;
+        double size = 0;
 
         if (!(!this.side && stopLoss == 0)) {
             size = abs(this.stopLoss - this.openingPrice) * this.leverageX;
@@ -314,14 +320,14 @@ public class Trade extends ChartObject implements CsvRow {
         return Format.roundAccordingly(size, this.openingPrice);
     }
 
-    public float getRewardToRiskRatio() {
+    public double getRewardToRiskRatio() {
 
-        float maxLoss = this.getSize();
+        double maxLoss = this.getSize();
 
         return maxLoss == 0 ? 0 : Format.roundTwoDigits(this.getExpectedProfit() / maxLoss);
     }
 
-    public float getPnL() {
+    public double getPnL() {
 
         if (status != TradeStatus.OPENED) {
             return (side ? closingPrice - openingPrice : openingPrice - closingPrice) * leverageX;

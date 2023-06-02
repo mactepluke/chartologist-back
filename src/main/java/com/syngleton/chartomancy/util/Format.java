@@ -15,6 +15,10 @@ public final class Format {
         return (round(number * 100) / 100f);
     }
 
+    public static double roundTwoDigits(double number) {
+        return (round(number * 100) / 100f);
+    }
+
     public static float roundNDigits(float number, int decimals) {
         if (decimals <= 0) {
             return (float) round(number);
@@ -26,7 +30,23 @@ public final class Format {
         return (float) (round(number * op) / op);
     }
 
+    public static double roundNDigits(double number, int decimals) {
+        if (decimals <= 0) {
+            return (double) round(number);
+        }
+        if (decimals > 8) {
+            decimals = 8;
+        }
+        double op = Math.pow(10, decimals);
+        return (double) (round(number * op) / op);
+    }
+
     public static float roundAccordingly(float number) {
+
+        return roundAccordingly(number, number);
+    }
+
+    public static double roundAccordingly(double number) {
 
         return roundAccordingly(number, number);
     }
@@ -66,7 +86,43 @@ public final class Format {
         }
 
         return roundNDigits(number, 5);
+    }
 
+    public static double roundAccordingly(double number, double reference) {
+
+        if (reference > 1000)  {
+            return roundNDigits(number, 0);
+        }
+
+        if (reference > 100)  {
+            return roundNDigits(number, 1);
+        }
+
+        if (reference > 10)    {
+            return roundNDigits(number, 2);
+        }
+
+        if (reference > 1)    {
+            return roundNDigits(number, 3);
+        }
+
+        if (reference > 0.1)    {
+            return roundNDigits(number, 4);
+        }
+
+        if (reference > 0.01)    {
+            return roundNDigits(number, 5);
+        }
+
+        if (reference > 0.001)    {
+            return roundNDigits(number, 6);
+        }
+
+        if (reference > 0.0001)    {
+            return roundNDigits(number, 7);
+        }
+
+        return roundNDigits(number, 5);
     }
 
     public static String cutString(String string, int length) {

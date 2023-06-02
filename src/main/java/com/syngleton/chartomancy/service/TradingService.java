@@ -55,12 +55,8 @@ public class TradingService {
             trade = new Trade(graph.getName(),
                     graph.getTimeframe(),
                     graph.getSymbol(),
-                    tradingAccount.getBalance(),
+                    tradingAccount,
                     graph.getFloatCandles().get(tradeOpenCandle).dateTime(),
-                    graph.getFloatCandles()
-                            .get(tradeOpenCandle)
-                            .dateTime()
-                            .plusSeconds(mostProfitableMomentAndPriceVariationAndStopLoss.first() * graph.getTimeframe().durationInSeconds),
                     graph.getFloatCandles()
                             .get(tradeOpenCandle)
                             .dateTime()
@@ -103,10 +99,9 @@ public class TradingService {
             trade = new Trade(graph.getName(),
                     graph.getTimeframe(),
                     graph.getSymbol(),
-                    tradingAccount.getBalance(),
+                    tradingAccount,
                     tradeOpen,
                     graph.getFloatCandles().get(tradeOpenCandle).dateTime().plusSeconds(mostProfitableMoment * graph.getTimeframe().durationInSeconds),
-                    tradeOpen.plusSeconds(mostProfitableMoment * graph.getTimeframe().durationInSeconds),
                     side,
                     candleClosePrice,
                     1);
