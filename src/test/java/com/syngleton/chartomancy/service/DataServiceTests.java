@@ -85,14 +85,14 @@ class DataServiceTests {
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
-        assertTrue(dataService.loadTradingData(coreData));
+        assertTrue(dataService.loadCoreData(coreData));
     }
 
     @Disabled
     @Test
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
-        assertTrue(dataService.saveTradingData(coreData));
+        assertTrue(dataService.saveCoreData(coreData));
     }
 
     @Test

@@ -17,6 +17,8 @@ public class LaunchService {
     private boolean printPricePredictionSummary;
     @Value("${run_basic_dummy_trades:false}")
     private boolean runBasicDummyTrades;
+    @Value("${run_advanced_dummy_trades:false}")
+    private boolean runAdvancedDummyTrades;
     @Value("${print_tasks_history:false}")
     private boolean printTasksHistory;
 
@@ -40,6 +42,7 @@ public class LaunchService {
                 printCoreData,
                 printPricePredictionSummary,
                 runBasicDummyTrades,
+                runAdvancedDummyTrades,
                 printTasksHistory));
         automation.start();
     }

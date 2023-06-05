@@ -18,7 +18,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +26,9 @@ import static java.lang.Math.abs;
 @Log4j2
 @Service
 public class TradingService {
+
+    private static final int REWARD_TO_RISK_RATIO = 3;
+    private static final int RISK_PERCENTAGE = 2;
 
     private final Analyzer analyzer;
     private final CandleFactory candleFactory;
@@ -42,7 +44,7 @@ public class TradingService {
 
         Trade trade = null;
 
-        if (tradingInputDataAreLegit(tradingAccount, graph, coreData, tradeOpenCandle)) {
+/*        if (tradingInputDataAreLegit(tradingAccount, graph, coreData, tradeOpenCandle)) {
 
             Triad<Integer, Float, Float> mostProfitableMomentAndPriceVariationAndStopLoss = findMostProfitableMomentAndPriceAndStopLoss(
                     graph,
@@ -52,7 +54,8 @@ public class TradingService {
 
             boolean side = mostProfitableMomentAndPriceVariationAndStopLoss.second() > 0;
 
-            trade = new Trade(graph.getName(),
+            trade = new Trade(
+                    graph.getName(),
                     graph.getTimeframe(),
                     graph.getSymbol(),
                     tradingAccount,
@@ -63,17 +66,29 @@ public class TradingService {
                             .plusSeconds(mostProfitableMomentAndPriceVariationAndStopLoss.first() * graph.getTimeframe().durationInSeconds),
                     side,
                     getCandleClosePrice(graph, tradeOpenCandle),
-                    1);
+                    1
+            );
 
             if (trade.getStatus() == TradeStatus.UNFUNDED) {
                 log.error("Could not open trade: not enough funds (account balance: {})", tradingAccount.getBalance());
                 trade = null;
             }
-        }
+        }*/
         return trade;
     }
 
-    //TODO Implement this method by calculating the leverage based on the take profit result and the available balance
+    /**
+     * This method finds the best price variation percentages and uses it to se the take profit;
+     * then it sets the stop loss as being under or above the price by a percentage that equals that of the
+     * price variation, divided by the REWARD_TO_RISK ratio. Then it calculates the size based on the account balance
+     * and the RISK_percentage, and adjusts the leverage accordingly.
+     *
+     * @param tradingAccount
+     * @param graph
+     * @param coreData
+     * @param tradeOpenCandle
+     * @return
+     */
     public Trade generateOptimalLeveragedTakeProfitBasedTrade(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
 
         Trade trade = null;
@@ -92,19 +107,23 @@ public class TradingService {
             boolean side = mostProfitablePriceVariation > 0;
 
             float candleClosePrice = getCandleClosePrice(graph, tradeOpenCandle);
-            LocalDateTime tradeOpen = graph.getFloatCandles().get(tradeOpenCandle).dateTime();
-            float takeProfit = candleClosePrice + candleClosePrice * mostProfitablePriceVariation / 100;
+            float takeProfit = candleClosePrice + (candleClosePrice * mostProfitablePriceVariation) / 100;
+            float stopLoss = candleClosePrice - (candleClosePrice * mostProfitablePriceVariation / REWARD_TO_RISK_RATIO) / 100;
+            double size = ((tradingAccount.getBalance() * RISK_PERCENTAGE) / 100) / abs(stopLoss - candleClosePrice);
 
-
-            trade = new Trade(graph.getName(),
+            trade = new Trade(
+                    graph.getName(),
                     graph.getTimeframe(),
                     graph.getSymbol(),
                     tradingAccount,
-                    tradeOpen,
+                    graph.getFloatCandles().get(tradeOpenCandle).dateTime(),
+                    size,
                     graph.getFloatCandles().get(tradeOpenCandle).dateTime().plusSeconds(mostProfitableMoment * graph.getTimeframe().durationInSeconds),
                     side,
                     candleClosePrice,
-                    1);
+                    takeProfit,
+                    stopLoss
+            );
 
             if (trade.getStatus() == TradeStatus.UNFUNDED) {
                 log.error("Could not open trade: not enough funds (account balance: {})", tradingAccount.getBalance());
@@ -114,7 +133,7 @@ public class TradingService {
         return trade;
     }
 
-    private boolean tradingInputDataAreLegit(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle)    {
+    private boolean tradingInputDataAreLegit(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
         return graph != null
                 && coreData != null
                 && Check.notNullNotEmpty(coreData.getTradingPatternBoxes())
@@ -224,5 +243,63 @@ public class TradingService {
         return pricePrediction;
     }
 
+
+    public void processTradeOnCompletedCandles(Trade trade, TradingAccount account, List<FloatCandle> candles) {
+
+        if (
+                trade != null
+                        && account != null
+                        && Check.notNullNotEmpty(candles)
+                        && trade.getStatus() == TradeStatus.OPENED
+        ) {
+
+
+            for (FloatCandle candle : candles) {
+                if (trade.isSide()) {
+                    completeLongTradeOnLimitsHit(candle, trade, account);
+                } else {
+                    completeShortTradeOnLimitsHit(candle, trade, account);
+                }
+            }
+
+            if (trade.getStatus() == TradeStatus.OPENED) {
+                completeExpiredTrade(candles, trade, account);
+            }
+        }
+
+    }
+
+    private void completeLongTradeOnLimitsHit(FloatCandle candle, Trade trade, TradingAccount account) {
+        if (candle.low() < trade.getStopLoss()) {
+            trade.close(candle.dateTime(), trade.getStopLoss(), TradeStatus.STOP_LOSS_HIT);
+            account.debit(trade.getMaxLoss());
+        }
+        if (candle.high() > trade.getTakeProfit()) {
+            trade.close(candle.dateTime(), trade.getTakeProfit(), TradeStatus.TAKE_PROFIT_HIT);
+            account.credit(trade.getExpectedProfit());
+        }
+    }
+
+    private void completeShortTradeOnLimitsHit(FloatCandle candle, Trade trade, TradingAccount account) {
+        if (candle.high() > trade.getStopLoss()) {
+            trade.close(candle.dateTime(), trade.getStopLoss(), TradeStatus.STOP_LOSS_HIT);
+            account.debit(trade.getMaxLoss());
+        }
+        if (candle.low() < trade.getTakeProfit()) {
+            trade.close(candle.dateTime(), trade.getTakeProfit(), TradeStatus.TAKE_PROFIT_HIT);
+            account.credit(trade.getExpectedProfit());
+        }
+    }
+
+    private void completeExpiredTrade(List<FloatCandle> candles, Trade trade, TradingAccount account) {
+        FloatCandle lastCandle = candles.get(candles.size() - 1);
+        trade.close(lastCandle.dateTime(), lastCandle.close(), TradeStatus.EXPIRED);
+
+        if (trade.getPnL() > 0) {
+            account.credit(trade.getPnL());
+        } else {
+            account.debit(trade.getPnL());
+        }
+    }
 
 }

@@ -6,5 +6,6 @@ public enum TradeStatus {
     TAKE_PROFIT_HIT,
     CANCELED,
     CLOSED_MANUALLY,
+    EXPIRED,
     UNFUNDED
 }

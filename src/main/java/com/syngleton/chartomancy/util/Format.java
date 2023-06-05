@@ -2,6 +2,9 @@ package com.syngleton.chartomancy.util;
 
 import lombok.extern.log4j.Log4j2;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import static java.lang.Math.round;
 
 @Log4j2
@@ -15,7 +18,7 @@ public final class Format {
         return (round(number * 100) / 100f);
     }
 
-    public static double roundTwoDigits(double number) {
+    public static float roundTwoDigits(double number) {
         return (round(number * 100) / 100f);
     }
 
@@ -38,7 +41,7 @@ public final class Format {
             decimals = 8;
         }
         double op = Math.pow(10, decimals);
-        return (double) (round(number * op) / op);
+        return (round(number * op) / op);
     }
 
     public static float roundAccordingly(float number) {
@@ -160,6 +163,18 @@ public final class Format {
         return number;
     }
 
+    public static double streamline(double number, double min, double max) {
+
+        if (number < min) {
+            number = min;
+        }
+
+        if (number > max) {
+            number = max;
+        }
+        return number;
+    }
+
     public static int setIfZero(int value, int newValue) {
         if (value == 0) {
             value = newValue;
@@ -177,5 +192,9 @@ public final class Format {
             string = string.substring(0, maxLength);
         }
         return string;
+    }
+
+    public static String toFrenchDateTime(LocalDateTime dateTime)   {
+        return dateTime == null ? "" : dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
     }
 }

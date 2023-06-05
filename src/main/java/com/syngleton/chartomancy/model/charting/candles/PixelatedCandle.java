@@ -3,11 +3,12 @@ package com.syngleton.chartomancy.model.charting.candles;
 
 import lombok.extern.log4j.Log4j2;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
 @Log4j2
-public record PixelatedCandle(byte[] candle, int volume) {
+public record PixelatedCandle(byte[] candle, int volume) implements Serializable {
 
     @Override
     public String toString()  {

@@ -45,11 +45,12 @@ public interface PrintableDataTable {
      * @return true if the table can be used to generate data, or false if it is empty or broken.
      */
     static boolean checkDataTableIntegrity(PrintableDataTable table) {
+
         return table != null
                 && table.getRowValuesSeparator() != '\u0000'
                 && table.getPrintableData() != null
                 && table.getHeader() != null
                 && !table.getHeader().isEmpty()
-                && table.getPrintableData().size() == table.getHeader().size();
+                && table.getPrintableData().get(0).toRow().size() == table.getHeader().size();
     }
 }

@@ -8,22 +8,23 @@ import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.*;
 
 @Data
-public class CoreData {
+public class CoreData implements Serializable {
     private Set<Graph> graphs;
     private Set<PatternBox> patternBoxes;
     private Set<PatternBox> tradingPatternBoxes;
 
-    public boolean purge()    {
+    public boolean purge() {
         graphs = null;
         patternBoxes = null;
         return true;
     }
 
-    public Graph getGraph(Symbol symbol, Timeframe timeframe)    {
-        for (Graph graph : this.getGraphs())    {
+    public Graph getGraph(Symbol symbol, Timeframe timeframe) {
+        for (Graph graph : this.getGraphs()) {
             if (graph.getTimeframe() == timeframe && graph.getSymbol() == symbol) {
                 return graph;
             }
@@ -31,12 +32,14 @@ public class CoreData {
         return null;
     }
 
-    public Optional<PatternBox> getPatternBox(Timeframe timeframe)   {
-        return this.patternBoxes.stream().filter(patternBox -> patternBox.getTimeframe() == timeframe).findAny();
+    public Optional<PatternBox> getPatternBox(Symbol symbol, Timeframe timeframe) {
+        return this.patternBoxes.stream().filter(patternBox -> patternBox.getTimeframe() == timeframe
+                && patternBox.getSymbol() == symbol).findAny();
     }
 
-    public Optional<PatternBox> getTradingPatternBox(Timeframe timeframe)   {
-        return this.tradingPatternBoxes.stream().filter(patternBox -> patternBox.getTimeframe() == timeframe).findAny();
+    public Optional<PatternBox> getTradingPatternBox(Symbol symbol, Timeframe timeframe) {
+        return this.tradingPatternBoxes.stream().filter(patternBox -> patternBox.getTimeframe() == timeframe
+                && patternBox.getSymbol() == symbol).findAny();
     }
 
 }

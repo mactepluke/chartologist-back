@@ -3,6 +3,7 @@ package com.syngleton.chartomancy.model.charting.misc;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 

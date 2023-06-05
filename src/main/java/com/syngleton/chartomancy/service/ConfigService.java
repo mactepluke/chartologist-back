@@ -4,9 +4,6 @@ import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.misc.Timeframe;
-import com.syngleton.chartomancy.model.charting.patterns.ComputablePattern;
-import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import com.syngleton.chartomancy.model.charting.patterns.PatternType;
 import com.syngleton.chartomancy.util.Check;
 import lombok.extern.log4j.Log4j2;
@@ -119,7 +116,7 @@ public class ConfigService {
                 log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
 
                 log.info("Saved trading data overriden with newly generated data: {}",
-                        Check.executeIfTrue(overrideSavedTradingData, dataService::saveTradingData, coreData));
+                        Check.executeIfTrue(overrideSavedTradingData, dataService::saveCoreData, coreData));
 
                 log.info("Purged non-trading data: {}",
                         Check.executeIfTrue(purgeAfterTradingDataGeneration, dataService::purgeNonTradingData, coreData));
@@ -129,7 +126,7 @@ public class ConfigService {
         //LOADING TRADING DATA IF APPLICABLE
         log.info("Loaded trading data: {}",
                 Check.executeIfTrue(loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData),
-                        dataService::loadTradingData,
+                        dataService::loadCoreData,
                         coreData));
         //PRINTING LAUNCHING AUTOMATION IF APPLICABLE
         if (launchAutomation) {

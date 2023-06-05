@@ -6,7 +6,10 @@ import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
+import java.io.Serializable;
 import java.util.*;
+
+import static java.lang.Math.max;
 
 @Log4j2
 public class PatternBox extends ChartObject {
@@ -46,7 +49,7 @@ public class PatternBox extends ChartObject {
         this.patterns = patterns;
     }
 
-    public List<Pattern> getListOfAllPatterns()   {
+    public List<Pattern> getListOfAllPatterns() {
 
         List<Pattern> allPatterns = new ArrayList<>();
 
@@ -57,8 +60,39 @@ public class PatternBox extends ChartObject {
         return allPatterns;
     }
 
+    public int getMaxScope() {
+
+        int maxScope = 0;
+        List<Pattern> listOfAllPatterns = this.getListOfAllPatterns();
+
+        if (Check.notNullNotEmpty(listOfAllPatterns)) {
+
+            for (Pattern pattern : listOfAllPatterns) {
+
+                switch (pattern.getPatternType()) {
+                    case PREDICTIVE, LIGHT_PREDICTIVE ->
+                            maxScope = max(maxScope, ((ComputablePattern) pattern).getScope());
+                    case TRADING -> maxScope = max(maxScope, ((TradingPattern) pattern).getScope());
+                }
+            }
+        }
+        return maxScope;
+    }
+
+    public int getPatternLength() {
+
+        int length = 0;
+        List<Pattern> listOfAllPatterns = this.getListOfAllPatterns();
+
+        if (Check.notNullNotEmpty(listOfAllPatterns)) {
+            length = listOfAllPatterns.get(0).getLength();
+        }
+
+        return length;
+    }
+
     @Override
-    public String toString()  {
+    public String toString() {
         return "PatternBox{" +
                 "symbol=" + getSymbol() +
                 ", timeframe=" + getTimeframe() + "}";
@@ -72,7 +106,7 @@ public class PatternBox extends ChartObject {
     }
 
     @Override
-    public int hashCode()  {
+    public int hashCode() {
         int result = Objects.hash(getSymbol());
         result = 31 * result + Objects.hash(getTimeframe());
         return result;

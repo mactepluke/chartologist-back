@@ -1,14 +1,17 @@
 package com.syngleton.chartomancy.model.charting.misc;
 
+import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Optional;
 
 @Getter
 @ToString
-public abstract class ChartObject {
+public abstract class ChartObject implements Serializable {
     private final Symbol symbol;
     private final Timeframe timeframe;
 

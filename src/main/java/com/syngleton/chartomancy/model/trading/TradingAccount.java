@@ -22,29 +22,31 @@ public class TradingAccount implements PrintableDataTable, Measurable {
     private boolean enabled;
     @Setter
     private String name;
+    @Setter
+    boolean liquidated;
 
     public TradingAccount() {
         this.trades = new ArrayList<>();
         this.balance = 0;
         this.enabled = true;
+        this.liquidated = false;
         this.name = "untitled_account";
     }
 
-    public void credit(float value) {
+    public void credit(double value) {
         balance = balance + abs(value);
     }
 
-    public boolean debit(float value) {
+    public void debit(double value) {
 
         value = abs(value);
 
-        if (balance < value) {
-            return false;
+        if (balance <= value) {
+            balance = 0;
+            liquidated = true;
         }
 
         balance = balance - value;
-
-        return true;
     }
 
     @Override

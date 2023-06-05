@@ -14,9 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 @Log4j2
@@ -33,15 +31,15 @@ public class DataService {
         this.graphFactory = graphFactory;
     }
 
-    public void writeCsvFile(String fileName, PrintableDataTable content)   {
+    public void writeCsvFile(String fileName, PrintableDataTable content) {
         writeToFile(fileName, generateCsv(content));
     }
 
-    private void writeToFile(String fileName, String content)  {
+    private void writeToFile(String fileName, String content) {
         //TODO Implement this method
     }
 
-    public String generateCsv(PrintableDataTable content)  {
+    public String generateCsv(PrintableDataTable content) {
         //TODO Implement this method
 
         return "";
@@ -94,18 +92,33 @@ public class DataService {
         }
     }
 
-    //TODO Implement this method
-    public boolean loadTradingData(CoreData coreData) {
-        log.debug("NOT IMPLEMENTED YET");
+    public boolean loadCoreData(CoreData coreData) {
 
+        CoreData readData;
+        try (ObjectInputStream is = new ObjectInputStream(new FileInputStream("./core_data/data.ser"))) {
+            readData = (CoreData) is.readObject();
 
+            if (readData != null) {
+                coreData.setGraphs(readData.getGraphs());
+                coreData.setPatternBoxes(readData.getPatternBoxes());
+                coreData.setTradingPatternBoxes(readData.getTradingPatternBoxes());
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
-    //TODO Implement this method
-    public boolean saveTradingData(CoreData coreData) {
-        log.debug("NOT IMPLEMENTED YET");
-        return false;
+    public boolean saveCoreData(CoreData coreData) {
+
+        try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream("./core_data/data.ser"))) {
+            os.writeObject(coreData);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     public boolean generateTradingData(CoreData coreData) {
@@ -133,7 +146,7 @@ public class DataService {
         return !tradingData.isEmpty();
     }
 
-    private Map<Integer, List<Pattern>> convertPatternsToTrading(Map<Integer, List<Pattern>> patterns)   {
+    private Map<Integer, List<Pattern>> convertPatternsToTrading(Map<Integer, List<Pattern>> patterns) {
 
         Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
 
@@ -143,13 +156,14 @@ public class DataService {
 
             for (Pattern pattern : entry.getValue()) {
 
-                    switch (pattern.getPatternType()) {
-                        case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
-                        case LIGHT_PREDICTIVE -> tradingPatternsList.add(new LightTradingPattern((LightPredictivePattern) pattern));
-                        default -> {
-                            return patterns;
-                        }
+                switch (pattern.getPatternType()) {
+                    case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
+                    case LIGHT_PREDICTIVE ->
+                            tradingPatternsList.add(new LightTradingPattern((LightPredictivePattern) pattern));
+                    default -> {
+                        return patterns;
                     }
+                }
             }
             tradingPatterns.put(entry.getKey(), tradingPatternsList);
         }
@@ -176,17 +190,17 @@ public class DataService {
                     Timeframe.DAY,
                     Timeframe.WEEK));
 
-            for (Graph graph : coreData.getGraphs())    {
+            for (Graph graph : coreData.getGraphs()) {
                 if (lowestTimeframe == Timeframe.UNKNOWN
-                        || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds)   {
+                        || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds) {
                     lowestTimeframe = graph.getTimeframe();
                     lowestTimeframeGraph = graph;
                 }
                 missingTimeframes.remove(graph.getTimeframe());
             }
 
-            for (Timeframe timeframe : missingTimeframes)   {
-                if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds)  {
+            for (Timeframe timeframe : missingTimeframes) {
+                if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds) {
                     lowestTimeframeGraph = graphFactory.upscaleTimeframe(lowestTimeframeGraph, timeframe);
                     lowestTimeframe = timeframe;
                     coreData.getGraphs().add(lowestTimeframeGraph);
@@ -207,7 +221,7 @@ public class DataService {
                             generateGraphsToPrint(coreData.getGraphs()) +
                             generatePatternBoxesToPrint(coreData.getPatternBoxes(), "PATTERN") +
                             generatePatternBoxesToPrint(coreData.getTradingPatternBoxes(), "TRADING PATTERN") +
-                    generateMemoryUsageToPrint();
+                            generateMemoryUsageToPrint();
 
             log.info(coreDataToPrint);
             return true;
@@ -280,26 +294,26 @@ public class DataService {
 
                 for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
 
-                    if (entry.getValue() != null)   {
+                    if (entry.getValue() != null) {
 
                         Pattern anyPattern = patternBox.getPatterns().entrySet().iterator().next().getValue().get(0);
 
-                            patternBoxesBuilder
-                                    .append("-> ")
-                                    .append(entry.getValue().size())
-                                    .append(" patterns, ")
-                                    .append(patternBox.getSymbol())
-                                    .append(", ")
-                                    .append(patternBox.getTimeframe())
-                                    .append(", pattern scope=")
-                                    .append(entry.getKey())
-                                    .append(", pattern type=")
-                                    .append(anyPattern.getPatternType())
-                                    .append(", pattern length=")
-                                    .append(anyPattern.getLength())
-                                    .append(", pattern granularity=")
-                                    .append(anyPattern.getGranularity())
-                                    .append(NEW_LINE);
+                        patternBoxesBuilder
+                                .append("-> ")
+                                .append(entry.getValue().size())
+                                .append(" patterns, ")
+                                .append(patternBox.getSymbol())
+                                .append(", ")
+                                .append(patternBox.getTimeframe())
+                                .append(", pattern scope=")
+                                .append(entry.getKey())
+                                .append(", pattern type=")
+                                .append(anyPattern.getPatternType())
+                                .append(", pattern length=")
+                                .append(anyPattern.getLength())
+                                .append(", pattern granularity=")
+                                .append(anyPattern.getGranularity())
+                                .append(NEW_LINE);
                     }
 
                 }

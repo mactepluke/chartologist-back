@@ -1,6 +1,7 @@
 package com.syngleton.chartomancy.analytics;
 
 import com.syngleton.chartomancy.data.CoreData;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.charting.patterns.ComputablePattern;
@@ -18,6 +19,8 @@ import org.springframework.util.StopWatch;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -28,6 +31,7 @@ public class Automation implements Runnable {
     private final boolean printCoreData;
     private final boolean printPricePredictionSummary;
     private final boolean runBasicDummyTrades;
+    private final boolean runAdvancedDummyTrades;
     private final boolean printTasksHistory;
 
     private final List<String> tasksHistory;
@@ -44,6 +48,7 @@ public class Automation implements Runnable {
                       boolean printCoreData,
                       boolean printPricePredictionSummary,
                       boolean runBasicDummyTrades,
+                      boolean runAdvancedDummyTrades,
                       boolean printTasksHistory) {
         this.coreData = coreData;
         this.dataService = dataService;
@@ -52,6 +57,7 @@ public class Automation implements Runnable {
         this.printCoreData = printCoreData;
         this.printPricePredictionSummary = printPricePredictionSummary;
         this.runBasicDummyTrades = runBasicDummyTrades;
+        this.runAdvancedDummyTrades = runAdvancedDummyTrades;
         this.printTasksHistory = printTasksHistory;
 
         tasksHistory = new ArrayList<>();
@@ -68,10 +74,12 @@ public class Automation implements Runnable {
         log.debug("printCoreData {}," + NEW_LINE
                         + "printPricePredictionSummary {}," + NEW_LINE
                         + "runBasicDummyTrades {}," + NEW_LINE
+                        + "runAdvancedDummyTrades {}," + NEW_LINE
                         + "printTasksHistory {}," + NEW_LINE,
                 printCoreData,
                 printPricePredictionSummary,
                 runBasicDummyTrades,
+                runAdvancedDummyTrades,
                 printTasksHistory
         );
 
@@ -86,6 +94,10 @@ public class Automation implements Runnable {
         if (runBasicDummyTrades) {
             runBasicDummyTrades();
             tasksHistory.add("RAN BASIC DUMMY TRADES");
+        }
+        if (runAdvancedDummyTrades) {
+            runAdvancedDummyTrades();
+            tasksHistory.add("RAN ADVANCED DUMMY TRADES");
         }
         if (printTasksHistory) {
             printTasksHistory();
@@ -170,9 +182,9 @@ public class Automation implements Runnable {
 
     private void runBasicDummyTrades() {
 
-        TradingAccount account = new TradingAccount();
+/*        TradingAccount account = new TradingAccount();
         account.credit(100000);
-        account.setName("Test Account");
+        account.setName("Basic Test Account");
 
         Trade trade1 = new Trade("Binance",
                 Timeframe.DAY,
@@ -204,14 +216,17 @@ public class Automation implements Runnable {
                 300,
                 1);
 
-        trade3.closeTrade(30000, TradeStatus.CLOSED_MANUALLY);
+        trade3.closeTrade(LocalDateTime.now(), 30000, TradeStatus.CLOSED_MANUALLY);
 
         log.debug(trade1);
+        log.debug(trade1.toRow());
         log.debug(trade2);
+        log.debug(trade2.toRow());
         log.debug(trade3);
+        log.debug(trade3.toRow());
+
 
         account.getTrades().addAll(List.of(trade1, trade2, trade3));
-
 
 
         log.debug("TRADES TABLE SIZE={}", account.getTrades().size());
@@ -221,14 +236,67 @@ public class Automation implements Runnable {
         log.debug("TRADES TABLE VALUE SEPARATOR={}", account.getRowValuesSeparator());
 
         PDT.writeDataTableToFile("./trades_history/" + account.getName() + "_" + LocalDateTime.now() +
-                "", account);
+                "", account);*/
 
 
     }
 
     private void runAdvancedDummyTrades() {
 
+        float initialBalance = 100000;
+        int expectedXToBeRich = 2;
 
+        TradingAccount account = new TradingAccount();
+
+        account.credit(initialBalance);
+        account.setName("Advanced Test Account");
+
+        Symbol symbol = Symbol.BTC_USD;
+        Timeframe timeframe = Timeframe.HOUR;
+
+        boolean isRich;
+
+        Graph graph = coreData.getGraph(symbol, timeframe);
+
+        if (graph != null) {
+            int graphSize = graph.getFloatCandles().size();
+            Optional<PatternBox> optionalPatternBox = coreData.getTradingPatternBox(symbol, timeframe);
+
+            if (optionalPatternBox.isPresent()) {
+
+                int maxScope = optionalPatternBox.get().getMaxScope();
+                int patternLength = optionalPatternBox.get().getPatternLength();
+
+                Trade trade;
+
+                do {
+                    int tradeOpenCandle = ThreadLocalRandom.current().nextInt(graphSize - maxScope - patternLength) + patternLength;
+
+                    trade = tradingService.generateOptimalLeveragedTakeProfitBasedTrade(
+                            account,
+                            graph,
+                            coreData,
+                            tradeOpenCandle
+                    );
+
+                    tradingService.processTradeOnCompletedCandles(trade, account, graph.getFloatCandles().subList(tradeOpenCandle + 1, maxScope));
+
+                    isRich = account.getBalance() > initialBalance * expectedXToBeRich;
+
+                } while (!account.isLiquidated() && !isRich && trade.getStatus() != TradeStatus.UNFUNDED);
+
+                if (isRich) {
+                    log.info("Test user is rich!");
+                } else {
+                    log.info("Test user is liquidated!");
+                }
+
+                PDT.writeDataTableToFile("./trades_history/" + account.getName() + "_" + LocalDateTime.now() +
+                        "", account);
+            }
+        } else {
+            log.error("Could not process advanced dummy trades = core data is missing.");
+        }
     }
 
 }

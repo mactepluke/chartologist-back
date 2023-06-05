@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
 
 @Getter
 public class Trade extends ChartObject implements PrintableData {
@@ -24,6 +25,7 @@ public class Trade extends ChartObject implements PrintableData {
     private static final String SYMBOL_NAME = "Symbol";
     private static final String TIMEFRAME_NAME = "Timeframe";
     private static final String ACCOUNT_BALANCE_NAME = "Account balance at open";
+    private static final String SIZE_NAME = "Size";
     private static final String EXPECTED_CLOSE_NAME = "Expected close";
     private static final String EXPIRY_NAME = "Expiry";
     private static final String CLOSE_NAME = "Close";
@@ -40,104 +42,60 @@ public class Trade extends ChartObject implements PrintableData {
     private static final String RISK_PER_NAME = "Risk %";
     private static final String RR_RATIO_NAME = "R/R ratio";
     private static final String PNL_NAME = "PnL";
-    
-    private static final int DEFAULT_TP_TO_SL_RATIO = 3;
-    private static final int DEFAULT_RISK_PERCENTAGE = 2;
+
     private static final long MAX_TRADE_DURATION_IN_SECONDS = Timeframe.WEEK.durationInSeconds * 4;
+    private static final int MAX_LEVERAGE = 20;
 
     private LocalDateTime lastUpdate;
     private final String platform;
     private final double accountBalanceAtOpen;
-    private final int riskPercentage;
-    private final double leverageX;
+    private final double size;
     private final boolean side;
     private final double openingPrice;
-    private final LocalDateTime open;
+    private final LocalDateTime openDateTime;
     private final LocalDateTime expectedClose;
     private LocalDateTime expiry;
-    private LocalDateTime close;
+    private LocalDateTime closeDateTime;
     private TradeStatus status;
     private double closingPrice;
     private double takeProfit;
     private double stopLoss;
 
-    /**
-     * Calls the constructor with default values for riskPercentage, and sets takeProfit and stopLoss
-     * based on this default percentage, the DEFAULT_TP_TO_SL_RATIO and the accountBalanceAtOpen
-     */
+
     public Trade(String platform,
                  Timeframe timeframe,
                  Symbol symbol,
                  Measurable account,
-                 LocalDateTime open,
-                 LocalDateTime expectedClose,
-                 boolean side,
-                 double openingPrice,
-                 float leverageX) {
-
-        this(platform,
-                timeframe,
-                symbol,
-                account,
-                open,
-                DEFAULT_RISK_PERCENTAGE,
-                expectedClose,
-                side,
-                openingPrice,
-                -1,
-                -1,
-                leverageX);
-    }
-
-    /**
-     * Calls the full-parameterized constructor
-     * @param platform
-     * @param timeframe
-     * @param symbol
-     * @param account
-     * @param open
-     * @param riskPercentage
-     * @param expectedClose
-     * @param side
-     * @param openingPrice
-     * @param takeProfit
-     * @param stopLoss
-     * @param leverageX
-     */
-    public Trade(String platform,
-                 Timeframe timeframe,
-                 Symbol symbol,
-                 Measurable account,
-                 LocalDateTime open,
-                 int riskPercentage,
+                 LocalDateTime openDateTime,
+                 double size,
                  LocalDateTime expectedClose,
                  boolean side,
                  double openingPrice,
                  double takeProfit,
-                 double stopLoss,
-                 float leverageX) {
+                 double stopLoss) {
 
         super(symbol, timeframe);
 
         this.status = TradeStatus.OPENED;
-        this.riskPercentage = riskPercentage < 0 ? DEFAULT_RISK_PERCENTAGE : riskPercentage;
+        this.openingPrice = openingPrice;
 
         setStopLoss(stopLoss);
         setTakeProfit(takeProfit);
 
         this.platform = platform == null ? "unknown" : platform;
         this.accountBalanceAtOpen = account.getMeasure();
-        this.open = open == null ? LocalDateTime.now() : open;
+        this.openDateTime = openDateTime == null ? LocalDateTime.now() : openDateTime;
         this.expectedClose = expectedClose == null ?
                 LocalDateTime.now().plusSeconds(timeframe.durationInSeconds * timeframe.scope)
                 : expectedClose;
         this.expiry = LocalDateTime.now().plusSeconds(MAX_TRADE_DURATION_IN_SECONDS);
-        this.close = null;
+        this.closeDateTime = null;
         this.side = side;
-        this.openingPrice = openingPrice;
-        this.leverageX = Format.streamline(leverageX, 0, 10);
 
-        if (getSize() > accountBalanceAtOpen)   {
+        this.size = size;
+
+        if ((getMaxLoss() > accountBalanceAtOpen)
+        || (getLeverage() > MAX_LEVERAGE)) {
             this.status = TradeStatus.UNFUNDED;
         }
 
@@ -147,55 +105,56 @@ public class Trade extends ChartObject implements PrintableData {
     @Override
     public String toString() {
         return "Trade{" +
-                OPEN_NAME + "=" + open + ", " +
-                LAST_UPDATE_NAME + "=" + this.lastUpdate + ", " +
+                OPEN_NAME + "=" + Format.toFrenchDateTime(openDateTime) + ", " +
+                LAST_UPDATE_NAME + "=" + Format.toFrenchDateTime(lastUpdate) + ", " +
                 PLATFORM_NAME + "=" + getPlatform() + ", " +
                 SYMBOL_NAME + "=" + getSymbol() + ", " +
                 TIMEFRAME_NAME + "=" + getTimeframe() + ", " +
                 ACCOUNT_BALANCE_NAME + "=" + accountBalanceAtOpen + ", " +
-                EXPECTED_CLOSE_NAME + "=" + expectedClose + ", " +
-                EXPIRY_NAME + "=" + expiry + ", " +
-                CLOSE_NAME + "=" + close + ", " +
+                SIZE_NAME + "=" + size + ", " +
+                EXPECTED_CLOSE_NAME + "=" + Format.toFrenchDateTime(expectedClose) + ", " +
+                EXPIRY_NAME + "=" + Format.toFrenchDateTime(expiry) + ", " +
+                CLOSE_NAME + "=" + Format.toFrenchDateTime(closeDateTime) + ", " +
                 STATUS_NAME + "=" + status + ", " +
                 SIDE_NAME + "=" + (side ? "LONG" : "SHORT") + ", " +
                 OPENING_PRICE_NAME + "=" + openingPrice + ", " +
                 CLOSING_PRICE_NAME + "=" + closingPrice + ", " +
                 TP_NAME + "=" + takeProfit + ", " +
                 SL_NAME + stopLoss + ", " +
-                LEVERAGE_NAME + leverageX + ", " +
+                LEVERAGE_NAME + getLeverage() + ", " +
                 TP_PRICE_PER_NAME + "=" + this.getTakeProfitPricePercentage() + ", " +
                 SL_PRICE_PER_NAME + "=" + this.getStopLossPricePercentage() + ", " +
                 EXPECTED_PROFIT_NAME + "=" + this.getExpectedProfit() + ", " +
-                RISK_PER_NAME + "=" + this.riskPercentage + ", " +
-                SIDE_NAME + "=" + this.getSize() + ", " +
+                RISK_PER_NAME + "=" + this.getRiskPercentage() + ", " +
                 RR_RATIO_NAME + "=" + this.getRewardToRiskRatio() + ", " +
                 PNL_NAME + "=" + this.getPnL() + "}";
     }
 
+
     @Override
-    public List<Serializable> toRow()   {
+    public List<Serializable> toRow() {
         return new ArrayList<>(List.of(
-                open,
-                lastUpdate,
+                Format.toFrenchDateTime(openDateTime),
+                Format.toFrenchDateTime(lastUpdate),
                 platform,
                 getSymbol(),
                 getTimeframe(),
                 accountBalanceAtOpen,
-                expectedClose,
-                expiry,
-                close == null ? "Not closed yet." : close,
+                size,
+                Format.toFrenchDateTime(expectedClose),
+                Format.toFrenchDateTime(expiry),
+                Format.toFrenchDateTime(closeDateTime),
                 status,
                 (side ? "LONG" : "SHORT"),
                 openingPrice,
                 closingPrice,
                 takeProfit,
                 stopLoss,
-                leverageX,
+                getLeverage(),
                 getTakeProfitPricePercentage(),
                 getStopLossPricePercentage(),
                 getExpectedProfit(),
-                riskPercentage,
-                getSize(),
+                getRiskPercentage(),
                 getRewardToRiskRatio(),
                 getPnL()
         ));
@@ -203,13 +162,15 @@ public class Trade extends ChartObject implements PrintableData {
 
     }
 
-    public List<String> extractCsvHeader()   {
-        return new ArrayList<>(List.of(OPEN_NAME,
+    public List<String> extractCsvHeader() {
+        return new ArrayList<>(List.of(
+                OPEN_NAME,
                 LAST_UPDATE_NAME,
                 PLATFORM_NAME,
                 SYMBOL_NAME,
                 TIMEFRAME_NAME,
                 ACCOUNT_BALANCE_NAME,
+                SIZE_NAME,
                 EXPECTED_CLOSE_NAME,
                 EXPIRY_NAME,
                 CLOSE_NAME,
@@ -224,68 +185,55 @@ public class Trade extends ChartObject implements PrintableData {
                 SL_PRICE_PER_NAME,
                 EXPECTED_PROFIT_NAME,
                 RISK_PER_NAME,
-                SIDE_NAME,
                 RR_RATIO_NAME,
                 PNL_NAME
         ));
     }
 
-    public void closeTrade(double closingPrice, TradeStatus status) {
+    public void close(LocalDateTime closeDateTime, double closingPrice, TradeStatus status) {
         this.closingPrice = closingPrice;
+        this.closeDateTime = closeDateTime;
         this.status = status;
-        this.close = LocalDateTime.now();
-    }
-
-    public void setExpiry(LocalDateTime expiry) {
-        this.expiry = expiry;
         this.lastUpdate = LocalDateTime.now();
     }
 
+    public void setExpiry(LocalDateTime expiry) {
+
+        if ((status == TradeStatus.OPENED)
+        && (expiry.isAfter(openDateTime))) {
+            this.expiry = expiry;
+            this.lastUpdate = LocalDateTime.now();
+        }
+    }
+
     /**
-     * @param takeProfit if is negative, take profit is set to price +/- riskPercentage * DEFAULT_TP_TO_SL_RATIO ; if equals zero, is set to zero (no take profit)
+     * @param takeProfit zero means "no take profit"
      */
     public void setTakeProfit(double takeProfit) {
 
         if (status == TradeStatus.OPENED) {
             takeProfit = Format.roundAccordingly(takeProfit);
 
-            if ((takeProfit != 0) && (
-                    (takeProfit < 0)
-                            || ((side && takeProfit <= openingPrice)
-                            || (!side && takeProfit >= openingPrice)
-                    ))
-            ) {
-                double reward = Format.roundAccordingly((accountBalanceAtOpen * riskPercentage * DEFAULT_TP_TO_SL_RATIO) / 100);
+            this.takeProfit = side ?
+                    Format.streamline(takeProfit, openingPrice, Double.MAX_VALUE)
+                    : Format.streamline(takeProfit, 0, openingPrice);
 
-                takeProfit = side ? openingPrice + reward : openingPrice - reward;
-            }
-            this.takeProfit = takeProfit;
             this.lastUpdate = LocalDateTime.now();
         }
     }
 
     /**
-     * @param stopLoss if is negative, stop loss is set to price +/- riskPercentage ; if equals zero, is set to zero (no stop loss)
+     * @param stopLoss zero means "no stop loss"
      */
     public void setStopLoss(double stopLoss) {
 
         if (status == TradeStatus.OPENED) {
             stopLoss = Format.roundAccordingly(stopLoss);
 
-            double risk = Format.roundAccordingly((accountBalanceAtOpen * riskPercentage) / 100);
+            this.stopLoss = side ?
+                    Format.streamline(stopLoss, 0, openingPrice)
+                    : Format.streamline(stopLoss, openingPrice, Double.MAX_VALUE);
 
-            if ((stopLoss != 0) && (
-                    (stopLoss < 0)
-                            || (side && stopLoss >= openingPrice)
-                            || (!side && stopLoss <= openingPrice)
-                            || (
-                            (risk != 0)
-                                    &&
-                                    (abs(openingPrice - stopLoss) > risk)
-                    ))) {
-                stopLoss = side ? openingPrice - risk : openingPrice + risk;
-            }
-            this.stopLoss = stopLoss;
             this.lastUpdate = LocalDateTime.now();
         }
     }
@@ -302,35 +250,37 @@ public class Trade extends ChartObject implements PrintableData {
 
         double expectedProfit = 0;
 
-        if (!(this.side && takeProfit == 0)) {
-            expectedProfit = abs(this.takeProfit - this.openingPrice) * this.leverageX;
+        if (!(side && takeProfit == 0)) {
+            expectedProfit = abs(takeProfit - openingPrice) * size;
         }
 
-        return Format.roundAccordingly(expectedProfit, this.openingPrice);
+        return Format.roundAccordingly(expectedProfit, openingPrice);
     }
 
-    public double getSize() {
+    public double getMaxLoss() {
+        return Format.roundAccordingly(abs(stopLoss - openingPrice) * size, openingPrice);
+    }
 
-        double size = 0;
-
-        if (!(!this.side && stopLoss == 0)) {
-            size = abs(this.stopLoss - this.openingPrice) * this.leverageX;
-        }
-
-        return Format.roundAccordingly(size, this.openingPrice);
+    private int getRiskPercentage() {
+        return Calc.positivePercentage(getMaxLoss(), accountBalanceAtOpen);
     }
 
     public double getRewardToRiskRatio() {
 
-        double maxLoss = this.getSize();
+        double maxLoss = this.getMaxLoss();
 
         return maxLoss == 0 ? 0 : Format.roundTwoDigits(this.getExpectedProfit() / maxLoss);
+    }
+
+    private float getLeverage() {
+        float leverage = (float) Format.roundNDigits(getSize() / accountBalanceAtOpen, 3);
+        return Format.streamline(leverage, 1, MAX_LEVERAGE);
     }
 
     public double getPnL() {
 
         if (status != TradeStatus.OPENED) {
-            return (side ? closingPrice - openingPrice : openingPrice - closingPrice) * leverageX;
+            return (side ? closingPrice - openingPrice : openingPrice - closingPrice) * size;
         }
         return 0;
     }
