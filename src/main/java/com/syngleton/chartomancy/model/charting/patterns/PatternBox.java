@@ -68,12 +68,7 @@ public class PatternBox extends ChartObject {
         if (Check.notNullNotEmpty(listOfAllPatterns)) {
 
             for (Pattern pattern : listOfAllPatterns) {
-
-                switch (pattern.getPatternType()) {
-                    case PREDICTIVE, LIGHT_PREDICTIVE ->
-                            maxScope = max(maxScope, ((ComputablePattern) pattern).getScope());
-                    case TRADING -> maxScope = max(maxScope, ((TradingPattern) pattern).getScope());
-                }
+                maxScope = max(maxScope, ((ScopedPattern) pattern).getScope());
             }
         }
         return maxScope;

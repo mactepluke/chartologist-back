@@ -3,6 +3,7 @@ package com.syngleton.chartomancy.service;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.GraphFactory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.util.pdt.PDT;
 import com.syngleton.chartomancy.util.pdt.PrintableDataTable;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
@@ -25,6 +26,7 @@ public class DataService {
     private int readingAttempts;
     private final GraphFactory graphFactory;
     private static final String NEW_LINE = System.getProperty("line.separator");
+    private static final String DEFAULT_SERIALIZED_DATA_FILE_NAME = "./core_data/data.ser";
 
     @Autowired
     public DataService(GraphFactory graphFactory) {
@@ -32,17 +34,7 @@ public class DataService {
     }
 
     public void writeCsvFile(String fileName, PrintableDataTable content) {
-        writeToFile(fileName, generateCsv(content));
-    }
-
-    private void writeToFile(String fileName, String content) {
-        //TODO Implement this method
-    }
-
-    public String generateCsv(PrintableDataTable content) {
-        //TODO Implement this method
-
-        return "";
+        PDT.writeDataTableToFile(fileName, content);
     }
 
     public boolean loadGraphs(CoreData coreData, String dataFolderName, List<String> dataFilesNames) {
@@ -92,10 +84,14 @@ public class DataService {
         }
     }
 
-    public boolean loadCoreData(CoreData coreData) {
+    public boolean loadCoreData(CoreData coreData)  {
+        return loadCoreDataWithName(coreData, DEFAULT_SERIALIZED_DATA_FILE_NAME);
+    }
+
+    public boolean loadCoreDataWithName(CoreData coreData, String dataFileName) {
 
         CoreData readData;
-        try (ObjectInputStream is = new ObjectInputStream(new FileInputStream("./core_data/data.ser"))) {
+        try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(dataFileName))) {
             readData = (CoreData) is.readObject();
 
             if (readData != null) {
@@ -110,9 +106,13 @@ public class DataService {
         return false;
     }
 
-    public boolean saveCoreData(CoreData coreData) {
+    public boolean saveCoreData(CoreData coreData)  {
+        return saveCoreDataWithName(coreData, DEFAULT_SERIALIZED_DATA_FILE_NAME);
+    }
 
-        try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream("./core_data/data.ser"))) {
+    public boolean saveCoreDataWithName(CoreData coreData, String dataFileName) {
+
+        try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(dataFileName))) {
             os.writeObject(coreData);
         } catch (IOException e) {
             e.printStackTrace();

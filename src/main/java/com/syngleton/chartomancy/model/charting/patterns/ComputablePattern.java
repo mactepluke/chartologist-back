@@ -1,11 +1,9 @@
 package com.syngleton.chartomancy.model.charting.patterns;
 
-public interface ComputablePattern {
+public interface ComputablePattern extends ScopedPattern {
 
     PatternType getPatternType();
     float getPriceVariationPrediction();
-
-    int getScope();
 
     int getLength();
 

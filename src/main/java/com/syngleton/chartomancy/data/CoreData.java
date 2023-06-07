@@ -1,21 +1,21 @@
 package com.syngleton.chartomancy.data;
 
-import com.syngleton.chartomancy.model.charting.misc.ChartObject;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
-import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
 
 @Data
 public class CoreData implements Serializable {
     private Set<Graph> graphs;
     private Set<PatternBox> patternBoxes;
     private Set<PatternBox> tradingPatternBoxes;
+    private String analyzerConfigSettings;
 
     public boolean purge() {
         graphs = null;

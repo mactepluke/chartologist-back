@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -40,8 +41,9 @@ public class ConfigService {
                                        boolean runAnalysisAtStartup,
                                        boolean generateTradingData,
                                        boolean createGraphsForMissingTimeframes,
-                                       boolean loadTradingDataAtStartup,
-                                       boolean overrideSavedTradingData,
+                                       boolean loadCoreDataAtStartup,
+                                       boolean overrideSavedCoreData,
+                                       boolean createTimestampedCoreDataArchive,
                                        boolean purgeAfterTradingDataGeneration,
                                        PatternSettings.Autoconfig patternSettingsAutoconfig,
                                        ComputationSettings.Autoconfig computationSettings,
@@ -53,6 +55,8 @@ public class ConfigService {
     ) {
 
         CoreData coreData = new CoreData();
+
+        coreData.setAnalyzerConfigSettings(patternService.printAnalyzerConfig());
 
         log.info(NEW_LINE +
                         "INITIALIZING CORE DATA (pattern settings={}, , pattern type={}, computation={}, computation settings={})",
@@ -83,8 +87,8 @@ public class ConfigService {
                 runAnalysisAtStartup,
                 generateTradingData,
                 createGraphsForMissingTimeframes,
-                loadTradingDataAtStartup,
-                overrideSavedTradingData,
+                loadCoreDataAtStartup,
+                overrideSavedCoreData,
                 purgeAfterTradingDataGeneration,
                 patternSettingsAutoconfig,
                 computationSettings,
@@ -94,6 +98,11 @@ public class ConfigService {
                 fullScope,
                 launchAutomation);
 
+        //LOADING TRADING DATA IF APPLICABLE
+        log.info("Loaded core data: {}",
+                Check.executeIfTrue(loadCoreDataAtStartup,
+                        dataService::loadCoreData,
+                        coreData));
         //RUNNING ANALYSIS IF APPLICABLE
         if (runAnalysisAtStartup) {
             log.info("Performed data analysis: {}", runAnalysis(
@@ -109,25 +118,25 @@ public class ConfigService {
                     fullScope));
 
             if (generateTradingData) {
-                if (loadTradingDataAtStartup) {
-                    log.warn("Conflict in data config parameters: trading data will be generated, not loaded from file.");
-                    loadTradingDataAtStartup = false;
+                if (loadCoreDataAtStartup) {
+                    log.warn("Trading data loaded from file will be overriden by newly generated trading data.");
                 }
                 log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
 
-                log.info("Saved trading data overriden with newly generated data: {}",
-                        Check.executeIfTrue(overrideSavedTradingData, dataService::saveCoreData, coreData));
-
                 log.info("Purged non-trading data: {}",
                         Check.executeIfTrue(purgeAfterTradingDataGeneration, dataService::purgeNonTradingData, coreData));
-
             }
+
+            log.info("Saved core data overriden with newly generated core data: {}",
+                    Check.executeIfTrue(overrideSavedCoreData, dataService::saveCoreData, coreData));
+
+            boolean result = false;
+
+            if (createTimestampedCoreDataArchive) {
+                result = dataService.saveCoreDataWithName(coreData, "./archives/Core_Data_archive_" + LocalDateTime.now());
+            }
+            log.info("Created time stamped archive with newly generated data: {}", result);
         }
-        //LOADING TRADING DATA IF APPLICABLE
-        log.info("Loaded trading data: {}",
-                Check.executeIfTrue(loadTradingDataAtStartup && (!runAnalysisAtStartup || !overrideSavedTradingData),
-                        dataService::loadCoreData,
-                        coreData));
         //PRINTING LAUNCHING AUTOMATION IF APPLICABLE
         if (launchAutomation) {
             launchService.launchAutomation(coreData, dataService, patternService, tradingService);

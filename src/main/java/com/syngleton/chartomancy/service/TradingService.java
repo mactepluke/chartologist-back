@@ -11,8 +11,12 @@ import com.syngleton.chartomancy.model.charting.patterns.LightTradingPattern;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import com.syngleton.chartomancy.model.trading.Trade;
+import com.syngleton.chartomancy.model.trading.TradeStatus;
 import com.syngleton.chartomancy.model.trading.TradingAccount;
+import com.syngleton.chartomancy.model.trading.TradingSettings;
 import com.syngleton.chartomancy.util.Check;
+import com.syngleton.chartomancy.util.Format;
+import com.syngleton.chartomancy.util.Pair;
 import com.syngleton.chartomancy.util.Triad;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +36,20 @@ public class TradingService {
 
     private final Analyzer analyzer;
     private final CandleFactory candleFactory;
+    private final TradingSettings tradingSettings;
 
     @Autowired
-    public TradingService(Analyzer analyzer, CandleFactory candleFactory) {
+    public TradingService(Analyzer analyzer,
+                          CandleFactory candleFactory,
+                          TradingSettings tradingSettings) {
         this.analyzer = analyzer;
         this.candleFactory = candleFactory;
+        this.tradingSettings = tradingSettings;
     }
 
+    public String printTradingSettings()    {
+        return tradingSettings.toString();
+    }
 
     public Trade generateOptimalBasicTimingBasedTrade(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
 
@@ -89,7 +100,19 @@ public class TradingService {
      * @param tradeOpenCandle
      * @return
      */
-    public Trade generateOptimalLeveragedTakeProfitBasedTrade(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
+
+    public Trade generateOptimalLeveragedTakeProfitBasedTrade(TradingAccount tradingAccount,
+                                                              Graph graph,
+                                                              CoreData coreData,
+                                                              int tradeOpenCandle)  {
+        return generateOptimalLeveragedTakeProfitBasedTrade(tradingAccount, graph, coreData, tradeOpenCandle, tradingSettings);
+    }
+
+    public Trade generateOptimalLeveragedTakeProfitBasedTrade(TradingAccount tradingAccount,
+                                                              Graph graph,
+                                                              CoreData coreData,
+                                                              int tradeOpenCandle,
+                                                              TradingSettings settings) {
 
         Trade trade = null;
 
@@ -102,14 +125,22 @@ public class TradingService {
                     -1);
 
             int mostProfitableMoment = mostProfitableMomentAndPriceVariationAndStopLoss.first();
-            float mostProfitablePriceVariation = mostProfitableMomentAndPriceVariationAndStopLoss.second();
+            float mostProfitablePriceVariation = filterPriceVariation(mostProfitableMomentAndPriceVariationAndStopLoss.second(), settings);
 
+            if (mostProfitablePriceVariation == 0)  {
+                return Trade.blank();
+            }
             boolean side = mostProfitablePriceVariation > 0;
 
-            float candleClosePrice = getCandleClosePrice(graph, tradeOpenCandle);
-            float takeProfit = candleClosePrice + (candleClosePrice * mostProfitablePriceVariation) / 100;
-            float stopLoss = candleClosePrice - (candleClosePrice * mostProfitablePriceVariation / REWARD_TO_RISK_RATIO) / 100;
-            double size = ((tradingAccount.getBalance() * RISK_PERCENTAGE) / 100) / abs(stopLoss - candleClosePrice);
+            float openingPrice = Format.roundTwoDigits(getCandleClosePrice(graph, tradeOpenCandle));
+
+            Pair<Float, Float> tpAndSl = defineTpAndSl(openingPrice, mostProfitablePriceVariation, settings);
+
+            if (tpAndSl.second() == openingPrice || tpAndSl.first() == openingPrice) {
+                return Trade.blank();
+            }
+
+            double size = ((tradingAccount.getBalance() * settings.getRiskPercentage()) / 100) / abs(tpAndSl.second() - openingPrice);
 
             trade = new Trade(
                     graph.getName(),
@@ -120,17 +151,40 @@ public class TradingService {
                     size,
                     graph.getFloatCandles().get(tradeOpenCandle).dateTime().plusSeconds(mostProfitableMoment * graph.getTimeframe().durationInSeconds),
                     side,
-                    candleClosePrice,
-                    takeProfit,
-                    stopLoss
+                    openingPrice,
+                    tpAndSl.first(),
+                    tpAndSl.second()
             );
 
             if (trade.getStatus() == TradeStatus.UNFUNDED) {
-                log.error("Could not open trade: not enough funds (account balance: {})", tradingAccount.getBalance());
-                trade = null;
+                log.warn("Could not open trade: not enough funds (account balance: {})", tradingAccount.getBalance());
             }
         }
         return trade;
+    }
+
+    private Pair<Float, Float> defineTpAndSl(float openingPrice, float priceVariation, TradingSettings settings)    {
+
+        float takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
+        float stopLoss;
+
+        switch (settings.getSlTpStrategy()) {
+            case NONE -> {
+                takeProfit = 0;
+                stopLoss = 0;
+            }
+            case EQUAL -> stopLoss = takeProfit;
+            default -> stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / settings.getRewardToRiskRatio()) / 100);
+
+        }
+        return new Pair<>(takeProfit, stopLoss);
+    }
+
+    private float filterPriceVariation(float priceVariation, TradingSettings settings)    {
+        if (abs(priceVariation) < settings.getPriceVariationThreshold())  {
+            priceVariation = 0;
+        }
+        return priceVariation;
     }
 
     private boolean tradingInputDataAreLegit(TradingAccount tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
@@ -246,13 +300,12 @@ public class TradingService {
 
     public void processTradeOnCompletedCandles(Trade trade, TradingAccount account, List<FloatCandle> candles) {
 
-        if (
-                trade != null
-                        && account != null
-                        && Check.notNullNotEmpty(candles)
-                        && trade.getStatus() == TradeStatus.OPENED
+        if (trade != null
+                && account != null
+                && Check.notNullNotEmpty(candles)
+                && trade.getStatus() == TradeStatus.OPENED
         ) {
-
+            trade.setExpiry(candles.get(candles.size() - 1).dateTime());
 
             for (FloatCandle candle : candles) {
                 if (trade.isSide()) {
@@ -261,33 +314,32 @@ public class TradingService {
                     completeShortTradeOnLimitsHit(candle, trade, account);
                 }
             }
-
             if (trade.getStatus() == TradeStatus.OPENED) {
                 completeExpiredTrade(candles, trade, account);
             }
+            account.getTrades().add(trade);
         }
-
     }
 
     private void completeLongTradeOnLimitsHit(FloatCandle candle, Trade trade, TradingAccount account) {
-        if (candle.low() < trade.getStopLoss()) {
+        if (candle.low() < trade.getStopLoss() && trade.getStatus() == TradeStatus.OPENED) {
             trade.close(candle.dateTime(), trade.getStopLoss(), TradeStatus.STOP_LOSS_HIT);
-            account.debit(trade.getMaxLoss());
+            account.debit(trade.getPnL());
         }
-        if (candle.high() > trade.getTakeProfit()) {
+        if (candle.high() > trade.getTakeProfit() && trade.getStatus() == TradeStatus.OPENED) {
             trade.close(candle.dateTime(), trade.getTakeProfit(), TradeStatus.TAKE_PROFIT_HIT);
-            account.credit(trade.getExpectedProfit());
+            account.credit(trade.getPnL());
         }
     }
 
     private void completeShortTradeOnLimitsHit(FloatCandle candle, Trade trade, TradingAccount account) {
-        if (candle.high() > trade.getStopLoss()) {
+        if (candle.high() > trade.getStopLoss() && trade.getStatus() == TradeStatus.OPENED) {
             trade.close(candle.dateTime(), trade.getStopLoss(), TradeStatus.STOP_LOSS_HIT);
-            account.debit(trade.getMaxLoss());
+            account.debit(trade.getPnL());
         }
-        if (candle.low() < trade.getTakeProfit()) {
+        if (candle.low() < trade.getTakeProfit() && trade.getStatus() == TradeStatus.OPENED) {
             trade.close(candle.dateTime(), trade.getTakeProfit(), TradeStatus.TAKE_PROFIT_HIT);
-            account.credit(trade.getExpectedProfit());
+            account.credit(trade.getPnL());
         }
     }
 

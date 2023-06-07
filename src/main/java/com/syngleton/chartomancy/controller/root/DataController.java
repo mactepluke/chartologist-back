@@ -31,8 +31,6 @@ public class DataController {
         this.dataService = dataService;
         this.coreData = coreData;
     }
-
-
     //http://localhost:8080/data/load?path=<path>
     @GetMapping("/load")
     public ResponseEntity<Graph> load(@RequestParam String path) {

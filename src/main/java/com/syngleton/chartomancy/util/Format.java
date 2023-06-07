@@ -18,8 +18,8 @@ public final class Format {
         return (round(number * 100) / 100f);
     }
 
-    public static float roundTwoDigits(double number) {
-        return (round(number * 100) / 100f);
+    public static double roundTwoDigits(double number) {
+        return (round(number * 100) / 100d);
     }
 
     public static float roundNDigits(float number, int decimals) {

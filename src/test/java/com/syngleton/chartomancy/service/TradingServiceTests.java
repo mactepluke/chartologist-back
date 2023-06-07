@@ -50,6 +50,7 @@ class TradingServiceTests {
                 false,
                 false,
                 false,
+                false,
                 PatternSettings.Autoconfig.TIMEFRAME_LONG,
                 ComputationSettings.Autoconfig.TEST,
                 ComputationType.BASIC_ITERATION,

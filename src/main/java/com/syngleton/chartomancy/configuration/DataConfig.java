@@ -6,7 +6,6 @@ import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
 import com.syngleton.chartomancy.model.charting.patterns.PatternType;
 import com.syngleton.chartomancy.service.ConfigService;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-@Log4j2
 @Configuration
 public class DataConfig {
     @Value("${data_folder_name:data}")
@@ -27,10 +25,12 @@ public class DataConfig {
     private boolean generateTradingData;
     @Value("${create_graphs_for_missing_timeframes:false}")
     private boolean createGraphsForMissingTimeframes;
-    @Value("${load_trading_data_at_startup:false}")
-    private boolean loadTradingDataAtStartup;
-    @Value("${override_saved_trading_data:false}")
-    private boolean overrideSavedTradingData;
+    @Value("${load_core_data_at_startup:false}")
+    private boolean loadCoreDataAtStartup;
+    @Value("${override_saved_core_data:false}")
+    private boolean overrideSavedCoreData;
+    @Value("${create_timestamped_core_data_archive:false}")
+    private boolean createTimestampedCoreDataArchive;
     @Value("${purge_after_trading_data_generation:false}")
     private boolean purgeAfterTradingDataGeneration;
     @Value("${pattern_settings_autoconfig:DEFAULT}")
@@ -63,8 +63,9 @@ public class DataConfig {
                 runAnalysisAtStartup,
                 generateTradingData,
                 createGraphsForMissingTimeframes,
-                loadTradingDataAtStartup,
-                overrideSavedTradingData,
+                loadCoreDataAtStartup,
+                overrideSavedCoreData,
+                createTimestampedCoreDataArchive,
                 purgeAfterTradingDataGeneration,
                 patternSettingsAutoconfig,
                 computationSettingsAutoconfig,

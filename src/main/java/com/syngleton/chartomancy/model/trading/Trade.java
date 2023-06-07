@@ -1,12 +1,14 @@
 package com.syngleton.chartomancy.model.trading;
 
 import com.syngleton.chartomancy.model.charting.misc.*;
-import com.syngleton.chartomancy.service.TradeStatus;
 import com.syngleton.chartomancy.util.Calc;
 import com.syngleton.chartomancy.util.Format;
 import com.syngleton.chartomancy.util.Measurable;
 import com.syngleton.chartomancy.util.pdt.PrintableData;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.internal.log.SubSystemLogging;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -16,6 +18,7 @@ import java.util.List;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 
+@Log4j2
 @Getter
 public class Trade extends ChartObject implements PrintableData {
 
@@ -61,6 +64,16 @@ public class Trade extends ChartObject implements PrintableData {
     private double takeProfit;
     private double stopLoss;
 
+    private Trade() {
+        platform = "Blank trade";
+        accountBalanceAtOpen = 0;
+        size = 0;
+        side = false;
+        openingPrice = 0;
+        openDateTime = null;
+        expectedClose = null;
+        status = TradeStatus.BLANK;
+    }
 
     public Trade(String platform,
                  Timeframe timeframe,
@@ -78,25 +91,29 @@ public class Trade extends ChartObject implements PrintableData {
 
         this.status = TradeStatus.OPENED;
         this.openingPrice = openingPrice;
+        this.side = side;
 
         setStopLoss(stopLoss);
         setTakeProfit(takeProfit);
 
         this.platform = platform == null ? "unknown" : platform;
-        this.accountBalanceAtOpen = account.getMeasure();
+        this.accountBalanceAtOpen = Format.roundTwoDigits(account.getMeasure());
         this.openDateTime = openDateTime == null ? LocalDateTime.now() : openDateTime;
         this.expectedClose = expectedClose == null ?
                 LocalDateTime.now().plusSeconds(timeframe.durationInSeconds * timeframe.scope)
                 : expectedClose;
         this.expiry = LocalDateTime.now().plusSeconds(MAX_TRADE_DURATION_IN_SECONDS);
         this.closeDateTime = null;
-        this.side = side;
 
-        this.size = size;
+        this.size = Format.roundNDigits(size, 3);
 
         if ((getMaxLoss() > accountBalanceAtOpen)
-        || (getLeverage() > MAX_LEVERAGE)) {
+                /*|| (getLeverage() > MAX_LEVERAGE)*/) {
             this.status = TradeStatus.UNFUNDED;
+        }
+
+        if (getStopLoss() == getTakeProfit() || getTakeProfit() == openingPrice || getStopLoss() == openingPrice)   {
+            this.status = TradeStatus.BLANK;
         }
 
         this.lastUpdate = LocalDateTime.now();
@@ -162,6 +179,10 @@ public class Trade extends ChartObject implements PrintableData {
 
     }
 
+    public static Trade blank() {
+        return new Trade();
+    }
+
     public List<String> extractCsvHeader() {
         return new ArrayList<>(List.of(
                 OPEN_NAME,
@@ -191,16 +212,19 @@ public class Trade extends ChartObject implements PrintableData {
     }
 
     public void close(LocalDateTime closeDateTime, double closingPrice, TradeStatus status) {
-        this.closingPrice = closingPrice;
-        this.closeDateTime = closeDateTime;
-        this.status = status;
-        this.lastUpdate = LocalDateTime.now();
+
+        if (this.status == TradeStatus.OPENED) {
+            this.closingPrice = closingPrice;
+            this.closeDateTime = closeDateTime;
+            this.status = status;
+            this.lastUpdate = LocalDateTime.now();
+        }
     }
 
     public void setExpiry(LocalDateTime expiry) {
 
         if ((status == TradeStatus.OPENED)
-        && (expiry.isAfter(openDateTime))) {
+                && (expiry.isAfter(openDateTime))) {
             this.expiry = expiry;
             this.lastUpdate = LocalDateTime.now();
         }
@@ -212,7 +236,7 @@ public class Trade extends ChartObject implements PrintableData {
     public void setTakeProfit(double takeProfit) {
 
         if (status == TradeStatus.OPENED) {
-            takeProfit = Format.roundAccordingly(takeProfit);
+            takeProfit = Format.roundTwoDigits(takeProfit);
 
             this.takeProfit = side ?
                     Format.streamline(takeProfit, openingPrice, Double.MAX_VALUE)
@@ -228,7 +252,7 @@ public class Trade extends ChartObject implements PrintableData {
     public void setStopLoss(double stopLoss) {
 
         if (status == TradeStatus.OPENED) {
-            stopLoss = Format.roundAccordingly(stopLoss);
+            stopLoss = Format.roundTwoDigits(stopLoss);
 
             this.stopLoss = side ?
                     Format.streamline(stopLoss, 0, openingPrice)
@@ -254,11 +278,11 @@ public class Trade extends ChartObject implements PrintableData {
             expectedProfit = abs(takeProfit - openingPrice) * size;
         }
 
-        return Format.roundAccordingly(expectedProfit, openingPrice);
+        return Format.roundTwoDigits(expectedProfit);
     }
 
     public double getMaxLoss() {
-        return Format.roundAccordingly(abs(stopLoss - openingPrice) * size, openingPrice);
+        return Format.roundTwoDigits(abs(stopLoss - openingPrice) * size);
     }
 
     private int getRiskPercentage() {
@@ -269,19 +293,28 @@ public class Trade extends ChartObject implements PrintableData {
 
         double maxLoss = this.getMaxLoss();
 
-        return maxLoss == 0 ? 0 : Format.roundTwoDigits(this.getExpectedProfit() / maxLoss);
+        double ratio = maxLoss == 0 ? 0 : this.getExpectedProfit() / maxLoss;
+
+        return Format.roundNDigits(ratio, 1);
     }
 
     private float getLeverage() {
-        float leverage = (float) Format.roundNDigits(getSize() / accountBalanceAtOpen, 3);
-        return Format.streamline(leverage, 1, MAX_LEVERAGE);
+        return (float) Format.roundNDigits((getSize() * openingPrice) / accountBalanceAtOpen, 3);
     }
 
     public double getPnL() {
 
+        double pnl = 0;
+
         if (status != TradeStatus.OPENED) {
-            return (side ? closingPrice - openingPrice : openingPrice - closingPrice) * size;
+
+            pnl = side ? closingPrice - openingPrice : openingPrice - closingPrice;
+            pnl = Format.roundTwoDigits(pnl * size);
         }
-        return 0;
+        return pnl;
+    }
+
+    public double getReturnPercentage() {
+        return Format.roundTwoDigits((getPnL() / accountBalanceAtOpen) * 100);
     }
 }

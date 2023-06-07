@@ -63,6 +63,7 @@ class ConfigServiceTests {
                 false,
                 false,
                 false,
+                false,
                 PatternSettings.Autoconfig.TEST,
                 ComputationSettings.Autoconfig.TEST,
                 ComputationType.BASIC_ITERATION,

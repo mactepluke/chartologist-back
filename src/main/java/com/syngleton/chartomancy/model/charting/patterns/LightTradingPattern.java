@@ -11,7 +11,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Getter
-public class LightTradingPattern extends Pattern implements IntPattern {
+public class LightTradingPattern extends Pattern implements IntPattern, ScopedPattern {
 
     @ToString.Exclude
     private final List<IntCandle> intCandles;

@@ -10,10 +10,11 @@ import com.syngleton.chartomancy.model.trading.Trade;
 import com.syngleton.chartomancy.model.trading.TradingAccount;
 import com.syngleton.chartomancy.service.DataService;
 import com.syngleton.chartomancy.service.PatternService;
-import com.syngleton.chartomancy.service.TradeStatus;
+import com.syngleton.chartomancy.model.trading.TradeStatus;
 import com.syngleton.chartomancy.service.TradingService;
-import com.syngleton.chartomancy.util.pdt.PDT;
+import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
+import me.tongfei.progressbar.ProgressBar;
 import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
@@ -134,7 +135,7 @@ public class Automation implements Runnable {
 
         log.info(NEW_LINE +
                 "ANALYSER CONFIG: {}" + NEW_LINE
-                + "Analysing {} pattern box(es)...", patternService.printAnalyzerConfig(), coreData.getPatternBoxes().size());
+                + "Using {} pattern box(es)", coreData.getAnalyzerConfigSettings(), coreData.getPatternBoxes().size());
 
         for (PatternBox patternBox : coreData.getPatternBoxes()) {
 
@@ -182,69 +183,14 @@ public class Automation implements Runnable {
 
     private void runBasicDummyTrades() {
 
-/*        TradingAccount account = new TradingAccount();
-        account.credit(100000);
-        account.setName("Basic Test Account");
-
-        Trade trade1 = new Trade("Binance",
-                Timeframe.DAY,
-                Symbol.BTC_USD,
-                account,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                true,
-                1000,
-                1);
-
-        Trade trade2 = new Trade("Coinbase",
-                Timeframe.HOUR,
-                Symbol.BTC_USD,
-                account,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                false,
-                500,
-                2);
-
-        Trade trade3 = new Trade("Bitfinex",
-                Timeframe.FOUR_HOUR,
-                Symbol.BTC_USD,
-                account,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                true,
-                300,
-                1);
-
-        trade3.closeTrade(LocalDateTime.now(), 30000, TradeStatus.CLOSED_MANUALLY);
-
-        log.debug(trade1);
-        log.debug(trade1.toRow());
-        log.debug(trade2);
-        log.debug(trade2.toRow());
-        log.debug(trade3);
-        log.debug(trade3.toRow());
-
-
-        account.getTrades().addAll(List.of(trade1, trade2, trade3));
-
-
-        log.debug("TRADES TABLE SIZE={}", account.getTrades().size());
-        log.debug("TRADES TABLE SIZE (ROWS)={}", account.getPrintableData().size());
-        log.debug("TRADES TABLE HEADER SIZE={}", account.getHeader().size());
-        log.debug("TRADES TABLE HEADER SIZE={}", account.getPrintableData().get(0).toRow().size());
-        log.debug("TRADES TABLE VALUE SEPARATOR={}", account.getRowValuesSeparator());
-
-        PDT.writeDataTableToFile("./trades_history/" + account.getName() + "_" + LocalDateTime.now() +
-                "", account);*/
-
-
     }
 
     private void runAdvancedDummyTrades() {
 
         float initialBalance = 100000;
+        float minimumBalance = initialBalance / 2;
         int expectedXToBeRich = 2;
+        int maxTrades = 1500;
 
         TradingAccount account = new TradingAccount();
 
@@ -254,12 +200,9 @@ public class Automation implements Runnable {
         Symbol symbol = Symbol.BTC_USD;
         Timeframe timeframe = Timeframe.HOUR;
 
-        boolean isRich;
-
         Graph graph = coreData.getGraph(symbol, timeframe);
 
         if (graph != null) {
-            int graphSize = graph.getFloatCandles().size();
             Optional<PatternBox> optionalPatternBox = coreData.getTradingPatternBox(symbol, timeframe);
 
             if (optionalPatternBox.isPresent()) {
@@ -269,34 +212,100 @@ public class Automation implements Runnable {
 
                 Trade trade;
 
+                int blankTradesCount = 0;
+
+                ProgressBar pb = new ProgressBar("Processing trades...", maxTrades);
+
+                pb.start();
+
                 do {
-                    int tradeOpenCandle = ThreadLocalRandom.current().nextInt(graphSize - maxScope - patternLength) + patternLength;
 
-                    trade = tradingService.generateOptimalLeveragedTakeProfitBasedTrade(
-                            account,
-                            graph,
-                            coreData,
-                            tradeOpenCandle
-                    );
+                    trade = generateAndProcessAdvancedRandomTrades(graph, account, maxScope, patternLength);
 
-                    tradingService.processTradeOnCompletedCandles(trade, account, graph.getFloatCandles().subList(tradeOpenCandle + 1, maxScope));
+                    if (trade != null && trade.getStatus() == TradeStatus.BLANK) {
+                        blankTradesCount++;
+                    }
 
-                    isRich = account.getBalance() > initialBalance * expectedXToBeRich;
+                    pb.step();
 
-                } while (!account.isLiquidated() && !isRich && trade.getStatus() != TradeStatus.UNFUNDED);
+                } while (
+                        trade == null
+                                || trade.getStatus() == TradeStatus.BLANK
+                                || (
+                                !account.isLiquidated()
+                                        && account.getBalance() > minimumBalance
+                                        && account.getBalance() < initialBalance * expectedXToBeRich
+                                        && trade.getStatus() != TradeStatus.UNFUNDED
+                                        && account.getNumberOfTrades() < maxTrades
+                        )
+                );
 
-                if (isRich) {
-                    log.info("Test user is rich!");
-                } else {
-                    log.info("Test user is liquidated!");
+                pb.stop();
+
+                String result = "NEUTRAL";
+                if (account.getBalance() > initialBalance * expectedXToBeRich) {
+                    result = "RICH";
+                } else if (account.getBalance() < minimumBalance || account.isLiquidated()) {
+                    result = "REKT";
                 }
 
-                PDT.writeDataTableToFile("./trades_history/" + account.getName() + "_" + LocalDateTime.now() +
-                        "", account);
+                long longCount = account.getNumberOfLongs();
+                long shortCount = account.getNumberOfShorts();
+
+                log.info("TRADING SETTINGS: {}", tradingService.printTradingSettings());
+
+                log.info(
+                        NEW_LINE + "ADVANCED DUMMY TRADE RESULTS:" + NEW_LINE +
+                                "Result: {}" + NEW_LINE +
+                                "Number of dummy trades performed: {}" + NEW_LINE +
+                                "Number of longs: {}" + NEW_LINE +
+                                "Number of shorts: {}" + NEW_LINE +
+                                "Number of useless trades: {}" + NEW_LINE +
+                                "Used / Useless trade ratio= {}" + NEW_LINE +
+                                "Initial balance: {} {}" + NEW_LINE +
+                                "Target balance amount: {} {}" + NEW_LINE +
+                                "Final Account Balance: {} {}" + NEW_LINE +
+                                "{}",
+                        result,
+                        account.getNumberOfTrades(),
+                        longCount,
+                        shortCount,
+                        blankTradesCount,
+                        blankTradesCount == 0 ? "Infinity" : Format.roundTwoDigits((longCount + shortCount) / (float) blankTradesCount),
+                        account.getCurrency(), initialBalance,
+                        account.getCurrency(), initialBalance * expectedXToBeRich,
+                        account.getCurrency(), account.getBalance(),
+                        account.generatePrintableTradesStats()
+                );
+
+                dataService.writeCsvFile("./trades_history/" + account.getName() + "_" + result + "_" + LocalDateTime.now(), account);
             }
         } else {
             log.error("Could not process advanced dummy trades = core data is missing.");
         }
+    }
+
+    private Trade generateAndProcessAdvancedRandomTrades(Graph graph, TradingAccount account, int maxScope, int patternLength)    {
+        int tradeOpenCandle = ThreadLocalRandom.current().nextInt(graph.getFloatCandles().size() - maxScope - patternLength - 1) + patternLength;
+
+        Trade trade = tradingService.generateOptimalLeveragedTakeProfitBasedTrade(
+                account,
+                graph,
+                coreData,
+                tradeOpenCandle
+        );
+
+        if (trade != null && trade.getStatus() == TradeStatus.OPENED) {
+
+            tradingService.processTradeOnCompletedCandles(
+                    trade,
+                    account,
+                    graph.getFloatCandles().subList(tradeOpenCandle + 1, tradeOpenCandle + maxScope)
+            );
+
+        }
+
+        return trade;
     }
 
 }

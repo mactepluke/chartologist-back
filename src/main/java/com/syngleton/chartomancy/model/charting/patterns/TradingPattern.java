@@ -10,7 +10,7 @@ import java.util.List;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class TradingPattern extends Pattern implements PixelatedPattern {
+public class TradingPattern extends Pattern implements PixelatedPattern, ScopedPattern {
 
     @ToString.Exclude
     private final List<PixelatedCandle> pixelatedCandles;

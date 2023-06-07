@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.service;
+package com.syngleton.chartomancy.model.trading;
 
 public enum TradeStatus {
     OPENED,
@@ -7,5 +7,6 @@ public enum TradeStatus {
     CANCELED,
     CLOSED_MANUALLY,
     EXPIRED,
+    BLANK,
     UNFUNDED
 }
