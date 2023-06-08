@@ -1,9 +1,12 @@
 package com.syngleton.chartomancy.configuration;
 
 import com.syngleton.chartomancy.model.trading.TradingSettings;
+import com.syngleton.chartomancy.util.Format;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import static java.lang.Math.abs;
 
 @Configuration
 public class TradingConfig {
@@ -19,6 +22,8 @@ public class TradingConfig {
     private int riskPercentage;
     @Value("${trading_price_variation_threshold:0}")
     private float tradingPriceVariationThreshold;
+    @Value("${price_variation_multiplier:1}")
+    private int priceVariationMultiplier;
     @Value("${SL_TP_Strategy:VOID}")
     private TradingSettings.SL_TP_Strategy slTpStrategy;
 
@@ -30,10 +35,16 @@ public class TradingConfig {
         tradingPriceVariationThreshold = tradingPriceVariationThreshold <= 0 ? DEFAULT_TRADING_PRICE_VARIATION_THRESHOLD : tradingPriceVariationThreshold;
         slTpStrategy = slTpStrategy == TradingSettings.SL_TP_Strategy.VOID ? DEFAULT_SL_TP_STRATEGY : slTpStrategy;
 
+        rewardToRiskRatio = Format.streamline(abs(rewardToRiskRatio), 1, 10);
+        tradingPriceVariationThreshold = Format.streamline(abs(tradingPriceVariationThreshold), 0, 100);
+        riskPercentage = Format.streamline(abs(riskPercentage), 1, 100);
+        priceVariationMultiplier = Format.streamline(abs(priceVariationMultiplier), 1, 10);
+
         return new TradingSettings(
                 rewardToRiskRatio,
                 riskPercentage,
                 tradingPriceVariationThreshold,
+                priceVariationMultiplier,
                 slTpStrategy
         );
     }

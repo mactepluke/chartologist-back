@@ -4,7 +4,7 @@ import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
-import com.syngleton.chartomancy.service.CSVFormat;
+import com.syngleton.chartomancy.service.misc.CSVFormat;
 import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;

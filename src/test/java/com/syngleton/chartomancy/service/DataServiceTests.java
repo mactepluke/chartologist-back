@@ -3,10 +3,12 @@ package com.syngleton.chartomancy.service;
 import com.syngleton.chartomancy.configuration.DataConfigTest;
 import com.syngleton.chartomancy.configuration.MockData;
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.model.charting.patterns.BasicPattern;
+import com.syngleton.chartomancy.model.charting.patterns.basic.BasicPattern;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
-import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
-import com.syngleton.chartomancy.model.charting.patterns.PredictivePattern;
+import com.syngleton.chartomancy.model.charting.misc.PatternBox;
+import com.syngleton.chartomancy.model.charting.patterns.basic.PredictivePattern;
+import com.syngleton.chartomancy.service.domain.DataService;
+import com.syngleton.chartomancy.service.misc.PurgeOption;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +107,7 @@ class DataServiceTests {
     @Test
     @DisplayName("[UNIT] Purges non-trading data")
     void purgeNonTradingDataTest() {
-        assertTrue(dataService.purgeNonTradingData(coreData));
+        assertTrue(dataService.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS));
     }
 
     @Test

@@ -2,25 +2,25 @@ package com.syngleton.chartomancy.analytics;
 
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
-import com.syngleton.chartomancy.model.charting.misc.Symbol;
-import com.syngleton.chartomancy.model.charting.misc.Timeframe;
-import com.syngleton.chartomancy.model.charting.patterns.ComputablePattern;
-import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
+import com.syngleton.chartomancy.model.charting.misc.PatternBox;
+import com.syngleton.chartomancy.model.charting.patterns.interfaces.ScopedPattern;
 import com.syngleton.chartomancy.model.trading.Trade;
-import com.syngleton.chartomancy.model.trading.TradingAccount;
-import com.syngleton.chartomancy.service.DataService;
-import com.syngleton.chartomancy.service.PatternService;
 import com.syngleton.chartomancy.model.trading.TradeStatus;
-import com.syngleton.chartomancy.service.TradingService;
+import com.syngleton.chartomancy.model.trading.TradingAccount;
+import com.syngleton.chartomancy.service.domain.DataService;
+import com.syngleton.chartomancy.service.domain.PatternService;
+import com.syngleton.chartomancy.service.domain.TradingService;
+import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
+import com.syngleton.chartomancy.util.pdt.DataTableTool;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
 import org.springframework.util.StopWatch;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -33,6 +33,10 @@ public class Automation implements Runnable {
     private final boolean printPricePredictionSummary;
     private final boolean runBasicDummyTrades;
     private final boolean runAdvancedDummyTrades;
+    private final double initialBalance;
+    private final double minimumBalance;
+    private final int expectedBalanceX;
+    private final int maxTrades;
     private final boolean printTasksHistory;
 
     private final List<String> tasksHistory;
@@ -50,6 +54,10 @@ public class Automation implements Runnable {
                       boolean printPricePredictionSummary,
                       boolean runBasicDummyTrades,
                       boolean runAdvancedDummyTrades,
+                      double initialBalance,
+                      double minimumBalance,
+                      int expectedBalanceX,
+                      int maxTrades,
                       boolean printTasksHistory) {
         this.coreData = coreData;
         this.dataService = dataService;
@@ -59,6 +67,10 @@ public class Automation implements Runnable {
         this.printPricePredictionSummary = printPricePredictionSummary;
         this.runBasicDummyTrades = runBasicDummyTrades;
         this.runAdvancedDummyTrades = runAdvancedDummyTrades;
+        this.initialBalance = initialBalance;
+        this.minimumBalance = minimumBalance;
+        this.expectedBalanceX = expectedBalanceX;
+        this.maxTrades = maxTrades;
         this.printTasksHistory = printTasksHistory;
 
         tasksHistory = new ArrayList<>();
@@ -133,162 +145,185 @@ public class Automation implements Runnable {
         double maxPricePrediction;
         double totalPriceVariation;
 
-        log.info(NEW_LINE +
-                "ANALYSER CONFIG: {}" + NEW_LINE
-                + "Using {} pattern box(es)", coreData.getAnalyzerConfigSettings(), coreData.getPatternBoxes().size());
+        Set<PatternBox> availablePatternBoxes = null;
 
-        for (PatternBox patternBox : coreData.getPatternBoxes()) {
+        if (coreData != null) {
+            if (coreData.getPatternBoxes() != null) {
+                availablePatternBoxes = coreData.getPatternBoxes();
+            }
+            if (coreData.getTradingPatternBoxes() != null) {
+                availablePatternBoxes = coreData.getTradingPatternBoxes();
+            }
+        }
 
-            positivePricePredictions = patternBox.getListOfAllPatterns().stream()
-                    .filter(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction() > 0)
-                    .count();
+        if (coreData != null && availablePatternBoxes != null) {
 
-            negativePricePredictions = patternBox.getListOfAllPatterns().stream()
-                    .filter(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction() < 0)
-                    .count();
+            log.info(NEW_LINE +
+                    "ANALYSER CONFIG: {}" + NEW_LINE
+                    + "Using {} pattern box(es)", coreData.getAnalyzerConfigSettings(), availablePatternBoxes.size());
 
-            zeroPricePredictions = patternBox.getListOfAllPatterns().stream()
-                    .filter(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction() == 0)
-                    .count();
+            for (PatternBox patternBox : availablePatternBoxes) {
 
-            totalPriceVariation = patternBox.getListOfAllPatterns().stream()
-                    .mapToDouble(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction())
-                    .sum();
+                positivePricePredictions = patternBox.getListOfAllPatterns().stream()
+                        .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() > 0)
+                        .count();
 
-            minPricePrediction = patternBox.getListOfAllPatterns().stream()
-                    .mapToDouble(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction())
-                    .min().orElse(0);
+                negativePricePredictions = patternBox.getListOfAllPatterns().stream()
+                        .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() < 0)
+                        .count();
 
-            maxPricePrediction = patternBox.getListOfAllPatterns().stream()
-                    .mapToDouble(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction())
-                    .max().orElse(0);
+                zeroPricePredictions = patternBox.getListOfAllPatterns().stream()
+                        .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() == 0)
+                        .count();
 
-            log.info(NEW_LINE
-                            + "PATTERN_BOX ({}, {})" + NEW_LINE
-                            + "Positive price predictions: {}" + NEW_LINE
-                            + "Negative price predictions: {}" + NEW_LINE
-                            + "Zero-valued price predictions: {}" + NEW_LINE
-                            + "Minimum price predictions: {}" + NEW_LINE
-                            + "Maximum price predictions: {}" + NEW_LINE
-                            + "AVERAGE PRICE PREDICTION: {}" + NEW_LINE,
-                    patternBox.getSymbol(), patternBox.getTimeframe(),
-                    positivePricePredictions,
-                    negativePricePredictions,
-                    zeroPricePredictions,
-                    minPricePrediction,
-                    maxPricePrediction,
-                    totalPriceVariation / patternBox.getListOfAllPatterns().size());
+                totalPriceVariation = patternBox.getListOfAllPatterns().stream()
+                        .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                        .sum();
+
+                minPricePrediction = patternBox.getListOfAllPatterns().stream()
+                        .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                        .min().orElse(0);
+
+                maxPricePrediction = patternBox.getListOfAllPatterns().stream()
+                        .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                        .max().orElse(0);
+
+                log.info(NEW_LINE
+                                + "PATTERN_BOX ({}, {})" + NEW_LINE
+                                + "Positive price predictions: {}" + NEW_LINE
+                                + "Negative price predictions: {}" + NEW_LINE
+                                + "Zero-valued price predictions: {}" + NEW_LINE
+                                + "Minimum price predictions: {}" + NEW_LINE
+                                + "Maximum price predictions: {}" + NEW_LINE
+                                + "AVERAGE PRICE PREDICTION: {}" + NEW_LINE,
+                        patternBox.getSymbol(), patternBox.getTimeframe(),
+                        positivePricePredictions,
+                        negativePricePredictions,
+                        zeroPricePredictions,
+                        minPricePrediction,
+                        maxPricePrediction,
+                        totalPriceVariation / patternBox.getListOfAllPatterns().size());
+            }
+        } else {
+            log.error("Cannot print price prediction summary: core data is missing.");
         }
     }
 
     private void runBasicDummyTrades() {
+        if (coreData == null
+                || !Check.notNullNotEmpty(coreData.getGraphs())
+                || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
+            log.error("Could not run dummy trades: core data are missing.");
+        } else {
+            Optional<Graph> graph = coreData.getGraphs().stream().findAny();
+            graph.ifPresent(this::runDummyTradesOnGraph);
+        }
 
     }
 
     private void runAdvancedDummyTrades() {
 
-        float initialBalance = 100000;
-        float minimumBalance = initialBalance / 2;
-        int expectedXToBeRich = 2;
-        int maxTrades = 1500;
+        if (coreData == null
+                || !Check.notNullNotEmpty(coreData.getGraphs())
+                || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
+            log.error("Could not run dummy trades: core data are missing.");
+        } else {
+            coreData.getGraphs().forEach(this::runDummyTradesOnGraph);
+        }
+
+    }
+
+    private void runDummyTradesOnGraph(Graph graph) {
 
         TradingAccount account = new TradingAccount();
 
         account.credit(initialBalance);
-        account.setName("Advanced Test Account");
+        account.setName("Dummy Trade Account_" + graph.getSymbol() + "_" + graph.getTimeframe());
 
-        Symbol symbol = Symbol.BTC_USD;
-        Timeframe timeframe = Timeframe.HOUR;
+        Optional<PatternBox> optionalPatternBox = coreData.getTradingPatternBox(graph.getSymbol(), graph.getTimeframe());
 
-        Graph graph = coreData.getGraph(symbol, timeframe);
+        if (optionalPatternBox.isPresent()) {
 
-        if (graph != null) {
-            Optional<PatternBox> optionalPatternBox = coreData.getTradingPatternBox(symbol, timeframe);
+            int maxScope = optionalPatternBox.get().getMaxScope();
+            int patternLength = optionalPatternBox.get().getPatternLength();
 
-            if (optionalPatternBox.isPresent()) {
+            Trade trade;
 
-                int maxScope = optionalPatternBox.get().getMaxScope();
-                int patternLength = optionalPatternBox.get().getPatternLength();
+            int blankTradesCount = 0;
 
-                Trade trade;
+            log.info("*** STARTING TRADING WITH ACCOUNT: {} ***", account.getName());
+            ProgressBar pb = new ProgressBar("Processing trades...", maxTrades);
 
-                int blankTradesCount = 0;
+            pb.start();
 
-                ProgressBar pb = new ProgressBar("Processing trades...", maxTrades);
+            do {
 
-                pb.start();
+                trade = generateAndProcessAdvancedRandomTrades(graph, account, maxScope, patternLength);
 
-                do {
-
-                    trade = generateAndProcessAdvancedRandomTrades(graph, account, maxScope, patternLength);
-
-                    if (trade != null && trade.getStatus() == TradeStatus.BLANK) {
-                        blankTradesCount++;
-                    }
-
-                    pb.step();
-
-                } while (
-                        trade == null
-                                || trade.getStatus() == TradeStatus.BLANK
-                                || (
-                                !account.isLiquidated()
-                                        && account.getBalance() > minimumBalance
-                                        && account.getBalance() < initialBalance * expectedXToBeRich
-                                        && trade.getStatus() != TradeStatus.UNFUNDED
-                                        && account.getNumberOfTrades() < maxTrades
-                        )
-                );
-
-                pb.stop();
-
-                String result = "NEUTRAL";
-                if (account.getBalance() > initialBalance * expectedXToBeRich) {
-                    result = "RICH";
-                } else if (account.getBalance() < minimumBalance || account.isLiquidated()) {
-                    result = "REKT";
+                if (trade != null && trade.getStatus() == TradeStatus.BLANK) {
+                    blankTradesCount++;
                 }
 
-                long longCount = account.getNumberOfLongs();
-                long shortCount = account.getNumberOfShorts();
+                pb.step();
 
-                log.info("TRADING SETTINGS: {}", tradingService.printTradingSettings());
+            } while (
+                    trade == null
+                            || trade.getStatus() == TradeStatus.BLANK
+                            || (
+                            !account.isLiquidated()
+                                    && account.getBalance() > minimumBalance
+                                    && account.getBalance() < initialBalance * expectedBalanceX
+                                    && trade.getStatus() != TradeStatus.UNFUNDED
+                                    && account.getNumberOfTrades() < maxTrades
+                    )
+            );
+            pb.stop();
 
-                log.info(
-                        NEW_LINE + "ADVANCED DUMMY TRADE RESULTS:" + NEW_LINE +
-                                "Result: {}" + NEW_LINE +
-                                "Number of dummy trades performed: {}" + NEW_LINE +
-                                "Number of longs: {}" + NEW_LINE +
-                                "Number of shorts: {}" + NEW_LINE +
-                                "Number of useless trades: {}" + NEW_LINE +
-                                "Used / Useless trade ratio= {}" + NEW_LINE +
-                                "Initial balance: {} {}" + NEW_LINE +
-                                "Target balance amount: {} {}" + NEW_LINE +
-                                "Final Account Balance: {} {}" + NEW_LINE +
-                                "{}",
-                        result,
-                        account.getNumberOfTrades(),
-                        longCount,
-                        shortCount,
-                        blankTradesCount,
-                        blankTradesCount == 0 ? "Infinity" : Format.roundTwoDigits((longCount + shortCount) / (float) blankTradesCount),
-                        account.getCurrency(), initialBalance,
-                        account.getCurrency(), initialBalance * expectedXToBeRich,
-                        account.getCurrency(), account.getBalance(),
-                        account.generatePrintableTradesStats()
-                );
-
-                dataService.writeCsvFile("./trades_history/" + account.getName() + "_" + result + "_" + LocalDateTime.now(), account);
+            String result = "NEUTRAL";
+            if (account.getBalance() > initialBalance * expectedBalanceX) {
+                result = "RICH";
+            } else if (account.getBalance() < minimumBalance || account.isLiquidated()) {
+                result = "REKT";
             }
-        } else {
-            log.error("Could not process advanced dummy trades = core data is missing.");
+
+            long longCount = account.getNumberOfLongs();
+            long shortCount = account.getNumberOfShorts();
+
+            log.info("TRADING SETTINGS: {}", tradingService.printTradingSettings());
+
+            log.info(
+                    NEW_LINE + "*** ADVANCED DUMMY TRADE RESULTS ***" + NEW_LINE +
+                            "Result: {}" + NEW_LINE +
+                            "Number of dummy trades performed: {}" + NEW_LINE +
+                            "Number of longs: {}" + NEW_LINE +
+                            "Number of shorts: {}" + NEW_LINE +
+                            "Number of useless trades: {}" + NEW_LINE +
+                            "Used / Useless trade ratio= {}" + NEW_LINE +
+                            "Initial balance: {} {}" + NEW_LINE +
+                            "Target balance amount: {} {}" + NEW_LINE +
+                            "Final Account Balance: {} {}" + NEW_LINE +
+                            "{}",
+                    result,
+                    account.getNumberOfTrades(),
+                    longCount,
+                    shortCount,
+                    blankTradesCount,
+                    blankTradesCount == 0 ? "Infinity" : Format.roundTwoDigits((longCount + shortCount) / (float) blankTradesCount),
+                    account.getCurrency(), initialBalance,
+                    account.getCurrency(), initialBalance * expectedBalanceX,
+                    account.getCurrency(), account.getBalance(),
+                    account.generatePrintableTradesStats()
+            );
+
+            //dataService.writeCsvFile("./trades_history/" + account.getName() + "_" + result + "_" + LocalDateTime.now(), account);
+            log.debug("RESULT------------------ {}", dataService.writeCsvFile("AAA", account));
         }
     }
 
-    private Trade generateAndProcessAdvancedRandomTrades(Graph graph, TradingAccount account, int maxScope, int patternLength)    {
+    private Trade generateAndProcessAdvancedRandomTrades(Graph graph, TradingAccount account, int maxScope, int patternLength) {
         int tradeOpenCandle = ThreadLocalRandom.current().nextInt(graph.getFloatCandles().size() - maxScope - patternLength - 1) + patternLength;
 
-        Trade trade = tradingService.generateOptimalLeveragedTakeProfitBasedTrade(
+        Trade trade = tradingService.generateParameterizedTrade(
                 account,
                 graph,
                 coreData,

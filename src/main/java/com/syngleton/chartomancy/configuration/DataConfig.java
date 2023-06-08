@@ -4,8 +4,9 @@ import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.ComputationType;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
-import com.syngleton.chartomancy.model.charting.patterns.PatternType;
-import com.syngleton.chartomancy.service.ConfigService;
+import com.syngleton.chartomancy.model.charting.misc.PatternType;
+import com.syngleton.chartomancy.service.misc.ConfigService;
+import com.syngleton.chartomancy.service.misc.PurgeOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -31,8 +32,8 @@ public class DataConfig {
     private boolean overrideSavedCoreData;
     @Value("${create_timestamped_core_data_archive:false}")
     private boolean createTimestampedCoreDataArchive;
-    @Value("${purge_after_trading_data_generation:false}")
-    private boolean purgeAfterTradingDataGeneration;
+    @Value("${purge_after_trading_data_generation:NO}")
+    private PurgeOption purgeAfterTradingDataGeneration;
     @Value("${pattern_settings_autoconfig:DEFAULT}")
     private PatternSettings.Autoconfig patternSettingsAutoconfig;
     @Value("${computation_settings_autoconfig:DEFAULT}")

@@ -1,14 +1,12 @@
 package com.syngleton.chartomancy.model.trading;
 
 import com.syngleton.chartomancy.model.charting.misc.*;
+import com.syngleton.chartomancy.model.trading.interfaces.Accountable;
 import com.syngleton.chartomancy.util.Calc;
 import com.syngleton.chartomancy.util.Format;
-import com.syngleton.chartomancy.util.Measurable;
 import com.syngleton.chartomancy.util.pdt.PrintableData;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.internal.log.SubSystemLogging;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -75,10 +73,24 @@ public class Trade extends ChartObject implements PrintableData {
         status = TradeStatus.BLANK;
     }
 
+    /**
+     * Creates a fully parameterized trade
+     * @param platform name of the exchange or the dummy graph to trade against
+     * @param timeframe
+     * @param symbol
+     * @param account account from which to read the balance
+     * @param openDateTime
+     * @param size this is the token quantity (not the price of the tokens!)
+     * @param expectedClose
+     * @param side long if true, short if false
+     * @param openingPrice
+     * @param takeProfit
+     * @param stopLoss
+     */
     public Trade(String platform,
                  Timeframe timeframe,
                  Symbol symbol,
-                 Measurable account,
+                 Accountable account,
                  LocalDateTime openDateTime,
                  double size,
                  LocalDateTime expectedClose,
@@ -97,7 +109,7 @@ public class Trade extends ChartObject implements PrintableData {
         setTakeProfit(takeProfit);
 
         this.platform = platform == null ? "unknown" : platform;
-        this.accountBalanceAtOpen = Format.roundTwoDigits(account.getMeasure());
+        this.accountBalanceAtOpen = Format.roundTwoDigits(account.getBalance());
         this.openDateTime = openDateTime == null ? LocalDateTime.now() : openDateTime;
         this.expectedClose = expectedClose == null ?
                 LocalDateTime.now().plusSeconds(timeframe.durationInSeconds * timeframe.scope)
@@ -107,8 +119,7 @@ public class Trade extends ChartObject implements PrintableData {
 
         this.size = Format.roundNDigits(size, 3);
 
-        if ((getMaxLoss() > accountBalanceAtOpen)
-                /*|| (getLeverage() > MAX_LEVERAGE)*/) {
+        if (getMaxLoss() > accountBalanceAtOpen) {
             this.status = TradeStatus.UNFUNDED;
         }
 

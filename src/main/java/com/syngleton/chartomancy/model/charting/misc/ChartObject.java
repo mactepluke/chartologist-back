@@ -1,13 +1,11 @@
 package com.syngleton.chartomancy.model.charting.misc;
 
-import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
 import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Optional;
 
 @Getter
 @ToString

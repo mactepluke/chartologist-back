@@ -3,7 +3,7 @@ package com.syngleton.chartomancy.data;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
-import com.syngleton.chartomancy.model.charting.patterns.PatternBox;
+import com.syngleton.chartomancy.model.charting.misc.PatternBox;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,12 +15,17 @@ public class CoreData implements Serializable {
     private Set<Graph> graphs;
     private Set<PatternBox> patternBoxes;
     private Set<PatternBox> tradingPatternBoxes;
-    private String analyzerConfigSettings;
+    private String analyzerConfigSettings = "!NO SETTINGS LOGGED!";
 
-    public boolean purge() {
+    public void purgeNonTrading() {
         graphs = null;
         patternBoxes = null;
-        return true;
+    }
+
+    public void purgeAll() {
+        graphs = null;
+        patternBoxes = null;
+        tradingPatternBoxes = null;
     }
 
     public Graph getGraph(Symbol symbol, Timeframe timeframe) {

@@ -1,12 +1,11 @@
 package com.syngleton.chartomancy.model.charting.patterns;
 
 import com.syngleton.chartomancy.model.charting.misc.ChartObject;
+import com.syngleton.chartomancy.model.charting.misc.PatternType;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import lombok.Getter;
 import lombok.ToString;
-
-import java.io.Serializable;
 
 @ToString(callSuper = true)
 @Getter

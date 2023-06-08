@@ -1,10 +1,10 @@
 package com.syngleton.chartomancy.controller;
 
 import com.syngleton.chartomancy.configuration.DataConfigTest;
-import com.syngleton.chartomancy.controller.root.DataController;
-import com.syngleton.chartomancy.controller.root.PatternController;
+import com.syngleton.chartomancy.controller.devtools.DataController;
+import com.syngleton.chartomancy.controller.devtools.PatternController;
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.service.LaunchService;
+import com.syngleton.chartomancy.service.misc.LaunchService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

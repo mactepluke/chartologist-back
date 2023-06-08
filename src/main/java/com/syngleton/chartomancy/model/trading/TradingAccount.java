@@ -1,7 +1,7 @@
 package com.syngleton.chartomancy.model.trading;
 
+import com.syngleton.chartomancy.model.trading.interfaces.Account;
 import com.syngleton.chartomancy.util.Format;
-import com.syngleton.chartomancy.util.Measurable;
 import com.syngleton.chartomancy.util.pdt.PrintableDataTable;
 import com.syngleton.chartomancy.util.pdt.PrintableData;
 import com.syngleton.chartomancy.util.Check;
@@ -13,7 +13,7 @@ import java.util.*;
 import static java.lang.Math.abs;
 
 @Getter
-public class TradingAccount implements PrintableDataTable, Measurable {
+public class TradingAccount implements PrintableDataTable, Account {
 
     private static final String DEFAULT_CURRENCY = "$";
     private static final String NEW_LINE = System.getProperty("line.separator");
@@ -64,11 +64,6 @@ public class TradingAccount implements PrintableDataTable, Measurable {
     @Override
     public List<PrintableData> getPrintableData() {
         return new ArrayList<>(trades);
-    }
-
-    @Override
-    public double getMeasure() {
-        return getBalance();
     }
 
     public double getTotalPnl() {
