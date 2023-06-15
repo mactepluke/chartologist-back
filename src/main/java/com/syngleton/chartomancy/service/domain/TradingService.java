@@ -8,7 +8,7 @@ import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.PatternBox;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
-import com.syngleton.chartomancy.model.charting.patterns.interfaces.IntPattern;
+import com.syngleton.chartomancy.model.charting.patterns.light.IntPattern;
 import com.syngleton.chartomancy.model.charting.patterns.light.LightTradingPattern;
 import com.syngleton.chartomancy.model.trading.Trade;
 import com.syngleton.chartomancy.model.trading.TradeStatus;
@@ -18,6 +18,7 @@ import com.syngleton.chartomancy.model.trading.interfaces.Account;
 import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
 import com.syngleton.chartomancy.util.Triad;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class TradingService {
 
     private final Analyzer analyzer;
     private final CandleFactory candleFactory;
+    @Getter
     private final TradingSettings tradingSettings;
 
     @Autowired
@@ -44,7 +46,7 @@ public class TradingService {
         this.tradingSettings = tradingSettings;
     }
 
-    public String printTradingSettings()    {
+    public String printTradingSettings() {
         return tradingSettings.toString();
     }
 
@@ -101,7 +103,7 @@ public class TradingService {
     public Trade generateParameterizedTrade(Account tradingAccount,
                                             Graph graph,
                                             CoreData coreData,
-                                            int tradeOpenCandle)  {
+                                            int tradeOpenCandle) {
         return generateParameterizedTrade(tradingAccount, graph, coreData, tradeOpenCandle, tradingSettings);
     }
 
@@ -124,7 +126,7 @@ public class TradingService {
             int mostProfitableMoment = mostProfitableMomentAndPriceVariationAndStopLoss.first();
             float mostProfitablePriceVariation = filterPriceVariation(mostProfitableMomentAndPriceVariationAndStopLoss.second(), settings);
 
-            if (mostProfitablePriceVariation == 0)  {
+            if (mostProfitablePriceVariation == 0) {
                 return Trade.blank();
             }
             boolean side = mostProfitablePriceVariation > 0;
@@ -158,51 +160,6 @@ public class TradingService {
         return trade;
     }
 
-    private Triad<Float, Float, Double> defineTpAndSlAndSize(double balance, float openingPrice, float priceVariation, TradingSettings settings)    {
-
-        float takeProfit;
-        float stopLoss;
-        double size;
-
-        priceVariation = priceVariation * settings.getPriceVariationMultiplier();
-
-        switch (settings.getSlTpStrategy()) {
-            case NONE -> {
-                takeProfit = 0;
-                stopLoss = 0;
-                size = ((balance * settings.getRiskPercentage()) / 100) / openingPrice;
-            }
-            case SL_NO_TP -> {
-                takeProfit = 0;
-                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / settings.getRewardToRiskRatio()) / 100);
-                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
-            }
-            case TP_NO_SL -> {
-                takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
-                stopLoss = 0;
-                size = ((balance * settings.getRiskPercentage()) / 100) / openingPrice;
-            }
-            case EQUAL -> {
-                takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
-                stopLoss = takeProfit;
-                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
-            }
-            default -> {
-                takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
-                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / settings.getRewardToRiskRatio()) / 100);
-                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
-            }
-        }
-        return new Triad<>(takeProfit, stopLoss, size);
-    }
-
-    private float filterPriceVariation(float priceVariation, TradingSettings settings)    {
-        if (abs(priceVariation) < settings.getPriceVariationThreshold())  {
-            priceVariation = 0;
-        }
-        return priceVariation;
-    }
-
     private boolean tradingInputDataAreLegit(Account tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
         return graph != null
                 && coreData != null
@@ -212,19 +169,6 @@ public class TradingService {
                 && graph.getFloatCandles().get(tradeOpenCandle) != null
                 && tradingAccount != null
                 && tradingAccount.getBalance() > 0;
-    }
-
-    private float getCandleClosePrice(Graph graph, int tradeOpenCandle) {
-
-        float mostCurrentPrice = 0;
-
-        if (graph != null
-                && tradeOpenCandle >= 0
-                && graph.getFloatCandles().size() > tradeOpenCandle
-                && graph.getFloatCandles().get(tradeOpenCandle) != null) {
-            mostCurrentPrice = graph.getFloatCandles().get(tradeOpenCandle).close();
-        }
-        return mostCurrentPrice;
     }
 
     private Triad<Integer, Float, Float> findMostProfitableMomentAndPriceAndStopLoss(Graph graph, CoreData coreData, int tradeOpenCandle, int maxDuration) {
@@ -280,6 +224,64 @@ public class TradingService {
             }
         }
         return new Triad<>(mostProfitableMoment, mostProfitablePrice, stopLoss);
+    }
+
+    private float filterPriceVariation(float priceVariation, TradingSettings settings) {
+        if (abs(priceVariation) < settings.getPriceVariationThreshold()) {
+            priceVariation = 0;
+        }
+        return priceVariation;
+    }
+
+    private float getCandleClosePrice(Graph graph, int tradeOpenCandle) {
+
+        float mostCurrentPrice = 0;
+
+        if (graph != null
+                && tradeOpenCandle >= 0
+                && graph.getFloatCandles().size() > tradeOpenCandle
+                && graph.getFloatCandles().get(tradeOpenCandle) != null) {
+            mostCurrentPrice = graph.getFloatCandles().get(tradeOpenCandle).close();
+        }
+        return mostCurrentPrice;
+    }
+
+    private Triad<Float, Float, Double> defineTpAndSlAndSize(double balance, float openingPrice, float priceVariation, TradingSettings settings) {
+
+        float takeProfit;
+        float stopLoss;
+        double size;
+
+        priceVariation = priceVariation * settings.getPriceVariationMultiplier();
+
+        switch (settings.getSlTpStrategy()) {
+            case NONE -> {
+                takeProfit = 0;
+                stopLoss = 0;
+                size = ((balance * settings.getRiskPercentage()) / 100) / openingPrice;
+            }
+            case SL_NO_TP -> {
+                takeProfit = 0;
+                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / settings.getRewardToRiskRatio()) / 100);
+                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+            }
+            case TP_NO_SL -> {
+                takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
+                stopLoss = 0;
+                size = ((balance * settings.getRiskPercentage()) / 100) / openingPrice;
+            }
+            case EQUAL -> {
+                takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
+                stopLoss = takeProfit;
+                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+            }
+            default -> {
+                takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
+                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / settings.getRewardToRiskRatio()) / 100);
+                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+            }
+        }
+        return new Triad<>(takeProfit, stopLoss, size);
     }
 
     private float predictPriceVariationForScope(Graph graph, PatternBox patternBox, int tradeOpenCandle, int scope) {

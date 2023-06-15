@@ -16,7 +16,7 @@ import static java.lang.Math.round;
 
 @Log4j2
 @Component
-public class CandleFactory {
+public final class CandleFactory {
 
     public List<IntCandle> streamlineToIntCandles(List<FloatCandle> floatCandles, int granularity) {
 
@@ -30,7 +30,7 @@ public class CandleFactory {
         return intCandles;
     }
 
-    private Pair<Float, Float> getLowestAndHighest(List<FloatCandle> floatCandles)  {
+    private Pair<Float, Float> getLowestAndHighest(List<FloatCandle> floatCandles) {
 
         float lowest = floatCandles.get(0).low();
         float highest = 0;
@@ -42,7 +42,7 @@ public class CandleFactory {
         return new Pair<>(lowest, highest);
     }
 
-    private IntCandle streamlineToIntCandle(FloatCandle floatCandle, int granularity, float lowest, float highest)   {
+    private IntCandle streamlineToIntCandle(FloatCandle floatCandle, int granularity, float lowest, float highest) {
 
         float divider = (highest - lowest) / granularity;
 
@@ -72,7 +72,7 @@ public class CandleFactory {
         return pixelatedCandles;
     }
 
-    private PixelatedCandle pixelateCandle(IntCandle intCandle, int granularity)   {
+    private PixelatedCandle pixelateCandle(IntCandle intCandle, int granularity) {
         byte[] candlePixels = new byte[granularity];
 
         //Marking an empty pixel with 0
@@ -85,9 +85,9 @@ public class CandleFactory {
         }
         //Marking a body pixel with 2, an open body pixel with 3 and a close body pixel with 4
         for (int i = Math.min(intCandle.open(), intCandle.close()); i < Math.max(intCandle.open(), intCandle.close()); i++) {
-            if (i == intCandle.open() || i == intCandle.open() -1)  {
+            if (i == intCandle.open() || i == intCandle.open() - 1) {
                 candlePixels[i] = 3;
-            } else if (i == intCandle.close() || i == intCandle.close() -1)  {
+            } else if (i == intCandle.close() || i == intCandle.close() - 1) {
                 candlePixels[i] = 4;
             } else {
                 candlePixels[i] = 2;

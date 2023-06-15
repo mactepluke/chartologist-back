@@ -3,7 +3,6 @@ package com.syngleton.chartomancy.model.charting.patterns.light;
 import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.misc.PatternType;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
-import com.syngleton.chartomancy.model.charting.patterns.interfaces.IntPattern;
 import com.syngleton.chartomancy.model.charting.patterns.interfaces.ScopedPattern;
 import com.syngleton.chartomancy.util.Format;
 import lombok.EqualsAndHashCode;
@@ -15,7 +14,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Getter
-public class LightTradingPattern extends Pattern implements IntPattern, ScopedPattern {
+public final class LightTradingPattern extends Pattern implements IntPattern, ScopedPattern {
 
     @ToString.Exclude
     private final List<IntCandle> intCandles;

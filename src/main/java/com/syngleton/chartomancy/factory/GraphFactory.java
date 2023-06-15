@@ -26,7 +26,7 @@ import static java.lang.Math.*;
 
 @Log4j2
 @Component
-public class GraphFactory {
+public final class GraphFactory {
 
     public Graph create(String path, CSVFormat csvFormat) {
         String line;

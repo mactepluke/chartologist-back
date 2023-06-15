@@ -7,6 +7,7 @@ import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.PatternSettings;
 import com.syngleton.chartomancy.model.charting.misc.PatternType;
 import com.syngleton.chartomancy.service.misc.ConfigService;
+import com.syngleton.chartomancy.service.misc.PurgeOption;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,7 @@ class ConfigServiceTests {
                 false,
                 false,
                 false,
-                false,
+                PurgeOption.NO,
                 PatternSettings.Autoconfig.TEST,
                 ComputationSettings.Autoconfig.TEST,
                 ComputationType.BASIC_ITERATION,

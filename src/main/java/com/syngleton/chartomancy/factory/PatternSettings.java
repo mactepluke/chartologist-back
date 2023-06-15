@@ -3,10 +3,11 @@ package com.syngleton.chartomancy.factory;
 import com.syngleton.chartomancy.dto.PatternSettingsDTO;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.PatternType;
-import lombok.*;
+import lombok.Getter;
+import lombok.ToString;
 
 @ToString
-public class PatternSettings {
+public final class PatternSettings {
 
     @Getter
     private final Autoconfig autoconfig;
@@ -26,6 +27,17 @@ public class PatternSettings {
     @Getter
     private final boolean atomicPartition;
 
+    private PatternSettings(Builder builder) {
+        this.graph = builder.graph;
+        this.patternType = builder.patternType;
+        this.granularity = builder.granularity;
+        this.length = builder.length;
+        this.autoconfig = builder.autoconfig;
+        this.scope = builder.scope;
+        this.fullScope = builder.fullScope;
+        this.atomicPartition = builder.atomicPartition;
+    }
+
     public enum Autoconfig {
         NONE,
         MINIMIZE,
@@ -36,17 +48,6 @@ public class PatternSettings {
         TIMEFRAME_VERY_LONG,
         BYPASS_SAFETY_CHECK,
         TEST
-    }
-
-    private PatternSettings(Builder builder) {
-        this.graph = builder.graph;
-        this.patternType = builder.patternType;
-        this.granularity = builder.granularity;
-        this.length = builder.length;
-        this.autoconfig = builder.autoconfig;
-        this.scope = builder.scope;
-        this.fullScope = builder.fullScope;
-        this.atomicPartition = builder.atomicPartition;
     }
 
     public static class Builder {
@@ -107,7 +108,7 @@ public class PatternSettings {
             return this;
         }
 
-        public Builder map(PatternSettingsDTO patternSettingsDTO)   {
+        public Builder map(PatternSettingsDTO patternSettingsDTO) {
 
             if (patternSettingsDTO != null) {
                 this.patternType = patternSettingsDTO.patternType() != null ? patternSettingsDTO.patternType() : this.patternType;

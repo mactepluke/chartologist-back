@@ -3,10 +3,10 @@ package com.syngleton.chartomancy.service;
 import com.syngleton.chartomancy.configuration.DataConfigTest;
 import com.syngleton.chartomancy.configuration.MockData;
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.model.charting.patterns.basic.BasicPattern;
-import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.misc.PatternBox;
-import com.syngleton.chartomancy.model.charting.patterns.basic.PredictivePattern;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.BasicPattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.PredictivePattern;
 import com.syngleton.chartomancy.service.domain.DataService;
 import com.syngleton.chartomancy.service.misc.PurgeOption;
 import lombok.extern.log4j.Log4j2;
@@ -22,7 +22,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Log4j2
@@ -31,18 +32,17 @@ import static org.junit.jupiter.api.Assertions.*;
 @ContextConfiguration(classes = DataConfigTest.class)
 class DataServiceTests {
 
-    @Value("${test_data_folder_name}")
-    private String testDataFolderName;
-    private String getTestDataFolderPath;
-    @Value("#{'${test_data_files_names}'.split(',')}")
-    private List<String> testDataFilesNames;
-
     @Autowired
     DataService dataService;
     @Autowired
     MockData mockData;
     @Autowired
     CoreData coreData;
+    @Value("${test_data_folder_name}")
+    private String testDataFolderName;
+    private String getTestDataFolderPath;
+    @Value("#{'${test_data_files_names}'.split(',')}")
+    private List<String> testDataFilesNames;
 
     @BeforeAll
     void setUp() {

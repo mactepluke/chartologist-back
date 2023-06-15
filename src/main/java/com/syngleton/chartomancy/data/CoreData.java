@@ -1,31 +1,57 @@
 package com.syngleton.chartomancy.data;
 
 import com.syngleton.chartomancy.model.charting.misc.Graph;
+import com.syngleton.chartomancy.model.charting.misc.PatternBox;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
-import com.syngleton.chartomancy.model.charting.misc.PatternBox;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-@Data
+@Getter
 public class CoreData implements Serializable {
+    private final DataSettings patternSettings;
+    private final DataSettings tradingPatternSettings;
+    @Setter
     private Set<Graph> graphs;
+    @Setter
     private Set<PatternBox> patternBoxes;
     private Set<PatternBox> tradingPatternBoxes;
-    private String analyzerConfigSettings = "!NO SETTINGS LOGGED!";
+
+    public CoreData() {
+        this.graphs = new HashSet<>();
+        this.patternBoxes = new HashSet<>();
+        this.tradingPatternBoxes = new HashSet<>();
+        this.patternSettings = new DataSettings();
+        this.tradingPatternSettings = new DataSettings();
+    }
+
+    public void copy(CoreData coreData) {
+        this.graphs = coreData.getGraphs();
+        this.patternBoxes = coreData.getPatternBoxes();
+        this.tradingPatternBoxes = coreData.getTradingPatternBoxes();
+        this.patternSettings.copy(coreData.getPatternSettings());
+        this.tradingPatternSettings.copy(coreData.getTradingPatternSettings());
+    }
+
+    public void pushTradingPatternData(Set<PatternBox> patternBoxes) {
+        this.tradingPatternBoxes = patternBoxes;
+        this.tradingPatternSettings.copy(patternSettings);
+    }
 
     public void purgeNonTrading() {
-        graphs = null;
-        patternBoxes = null;
+        graphs = new HashSet<>();
+        patternBoxes = new HashSet<>();
     }
 
     public void purgeAll() {
-        graphs = null;
-        patternBoxes = null;
-        tradingPatternBoxes = null;
+        graphs = new HashSet<>();
+        patternBoxes = new HashSet<>();
+        tradingPatternBoxes = new HashSet<>();
     }
 
     public Graph getGraph(Symbol symbol, Timeframe timeframe) {

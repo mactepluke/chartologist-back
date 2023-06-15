@@ -22,6 +22,48 @@ public final class Format {
         return (round(number * 100) / 100d);
     }
 
+    public static float roundAccordingly(float number) {
+
+        return roundAccordingly(number, number);
+    }
+
+    public static float roundAccordingly(float number, float reference) {
+
+        if (reference > 1000) {
+            return roundNDigits(number, 0);
+        }
+
+        if (reference > 100) {
+            return roundNDigits(number, 1);
+        }
+
+        if (reference > 10) {
+            return roundNDigits(number, 2);
+        }
+
+        if (reference > 1) {
+            return roundNDigits(number, 3);
+        }
+
+        if (reference > 0.1) {
+            return roundNDigits(number, 4);
+        }
+
+        if (reference > 0.01) {
+            return roundNDigits(number, 5);
+        }
+
+        if (reference > 0.001) {
+            return roundNDigits(number, 6);
+        }
+
+        if (reference > 0.0001) {
+            return roundNDigits(number, 7);
+        }
+
+        return roundNDigits(number, 5);
+    }
+
     public static float roundNDigits(float number, int decimals) {
         if (decimals <= 0) {
             return (float) round(number);
@@ -33,6 +75,48 @@ public final class Format {
         return (float) (round(number * op) / op);
     }
 
+    public static double roundAccordingly(double number) {
+
+        return roundAccordingly(number, number);
+    }
+
+    public static double roundAccordingly(double number, double reference) {
+
+        if (reference > 1000) {
+            return roundNDigits(number, 0);
+        }
+
+        if (reference > 100) {
+            return roundNDigits(number, 1);
+        }
+
+        if (reference > 10) {
+            return roundNDigits(number, 2);
+        }
+
+        if (reference > 1) {
+            return roundNDigits(number, 3);
+        }
+
+        if (reference > 0.1) {
+            return roundNDigits(number, 4);
+        }
+
+        if (reference > 0.01) {
+            return roundNDigits(number, 5);
+        }
+
+        if (reference > 0.001) {
+            return roundNDigits(number, 6);
+        }
+
+        if (reference > 0.0001) {
+            return roundNDigits(number, 7);
+        }
+
+        return roundNDigits(number, 5);
+    }
+
     public static double roundNDigits(double number, int decimals) {
         if (decimals <= 0) {
             return (double) round(number);
@@ -42,90 +126,6 @@ public final class Format {
         }
         double op = Math.pow(10, decimals);
         return (round(number * op) / op);
-    }
-
-    public static float roundAccordingly(float number) {
-
-        return roundAccordingly(number, number);
-    }
-
-    public static double roundAccordingly(double number) {
-
-        return roundAccordingly(number, number);
-    }
-
-    public static float roundAccordingly(float number, float reference) {
-
-        if (reference > 1000)  {
-            return roundNDigits(number, 0);
-        }
-
-        if (reference > 100)  {
-            return roundNDigits(number, 1);
-        }
-
-        if (reference > 10)    {
-            return roundNDigits(number, 2);
-        }
-
-        if (reference > 1)    {
-            return roundNDigits(number, 3);
-        }
-
-        if (reference > 0.1)    {
-            return roundNDigits(number, 4);
-        }
-
-        if (reference > 0.01)    {
-            return roundNDigits(number, 5);
-        }
-
-        if (reference > 0.001)    {
-            return roundNDigits(number, 6);
-        }
-
-        if (reference > 0.0001)    {
-            return roundNDigits(number, 7);
-        }
-
-        return roundNDigits(number, 5);
-    }
-
-    public static double roundAccordingly(double number, double reference) {
-
-        if (reference > 1000)  {
-            return roundNDigits(number, 0);
-        }
-
-        if (reference > 100)  {
-            return roundNDigits(number, 1);
-        }
-
-        if (reference > 10)    {
-            return roundNDigits(number, 2);
-        }
-
-        if (reference > 1)    {
-            return roundNDigits(number, 3);
-        }
-
-        if (reference > 0.1)    {
-            return roundNDigits(number, 4);
-        }
-
-        if (reference > 0.01)    {
-            return roundNDigits(number, 5);
-        }
-
-        if (reference > 0.001)    {
-            return roundNDigits(number, 6);
-        }
-
-        if (reference > 0.0001)    {
-            return roundNDigits(number, 7);
-        }
-
-        return roundNDigits(number, 5);
     }
 
     public static String cutString(String string, int length) {
@@ -194,7 +194,11 @@ public final class Format {
         return string;
     }
 
-    public static String toFrenchDateTime(LocalDateTime dateTime)   {
+    public static String toFrenchDateTime(LocalDateTime dateTime) {
         return dateTime == null ? "" : dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+    }
+
+    public static String toFileNameCompatibleDateTime(LocalDateTime dateTime) {
+        return dateTime == null ? "" : dateTime.format(DateTimeFormatter.ofPattern("yyyy.MM.dd_HH.mm.ss"));
     }
 }

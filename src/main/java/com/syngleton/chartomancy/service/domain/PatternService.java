@@ -3,18 +3,21 @@ package com.syngleton.chartomancy.service.domain;
 import com.syngleton.chartomancy.analytics.ComputationSettings;
 import com.syngleton.chartomancy.analytics.PatternComputer;
 import com.syngleton.chartomancy.data.CoreData;
+import com.syngleton.chartomancy.data.DataSettings;
 import com.syngleton.chartomancy.factory.PatternFactory;
 import com.syngleton.chartomancy.factory.PatternSettings;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
-import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.misc.PatternBox;
-import com.syngleton.chartomancy.model.charting.patterns.interfaces.PixelatedPattern;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.PixelatedPattern;
 import com.syngleton.chartomancy.util.Check;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,19 +27,15 @@ import java.util.Set;
 @Service
 public class PatternService {
 
+    private static final String NEW_LINE = System.getProperty("line.separator");
     private final PatternFactory patternFactory;
     private final PatternComputer patternComputer;
-    private static final String NEW_LINE = System.getProperty("line.separator");
 
     @Autowired
     public PatternService(PatternFactory patternFactory,
                           PatternComputer patternComputer) {
         this.patternFactory = patternFactory;
         this.patternComputer = patternComputer;
-    }
-
-    public String printAnalyzerConfig()   {
-        return patternComputer.printAnalyserConfig();
     }
 
     public boolean createPatternBoxes(CoreData coreData, PatternSettings.Builder settingsInput) {
@@ -59,13 +58,26 @@ public class PatternService {
                 }
             }
             coreData.setPatternBoxes(patternBoxes);
+            updateCoreDataPatternSettings(coreData, settingsInput.build());
         }
         return !patternBoxes.isEmpty();
     }
 
-
     public List<Pattern> createPatterns(PatternSettings.Builder settingsInput) {
         return patternFactory.create(settingsInput);
+    }
+
+    private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
+
+        DataSettings settings = coreData.getPatternSettings();
+
+        settings.setPatternGranularity(patternSettings.getGranularity());
+        settings.setPatternLength(patternSettings.getLength());
+        settings.setScope(patternSettings.getScope());
+        settings.setFullScope(patternSettings.isFullScope());
+        settings.setAtomicPartition(patternSettings.isAtomicPartition());
+        settings.setPatternAutoconfig(patternSettings.getAutoconfig());
+        settings.setComputationPatternType(patternSettings.getPatternType());
     }
 
     public boolean computePatternBoxes(CoreData coreData, ComputationSettings.Builder settingsInput) {
@@ -103,8 +115,9 @@ public class PatternService {
                     }
                 }
             }
-            if (Check.notNullNotEmpty(computedPatternBoxes))   {
+            if (Check.notNullNotEmpty(computedPatternBoxes)) {
                 coreData.setPatternBoxes(computedPatternBoxes);
+                updateCoreDataComputationSettings(coreData, settingsInput.build());
             }
             result = true;
         }
@@ -113,6 +126,19 @@ public class PatternService {
 
     public List<Pattern> computePatterns(ComputationSettings.Builder settingsInput) {
         return patternComputer.compute(settingsInput);
+    }
+
+    private void updateCoreDataComputationSettings(@NonNull CoreData coreData, @NonNull ComputationSettings computationSettings) {
+        DataSettings settings = coreData.getPatternSettings();
+
+        settings.setComputationType(computationSettings.getComputationType());
+        settings.setComputationAutoconfig(computationSettings.getAutoconfig());
+        settings.setExtrapolateMatchScore(patternComputer.getAnalyzer().isExtrapolateMatchScore());
+        settings.setExtrapolatePriceVariation(patternComputer.getAnalyzer().isExtrapolatePriceVariation());
+        settings.setPriceVariationThreshold(patternComputer.getAnalyzer().getPriceVariationThreshold());
+        settings.setMatchScoreThreshold(patternComputer.getAnalyzer().getMatchScoreThreshold());
+        settings.setMatchScoreSmoothing(patternComputer.getAnalyzer().getMatchScoreSmoothing());
+        settings.setComputationDate(LocalDateTime.now());
     }
 
     public boolean printPatterns(List<PixelatedPattern> patterns) {

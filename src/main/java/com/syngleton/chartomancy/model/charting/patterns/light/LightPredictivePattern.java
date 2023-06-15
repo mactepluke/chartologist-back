@@ -4,7 +4,6 @@ import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.misc.PatternType;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.interfaces.ComputablePattern;
-import com.syngleton.chartomancy.model.charting.patterns.interfaces.IntPattern;
 import com.syngleton.chartomancy.util.Format;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,15 +16,14 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Getter
-public class LightPredictivePattern extends Pattern implements ComputablePattern, IntPattern {
+public final class LightPredictivePattern extends Pattern implements ComputablePattern, IntPattern {
 
     @ToString.Exclude
     private final List<IntCandle> intCandles;
     private final int scope;
-
+    private final LocalDateTime startDate;
     @Setter
     private float priceVariationPrediction = 0;
-    private final LocalDateTime startDate;
 
     public LightPredictivePattern(LightBasicPattern pattern, int scope) {
         super(

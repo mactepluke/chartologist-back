@@ -3,10 +3,11 @@ package com.syngleton.chartomancy.analytics;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
-import com.syngleton.chartomancy.model.charting.patterns.interfaces.IntPattern;
-import com.syngleton.chartomancy.model.charting.patterns.interfaces.PixelatedPattern;
+import com.syngleton.chartomancy.model.charting.patterns.light.IntPattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.PixelatedPattern;
 import com.syngleton.chartomancy.util.Calc;
 import com.syngleton.chartomancy.util.Format;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
@@ -16,6 +17,7 @@ import static java.lang.Math.*;
 
 @Log4j2
 @ToString
+@Getter
 public class Analyzer {
 
     private final Smoothing matchScoreSmoothing;
@@ -50,6 +52,17 @@ public class Analyzer {
                     scope);
             return 0;
         }
+    }
+
+    public float filterPricePrediction(float priceVariation) {
+
+        if (abs(priceVariation) < priceVariationThreshold) {
+            return 0;
+        }
+        if (extrapolatePriceVariation) {
+            priceVariation = Format.streamline(priceVariation + priceVariation * abs(priceVariation) / 100, -100, 100);
+        }
+        return priceVariation;
     }
 
     public int calculateMatchScore(PixelatedPattern pattern, List<PixelatedCandle> pixelatedCandlesToMatch) {
@@ -119,7 +132,7 @@ public class Analyzer {
 
     private double smooth(double value, int step) {
 
-        switch (matchScoreSmoothing)    {
+        switch (matchScoreSmoothing) {
             case LINEAR -> {
                 return value * (1 + step);
             }
@@ -130,6 +143,22 @@ public class Analyzer {
                 return value;
             }
         }
+    }
+
+    private int calculateCandleSurface(IntCandle intCandle) {
+
+        return abs(intCandle.open() - intCandle.close())
+                + (intCandle.open() > intCandle.close() ?
+                intCandle.close() - intCandle.low() + intCandle.high() - intCandle.open()
+                : intCandle.open() - intCandle.low() + intCandle.high() - intCandle.close());
+    }
+
+    private boolean haveSameColor(IntCandle intCandle, IntCandle intCandleToMatch) {
+
+        return (intCandle.open() < intCandle.close()
+                && intCandleToMatch.open() < intCandleToMatch.close())
+                || (intCandle.open() > intCandle.close()
+                && intCandleToMatch.open() > intCandleToMatch.close());
     }
 
     private int calculateBodyOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
@@ -169,42 +198,15 @@ public class Analyzer {
 
     private int filterMatchScore(int matchScore) {
 
-        if (matchScore < matchScoreThreshold)  {
+        if (matchScore < matchScoreThreshold) {
             return 0;
         }
-        if (extrapolateMatchScore)  {
+        if (extrapolateMatchScore) {
 
-            float adjustedMatchScore =  matchScore * (matchScore / 100f) + (float) matchScore;
+            float adjustedMatchScore = matchScore * (matchScore / 100f) + (float) matchScore;
             matchScore = Format.streamline((int) adjustedMatchScore, 0, 100);
         }
         return matchScore;
-    }
-
-    public float filterPricePrediction(float priceVariation) {
-
-        if (abs(priceVariation) < priceVariationThreshold)  {
-            return 0;
-        }
-        if (extrapolatePriceVariation)  {
-            priceVariation = Format.streamline(priceVariation + priceVariation * abs(priceVariation) / 100, -100, 100);
-        }
-        return priceVariation;
-    }
-
-    private boolean haveSameColor(IntCandle intCandle, IntCandle intCandleToMatch) {
-
-        return (intCandle.open() < intCandle.close()
-                && intCandleToMatch.open() < intCandleToMatch.close())
-                || (intCandle.open() > intCandle.close()
-                && intCandleToMatch.open() > intCandleToMatch.close());
-    }
-
-    private int calculateCandleSurface(IntCandle intCandle) {
-
-        return abs(intCandle.open() - intCandle.close())
-                + (intCandle.open() > intCandle.close() ?
-                intCandle.close() - intCandle.low() + intCandle.high() - intCandle.open()
-                : intCandle.open() - intCandle.low() + intCandle.high() - intCandle.close());
     }
 
     private int overlapAmount(int aStart, int aEnd, int bStart, int bEnd) {

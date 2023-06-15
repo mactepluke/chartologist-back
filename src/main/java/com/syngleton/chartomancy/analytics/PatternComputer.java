@@ -6,11 +6,12 @@ import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.PatternType;
-import com.syngleton.chartomancy.model.charting.patterns.*;
-import com.syngleton.chartomancy.model.charting.patterns.basic.PredictivePattern;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.interfaces.ComputablePattern;
 import com.syngleton.chartomancy.model.charting.patterns.light.LightPredictivePattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.PredictivePattern;
 import com.syngleton.chartomancy.util.Futures;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -27,9 +29,10 @@ import java.util.concurrent.ExecutionException;
 @Component
 public class PatternComputer {
 
+    private final CandleFactory candleFactory;
+    @Getter
     @Setter
     private Analyzer analyzer;
-    private final CandleFactory candleFactory;
 
     @Autowired
     public PatternComputer(CandleFactory candleFactory, Analyzer analyzer) {
@@ -46,24 +49,24 @@ public class PatternComputer {
         initializeCheckVariables();
         ComputationSettings computationSettings = configParams(paramsInput);
 
-        switch (computationSettings.getComputationType()) {
-            case BASIC_ITERATION -> {
-                try {
-                    return computeBasicIterationPatterns(computationSettings);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                    return Collections.emptyList();
-                } catch (InterruptedException e) {
-                    log.error("Interrupted!", e);
-                    Thread.currentThread().interrupt();
-                    return Collections.emptyList();
-                }
-            }
-            default -> {
-                log.error("Undefined pattern type.");
+        if (Objects.requireNonNull(computationSettings.getComputationType()) == ComputationType.BASIC_ITERATION) {
+            try {
+                return computeBasicIterationPatterns(computationSettings);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+                return Collections.emptyList();
+            } catch (InterruptedException e) {
+                log.error("Interrupted!", e);
+                Thread.currentThread().interrupt();
                 return Collections.emptyList();
             }
         }
+        log.error("Undefined pattern type.");
+        return Collections.emptyList();
+    }
+
+    private void initializeCheckVariables() {
+        //TODO define, initialize computation settings and implement their use in corresponding methods
     }
 
     private ComputationSettings configParams(ComputationSettings.Builder paramsInput) {
@@ -71,14 +74,9 @@ public class PatternComputer {
         return paramsInput.build();
     }
 
-    private void initializeCheckVariables() {
-        //TODO define, initialize computation settings and implement their use in corresponding methods
-    }
-
-
     private List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) throws ExecutionException, InterruptedException {
 
-        List<Pattern> patterns = computationSettings.getPatterns();
+        List<Pattern> patterns = Collections.unmodifiableList(computationSettings.getPatterns());
         Graph graph = computationSettings.getGraph();
         List<Pattern> computedPatterns = new ArrayList<>();
 

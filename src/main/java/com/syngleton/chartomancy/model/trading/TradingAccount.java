@@ -1,14 +1,17 @@
 package com.syngleton.chartomancy.model.trading;
 
 import com.syngleton.chartomancy.model.trading.interfaces.Account;
-import com.syngleton.chartomancy.util.Format;
-import com.syngleton.chartomancy.util.pdt.PrintableDataTable;
-import com.syngleton.chartomancy.util.pdt.PrintableData;
 import com.syngleton.chartomancy.util.Check;
+import com.syngleton.chartomancy.util.Format;
+import com.syngleton.chartomancy.util.datatabletool.PrintableData;
+import com.syngleton.chartomancy.util.datatabletool.PrintableDataTable;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.OptionalDouble;
 
 import static java.lang.Math.abs;
 
@@ -21,13 +24,13 @@ public class TradingAccount implements PrintableDataTable, Account {
 
     private final List<Trade> trades;
     private final String currency;
+    @Setter
+    boolean liquidated;
     private double balance;
     @Setter
     private boolean enabled;
     @Setter
     private String name;
-    @Setter
-    boolean liquidated;
 
     public TradingAccount() {
         this.trades = new ArrayList<>();
@@ -66,6 +69,31 @@ public class TradingAccount implements PrintableDataTable, Account {
         return new ArrayList<>(trades);
     }
 
+    public ProfitFactor getProfitFactorQualification() {
+        return ProfitFactor.getQualification(getProfitFactor());
+    }
+
+    public double getProfitFactor() {
+        return abs(Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0).mapToDouble(Trade::getPnL).sum()
+                / trades.stream().filter(trade -> trade.getPnL() < 0).mapToDouble(Trade::getPnL).sum()));
+    }
+
+    public String generatePrintableTradesStats() {
+
+        double profitFactor = getProfitFactor();
+
+        return NEW_LINE +
+                "*********************     All" + SEP + "Longs" + SEP + "Shorts" + NEW_LINE +
+                "Total PnL                  " + currency + " " + getTotalPnl() + SEP + currency + " " + getLongPnl() + SEP + currency + " " + getShortPnl() + NEW_LINE +
+                "Total Return               " + getTotalReturnPercentage() + "%" + SEP + getLongReturnPercentage() + "%" + SEP + getShortReturnPercentage() + "%" + NEW_LINE +
+                "Avg. return per trade      " + getAverageReturnPercentagePerTrade() + "%" + SEP + getAverageReturnPercentagePerLong() + "%" + SEP + getAverageReturnPercentagePerShort() + "%" + NEW_LINE +
+                "Total # of trades          " + getNumberOfTrades() + SEP + getNumberOfLongs() + SEP + getNumberOfShorts() + NEW_LINE +
+                "Batting avg.               " + getTotalBattingAveragePercentage() + "%" + SEP + getLongBattingAveragePercentage() + "%" + SEP + getShortBattingAveragePercentage() + "%" + NEW_LINE +
+                "Win/Loss ratio             " + getTotalWinToLossRatio() + SEP + getLongWinToLossRatio() + SEP + getShortWinToLossRatio() + NEW_LINE +
+                "Average PnL                " + currency + " " + getTotalAveragePnL() + SEP + currency + " " + getLongAveragePnL() + SEP + currency + " " + getShortAveragePnL() + NEW_LINE +
+                "** Profit factor: " + profitFactor + ", qualification: " + ProfitFactor.getQualification(profitFactor) + NEW_LINE;
+    }
+
     public double getTotalPnl() {
         return Format.roundTwoDigits(trades.stream().mapToDouble(Trade::getPnL).sum());
     }
@@ -90,18 +118,6 @@ public class TradingAccount implements PrintableDataTable, Account {
         return Format.roundTwoDigits(trades.stream().filter(trade -> !trade.isSide()).mapToDouble(Trade::getReturnPercentage).sum());
     }
 
-    public long getNumberOfTrades() {
-        return trades.size();
-    }
-
-    public long getNumberOfLongs() {
-        return trades.stream().filter(Trade::isSide).count();
-    }
-
-    public long getNumberOfShorts() {
-        return trades.stream().filter(trade -> !trade.isSide()).count();
-    }
-
     public double getAverageReturnPercentagePerTrade() {
         return Format.roundTwoDigits(getTotalReturnPercentage() / getNumberOfTrades());
     }
@@ -114,16 +130,28 @@ public class TradingAccount implements PrintableDataTable, Account {
         return Format.roundTwoDigits(getShortReturnPercentage() / getNumberOfShorts());
     }
 
+    public long getNumberOfTrades() {
+        return trades.size();
+    }
+
+    public long getNumberOfLongs() {
+        return trades.stream().filter(Trade::isSide).count();
+    }
+
+    public long getNumberOfShorts() {
+        return trades.stream().filter(trade -> !trade.isSide()).count();
+    }
+
     public double getTotalBattingAveragePercentage() {
         return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0).count() / (double) getNumberOfTrades()) * 100;
     }
 
     public double getLongBattingAveragePercentage() {
-        return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0 && trade.isSide()).count() / (double) getNumberOfLongs())* 100;
+        return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0 && trade.isSide()).count() / (double) getNumberOfLongs()) * 100;
     }
 
     public double getShortBattingAveragePercentage() {
-        return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0 && !trade.isSide()).count() / (double) getNumberOfShorts())* 100;
+        return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0 && !trade.isSide()).count() / (double) getNumberOfShorts()) * 100;
     }
 
     public double getTotalWinToLossRatio() {
@@ -141,62 +169,40 @@ public class TradingAccount implements PrintableDataTable, Account {
                 / trades.stream().filter(trade -> trade.getPnL() < 0 && !trade.isSide()).count());
     }
 
-    public double getTotalAveragePnL()  {
+    public double getTotalAveragePnL() {
 
         double average = 0;
 
         OptionalDouble result = trades.stream().mapToDouble(Trade::getPnL).average();
-        if (result.isPresent())   {
+        if (result.isPresent()) {
             average = result.getAsDouble();
         }
 
         return Format.roundTwoDigits(average);
     }
 
-    public double getLongAveragePnL()  {
+    public double getLongAveragePnL() {
 
         double average = 0;
 
         OptionalDouble result = trades.stream().filter(Trade::isSide).mapToDouble(Trade::getPnL).average();
-        if (result.isPresent())   {
+        if (result.isPresent()) {
             average = result.getAsDouble();
         }
 
         return Format.roundTwoDigits(average);
     }
 
-    public double getShortAveragePnL()  {
+    public double getShortAveragePnL() {
 
         double average = 0;
 
         OptionalDouble result = trades.stream().filter(trade -> !trade.isSide()).mapToDouble(Trade::getPnL).average();
-        if (result.isPresent())   {
+        if (result.isPresent()) {
             average = result.getAsDouble();
         }
 
         return Format.roundTwoDigits(average);
-    }
-
-    public double getProfitFactor() {
-        return abs(Format.roundTwoDigits((double) trades.stream().filter(trade -> trade.getPnL() > 0).mapToDouble(Trade::getPnL).sum()
-                / trades.stream().filter(trade -> trade.getPnL() < 0).mapToDouble(Trade::getPnL).sum()));
-    }
-
-
-    public String generatePrintableTradesStats() {
-
-        double profitFactor = getProfitFactor();
-
-        return NEW_LINE +
-                "*********************     All" + SEP + "Longs" + SEP + "Shorts" + NEW_LINE +
-                "Total PnL                  " + currency + " " + getTotalPnl() + SEP + currency + " " + getLongPnl() + SEP + currency + " " + getShortPnl() + NEW_LINE +
-                "Total Return               " + getTotalReturnPercentage() + "%" + SEP + getLongReturnPercentage() + "%" + SEP + getShortReturnPercentage() + "%" + NEW_LINE +
-                "Avg. return per trade      " + getAverageReturnPercentagePerTrade() + "%" + SEP + getAverageReturnPercentagePerLong() + "%" + SEP + getAverageReturnPercentagePerShort() + "%" + NEW_LINE +
-                "Total # of trades          " + getNumberOfTrades() + SEP + getNumberOfLongs() + SEP + getNumberOfShorts() + NEW_LINE +
-                "Batting avg.               " + getTotalBattingAveragePercentage() + "%" + SEP + getLongBattingAveragePercentage() + "%" + SEP + getShortBattingAveragePercentage() + "%" + NEW_LINE +
-                "Win/Loss ratio             " + getTotalWinToLossRatio() + SEP + getLongWinToLossRatio() + SEP + getShortWinToLossRatio() + NEW_LINE +
-                "Average PnL                " + currency + " " + getTotalAveragePnL() + SEP + currency + " " + getLongAveragePnL() + SEP + currency + " " + getShortAveragePnL() + NEW_LINE +
-                "** Profit factor: " + profitFactor + ", qualification: " + ProfitFactor.getQualification(profitFactor) + NEW_LINE;
     }
 
 }

@@ -1,19 +1,17 @@
 package com.syngleton.chartomancy.model.charting.misc;
 
-import com.syngleton.chartomancy.model.charting.patterns.interfaces.ComputablePattern;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
+import com.syngleton.chartomancy.model.charting.patterns.interfaces.ComputablePattern;
 import com.syngleton.chartomancy.model.charting.patterns.interfaces.ScopedPattern;
-import com.syngleton.chartomancy.model.charting.patterns.basic.TradingPattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.TradingPattern;
 import com.syngleton.chartomancy.util.Check;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.*;
 
-import static java.lang.Math.max;
-
 @Log4j2
-public class PatternBox extends ChartObject {
+public final class PatternBox extends ChartObject {
 
     @Getter
     private final Map<Integer, List<Pattern>> patterns;

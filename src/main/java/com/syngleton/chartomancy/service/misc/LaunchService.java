@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.service.misc;
 
-import com.syngleton.chartomancy.analytics.Automation;
+import com.syngleton.chartomancy.automation.Automation;
 import com.syngleton.chartomancy.controller.devtools.DataController;
 import com.syngleton.chartomancy.controller.devtools.PatternController;
 import com.syngleton.chartomancy.data.CoreData;
@@ -30,21 +30,23 @@ public class LaunchService {
     private int expectedBalanceX;
     @Value("${dummy_trades_max_trades:1000}")
     private int maxTrades;
+    @Value("${write_dummy_trades_reports:false}")
+    private boolean writeDummyTradeReports;
     @Value("${print_tasks_history:false}")
     private boolean printTasksHistory;
 
     public boolean launchShell(DataController dataController,
                                PatternController patternController,
-                               CoreData coreData)   {
+                               CoreData coreData) {
         Thread interactiveShell = new Thread(new InteractiveShell(dataController, patternController, coreData));
         interactiveShell.start();
         return true;
     }
 
     public void launchAutomation(CoreData coreData,
-                                    DataService dataService,
-                                    PatternService patternService,
-                                    TradingService tradingService)   {
+                                 DataService dataService,
+                                 PatternService patternService,
+                                 TradingService tradingService) {
         Thread automation = new Thread(new Automation(
                 coreData,
                 dataService,
@@ -58,6 +60,7 @@ public class LaunchService {
                 minimumBalance,
                 expectedBalanceX,
                 maxTrades,
+                writeDummyTradeReports,
                 printTasksHistory));
         automation.start();
     }

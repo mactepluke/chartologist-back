@@ -9,12 +9,12 @@ import com.syngleton.chartomancy.service.domain.DataService;
 import com.syngleton.chartomancy.service.domain.PatternService;
 import com.syngleton.chartomancy.service.domain.TradingService;
 import com.syngleton.chartomancy.util.Check;
+import com.syngleton.chartomancy.util.Format;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -22,11 +22,12 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ConfigService {
 
+    private static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive_";
+    private static final String NEW_LINE = System.getProperty("line.separator");
     private final LaunchService launchService;
     private final DataService dataService;
     private final PatternService patternService;
     private final TradingService tradingService;
-    private static final String NEW_LINE = System.getProperty("line.separator");
 
     @Autowired
     public ConfigService(DataService dataService,
@@ -58,8 +59,6 @@ public class ConfigService {
     ) {
 
         CoreData coreData = new CoreData();
-
-        coreData.setAnalyzerConfigSettings(patternService.printAnalyzerConfig());
 
         log.info(NEW_LINE +
                         "INITIALIZING CORE DATA (pattern settings={}, , pattern type={}, computation={}, computation settings={})",
@@ -136,7 +135,11 @@ public class ConfigService {
             boolean result = false;
 
             if (createTimestampedCoreDataArchive) {
-                result = dataService.saveCoreDataWithName(coreData, "./archives/Core_Data_archive_" + LocalDateTime.now());
+                result = dataService.saveCoreDataWithName(coreData,
+                        CORE_DATA_ARCHIVES_FOLDER_PATH +
+                                "_" +
+                                Format.toFileNameCompatibleDateTime(coreData.getPatternSettings().getComputationDate())
+                );
             }
             log.info("Created time stamped archive with newly generated data: {}", result);
         }

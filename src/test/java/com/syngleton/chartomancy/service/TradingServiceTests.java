@@ -8,6 +8,7 @@ import com.syngleton.chartomancy.factory.PatternSettings;
 import com.syngleton.chartomancy.model.charting.misc.PatternType;
 import com.syngleton.chartomancy.service.domain.TradingService;
 import com.syngleton.chartomancy.service.misc.ConfigService;
+import com.syngleton.chartomancy.service.misc.PurgeOption;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ class TradingServiceTests {
                 false,
                 false,
                 false,
-                false,
+                PurgeOption.NO,
                 PatternSettings.Autoconfig.TIMEFRAME_LONG,
                 ComputationSettings.Autoconfig.TEST,
                 ComputationType.BASIC_ITERATION,

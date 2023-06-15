@@ -3,21 +3,23 @@ package com.syngleton.chartomancy.service.domain;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.factory.GraphFactory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
+import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.PatternBox;
-import com.syngleton.chartomancy.model.charting.patterns.basic.PredictivePattern;
-import com.syngleton.chartomancy.model.charting.patterns.basic.TradingPattern;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.light.LightPredictivePattern;
 import com.syngleton.chartomancy.model.charting.patterns.light.LightTradingPattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.PredictivePattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.TradingPattern;
 import com.syngleton.chartomancy.service.misc.CSVFormat;
 import com.syngleton.chartomancy.service.misc.PurgeOption;
-import com.syngleton.chartomancy.util.pdt.DataTableTool;
-import com.syngleton.chartomancy.util.pdt.PrintableDataTable;
-import com.syngleton.chartomancy.model.charting.misc.Graph;
-import com.syngleton.chartomancy.model.charting.misc.Timeframe;
-import com.syngleton.chartomancy.model.charting.patterns.*;
 import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
+import com.syngleton.chartomancy.util.datatabletool.DataTableTool;
+import com.syngleton.chartomancy.util.datatabletool.PrintableDataTable;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
+import me.tongfei.progressbar.ProgressBar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,11 +31,11 @@ import java.util.*;
 @Service
 public class DataService {
 
-    @Value("${reading_attempts:3}")
-    private int readingAttempts;
-    private final GraphFactory graphFactory;
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final String DEFAULT_SERIALIZED_DATA_FILE_NAME = "./core_data/data.ser";
+    private final GraphFactory graphFactory;
+    @Value("${reading_attempts:3}")
+    private int readingAttempts;
 
     @Autowired
     public DataService(GraphFactory graphFactory) {
@@ -91,7 +93,32 @@ public class DataService {
         }
     }
 
-    public boolean loadCoreData(CoreData coreData)  {
+    private CSVFormat readFileFormat(String path) {
+
+        CSVFormat csvFormat = null;
+        String line;
+        int count = 0;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            do {
+                line = reader.readLine();
+                if (line != null) {
+                    count++;
+                    for (CSVFormat format : CSVFormat.values()) {
+
+                        if (line.matches(format.formatHeader)) {
+                            csvFormat = format;
+                        }
+                    }
+                }
+            } while (line != null && count < readingAttempts);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return csvFormat;
+    }
+
+    public boolean loadCoreData(CoreData coreData) {
         return loadCoreDataWithName(coreData, DEFAULT_SERIALIZED_DATA_FILE_NAME);
     }
 
@@ -102,9 +129,7 @@ public class DataService {
             readData = (CoreData) is.readObject();
 
             if (readData != null) {
-                coreData.setGraphs(readData.getGraphs());
-                coreData.setPatternBoxes(readData.getPatternBoxes());
-                coreData.setTradingPatternBoxes(readData.getTradingPatternBoxes());
+                coreData.copy(readData);
                 return true;
             }
         } catch (Exception e) {
@@ -113,7 +138,7 @@ public class DataService {
         return false;
     }
 
-    public boolean saveCoreData(CoreData coreData)  {
+    public boolean saveCoreData(CoreData coreData) {
         return saveCoreDataWithName(coreData, DEFAULT_SERIALIZED_DATA_FILE_NAME);
     }
 
@@ -133,6 +158,11 @@ public class DataService {
         Set<PatternBox> tradingData = new HashSet<>();
 
         if ((coreData != null) && Check.notNullNotEmpty(coreData.getPatternBoxes())) {
+
+            ProgressBar pb = new ProgressBar("Generating trading data...", coreData.getPatternBoxes().size());
+
+            pb.start();
+
             for (PatternBox patternBox : coreData.getPatternBoxes()) {
 
                 Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
@@ -147,8 +177,10 @@ public class DataService {
                 if (Check.notNullNotEmpty(anyPatternList) && !tradingPatterns.isEmpty() && anyPatternList.get(0) != null) {
                     tradingData.add(new PatternBox(anyPatternList.get(0), tradingPatterns));
                 }
+                pb.step();
             }
-            coreData.setTradingPatternBoxes(tradingData);
+            coreData.pushTradingPatternData(tradingData);
+            pb.stop();
         }
         return !tradingData.isEmpty();
     }
@@ -157,27 +189,34 @@ public class DataService {
 
         Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
 
-        for (Map.Entry<Integer, List<Pattern>> entry : patterns.entrySet()) {
+        if (Check.notNullNotEmpty(patterns)) {
 
-            List<Pattern> tradingPatternsList = new ArrayList<>();
+            for (Map.Entry<Integer, List<Pattern>> entry : patterns.entrySet()) {
 
-            for (Pattern pattern : entry.getValue()) {
+                List<Pattern> tradingPatternsList = new ArrayList<>();
 
-                switch (pattern.getPatternType()) {
-                    case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
-                    case LIGHT_PREDICTIVE ->
-                            tradingPatternsList.add(new LightTradingPattern((LightPredictivePattern) pattern));
-                    default -> {
-                        return patterns;
+                for (Pattern pattern : entry.getValue()) {
+
+                    switch (pattern.getPatternType()) {
+                        case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
+                        case LIGHT_PREDICTIVE ->
+                                tradingPatternsList.add(new LightTradingPattern((LightPredictivePattern) pattern));
+                        default -> {
+                            return patterns;
+                        }
                     }
                 }
+                tradingPatterns.put(entry.getKey(), tradingPatternsList);
             }
-            tradingPatterns.put(entry.getKey(), tradingPatternsList);
         }
         return tradingPatterns;
     }
 
     public boolean purgeNonTradingData(CoreData coreData, PurgeOption option) {
+
+        if (option == null) {
+            return false;
+        }
 
         switch (option) {
             case GRAPHS -> coreData.setGraphs(null);
@@ -191,7 +230,9 @@ public class DataService {
     }
 
     public void purgeAllData(CoreData coreData) {
-        coreData.purgeAll();
+        if (coreData != null) {
+            coreData.purgeAll();
+        }
     }
 
     public boolean createGraphsForMissingTimeframes(CoreData coreData) {
@@ -251,21 +292,7 @@ public class DataService {
         }
     }
 
-    private String generateMemoryUsageToPrint() {
-
-        return NEW_LINE +
-                "Current heap size (MB): " +
-                Format.roundAccordingly((float) Runtime.getRuntime().totalMemory() / 1000000) +
-                NEW_LINE +
-                "Max heap size (MB): " +
-                Format.roundAccordingly((float) Runtime.getRuntime().maxMemory() / 1000000) +
-                NEW_LINE +
-                "Free heap size (MB): " +
-                Format.roundAccordingly((float) Runtime.getRuntime().freeMemory() / 1000000) +
-                NEW_LINE;
-    }
-
-    private String generateGraphsToPrint(Set<Graph> graphs) {
+    private @NonNull String generateGraphsToPrint(Set<Graph> graphs) {
 
         StringBuilder graphsBuilder = new StringBuilder();
 
@@ -298,7 +325,7 @@ public class DataService {
         return graphsBuilder.toString();
     }
 
-    private String generatePatternBoxesToPrint(Set<PatternBox> patternBoxes, String nameOfContent) {
+    private @NonNull String generatePatternBoxesToPrint(Set<PatternBox> patternBoxes, String nameOfContent) {
 
         StringBuilder patternBoxesBuilder = new StringBuilder();
 
@@ -354,6 +381,20 @@ public class DataService {
         return patternBoxesBuilder.toString();
     }
 
+    private @NonNull String generateMemoryUsageToPrint() {
+
+        return NEW_LINE +
+                "Current heap size (MB): " +
+                Format.roundAccordingly((float) Runtime.getRuntime().totalMemory() / 1000000) +
+                NEW_LINE +
+                "Max heap size (MB): " +
+                Format.roundAccordingly((float) Runtime.getRuntime().maxMemory() / 1000000) +
+                NEW_LINE +
+                "Free heap size (MB): " +
+                Format.roundAccordingly((float) Runtime.getRuntime().freeMemory() / 1000000) +
+                NEW_LINE;
+    }
+
     public boolean printGraph(Graph graph) {
 
         if (graph != null) {
@@ -370,31 +411,6 @@ public class DataService {
             log.info("Cannot print graph: no data have been loaded.");
             return false;
         }
-    }
-
-    private CSVFormat readFileFormat(String path) {
-
-        CSVFormat csvFormat = null;
-        String line;
-        int count = 0;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-            do {
-                line = reader.readLine();
-                if (line != null) {
-                    count++;
-                    for (CSVFormat format : CSVFormat.values()) {
-
-                        if (line.matches(format.formatHeader)) {
-                            csvFormat = format;
-                        }
-                    }
-                }
-            } while (line != null && count < readingAttempts);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return csvFormat;
     }
 }
 

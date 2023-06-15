@@ -3,11 +3,11 @@ package com.syngleton.chartomancy.factory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import com.syngleton.chartomancy.model.charting.candles.IntCandle;
 import com.syngleton.chartomancy.model.charting.candles.PixelatedCandle;
-import com.syngleton.chartomancy.model.charting.patterns.*;
-import com.syngleton.chartomancy.model.charting.patterns.basic.BasicPattern;
-import com.syngleton.chartomancy.model.charting.patterns.basic.PredictivePattern;
+import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import com.syngleton.chartomancy.model.charting.patterns.light.LightBasicPattern;
 import com.syngleton.chartomancy.model.charting.patterns.light.LightPredictivePattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.BasicPattern;
+import com.syngleton.chartomancy.model.charting.patterns.pixelated.PredictivePattern;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,7 @@ import static org.apache.commons.collections4.ListUtils.partition;
 
 @Log4j2
 @Component
-public class PatternFactory {
+public final class PatternFactory {
 
     private static final int MIN_GRANULARITY = 30;
     private static final int MAX_GRANULARITY = 500;
@@ -39,7 +39,7 @@ public class PatternFactory {
     private static final int DEFAULT_SCOPE = 8;
     private static final int MIN_SCOPE = 1;
     private static final int MAX_SCOPE = 30;
-
+    private final CandleFactory candleFactory;
     @Value("${min_granularity:0}")
     private int minGranularity;
     @Value("${max_granularity:0}")
@@ -68,8 +68,6 @@ public class PatternFactory {
     private int minScope;
     @Value("${max_scope:0}")
     private int maxScope;
-
-    private final CandleFactory candleFactory;
 
     @Autowired
     public PatternFactory(CandleFactory candleFactory) {

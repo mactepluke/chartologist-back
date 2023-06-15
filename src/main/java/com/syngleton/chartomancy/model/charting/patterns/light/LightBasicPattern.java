@@ -5,18 +5,18 @@ import com.syngleton.chartomancy.model.charting.misc.PatternType;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
-import com.syngleton.chartomancy.model.charting.patterns.interfaces.IntPattern;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Getter
-public class LightBasicPattern extends Pattern implements IntPattern {
+public final class LightBasicPattern extends Pattern implements IntPattern {
 
     private final LocalDateTime startDate;
     @ToString.Exclude
@@ -37,7 +37,7 @@ public class LightBasicPattern extends Pattern implements IntPattern {
                 symbol,
                 timeframe
         );
-        this.intCandles = intCandles;
+        this.intCandles = Collections.unmodifiableList(intCandles);
         this.startDate = startDate;
     }
 }
