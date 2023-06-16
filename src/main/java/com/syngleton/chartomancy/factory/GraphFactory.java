@@ -7,6 +7,7 @@ import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.service.misc.CSVFormat;
 import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
@@ -59,7 +60,6 @@ public final class GraphFactory {
                     if (symbol == Symbol.UNDEFINED) {
                         symbol = readSymbol(values[csvFormat.symbolPosition]);
                     }
-
                     floatCandles.add(floatCandle);
                 }
             } while (line != null);
@@ -68,6 +68,9 @@ public final class GraphFactory {
             e.printStackTrace();
         }
         floatCandles.sort(Comparator.comparing(FloatCandle::dateTime));
+
+        floatCandles = repairMissingCandles(floatCandles);
+
         return new Graph(filePath.getFileName().toString(), symbol, getTimeframe(floatCandles), floatCandles);
     }
 
@@ -87,7 +90,40 @@ public final class GraphFactory {
         return symbol;
     }
 
-    private Timeframe getTimeframe(List<FloatCandle> floatCandles) {
+    private @NonNull List<FloatCandle> repairMissingCandles(@NonNull List<FloatCandle> floatCandles) {
+
+        List<FloatCandle> repairedFloatCandles = new ArrayList<>();
+        Timeframe timeframe = getTimeframe(floatCandles);
+
+        for (var i = 0; i < floatCandles.size() - 1; i++) {
+
+            var j = 0;
+
+            repairedFloatCandles.add(floatCandles.get(i));
+
+            while ((floatCandles.get(i + j + 1).dateTime().toEpochSecond(ZoneOffset.UTC) >
+                    (floatCandles.get(i + j).dateTime().toEpochSecond(ZoneOffset.UTC) + timeframe.durationInSeconds))) {
+
+                FloatCandle missingCandle = new FloatCandle(
+                        LocalDateTime.ofEpochSecond(floatCandles.get(i).dateTime().toEpochSecond(
+                                ZoneOffset.UTC) + (j + 1) * timeframe.durationInSeconds, 0, ZoneOffset.UTC),
+                        floatCandles.get(i).close(),
+                        floatCandles.get(i).high(),
+                        floatCandles.get(i).low(),
+                        floatCandles.get(i).close(),
+                        floatCandles.get(i).volume()
+                );
+                repairedFloatCandles.add(missingCandle);
+
+                j++;
+            }
+        }
+        repairedFloatCandles.add(floatCandles.get(floatCandles.size() - 1));
+
+        return repairedFloatCandles;
+    }
+
+    private Timeframe getTimeframe(@NonNull List<FloatCandle> floatCandles) {
         Timeframe timeframe = Timeframe.UNKNOWN;
 
         if (floatCandles.size() > 1) {

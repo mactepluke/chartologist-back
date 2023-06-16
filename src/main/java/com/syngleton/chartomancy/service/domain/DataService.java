@@ -118,6 +118,24 @@ public class DataService {
         return csvFormat;
     }
 
+    public boolean printGraph(Graph graph) {
+
+        if (graph != null) {
+            log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
+                    graph.getName(),
+                    graph.getSymbol(),
+                    graph.getTimeframe());
+            int i = 1;
+            for (FloatCandle floatCandle : graph.getFloatCandles()) {
+                log.info("{} -> {}", i++, floatCandle.toString());
+            }
+            return true;
+        } else {
+            log.info("Cannot print graph: no data have been loaded.");
+            return false;
+        }
+    }
+
     public boolean loadCoreData(CoreData coreData) {
         return loadCoreDataWithName(coreData, DEFAULT_SERIALIZED_DATA_FILE_NAME);
     }
@@ -393,24 +411,6 @@ public class DataService {
                 "Free heap size (MB): " +
                 Format.roundAccordingly((float) Runtime.getRuntime().freeMemory() / 1000000) +
                 NEW_LINE;
-    }
-
-    public boolean printGraph(Graph graph) {
-
-        if (graph != null) {
-            log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
-                    graph.getName(),
-                    graph.getSymbol(),
-                    graph.getTimeframe());
-            int i = 1;
-            for (FloatCandle floatCandle : graph.getFloatCandles()) {
-                log.info("{} -> {}", i++, floatCandle.toString());
-            }
-            return true;
-        } else {
-            log.info("Cannot print graph: no data have been loaded.");
-            return false;
-        }
     }
 }
 
