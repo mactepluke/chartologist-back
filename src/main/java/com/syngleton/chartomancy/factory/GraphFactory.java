@@ -101,8 +101,11 @@ public final class GraphFactory {
 
             repairedFloatCandles.add(floatCandles.get(i));
 
-            while ((floatCandles.get(i + j + 1).dateTime().toEpochSecond(ZoneOffset.UTC) >
-                    (floatCandles.get(i + j).dateTime().toEpochSecond(ZoneOffset.UTC) + timeframe.durationInSeconds))) {
+            while ((i + j + 1 < floatCandles.size())
+                    &&
+                    (floatCandles.get(i + j + 1).dateTime().toEpochSecond(ZoneOffset.UTC) >
+                            (floatCandles.get(i + j).dateTime().toEpochSecond(ZoneOffset.UTC) + timeframe.durationInSeconds))
+            ) {
 
                 FloatCandle missingCandle = new FloatCandle(
                         LocalDateTime.ofEpochSecond(floatCandles.get(i).dateTime().toEpochSecond(
