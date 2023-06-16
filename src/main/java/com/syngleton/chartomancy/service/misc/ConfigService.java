@@ -119,14 +119,8 @@ public class ConfigService {
                     atomicPartition,
                     fullScope));
 
-            if (generateTradingData) {
-                if (loadCoreDataAtStartup) {
-                    log.warn("Trading data loaded from file will be overriden by newly generated trading data.");
-                }
-                log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
-
-                log.info("Purged non-trading data: {}",
-                        dataService.purgeNonTradingData(coreData, purgeAfterTradingDataGeneration));
+            if (generateTradingData && loadCoreDataAtStartup) {
+                log.warn("Trading data loaded from file will be overriden by newly generated trading data.");
             }
 
             log.info("Saved core data overriden with newly generated core data: {}",
@@ -142,6 +136,15 @@ public class ConfigService {
                 );
             }
             log.info("Created time stamped archive with newly generated data: {}", result);
+        }
+        //GENERATING TRADING DATA
+        if (generateTradingData) {
+            log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
+
+            log.info("Purged non-trading data: {}",
+                    dataService.purgeNonTradingData(coreData, purgeAfterTradingDataGeneration));
+        } else if (purgeAfterTradingDataGeneration != PurgeOption.NO) {
+            log.warn("Non-trading data will not be purged as no trading data has been generated.");
         }
         //PRINTING LAUNCHING AUTOMATION IF APPLICABLE
         if (launchAutomation) {

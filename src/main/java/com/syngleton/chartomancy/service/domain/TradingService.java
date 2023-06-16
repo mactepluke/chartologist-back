@@ -32,6 +32,7 @@ import static java.lang.Math.abs;
 @Service
 public class TradingService {
 
+    private static final double DEFAULT_FEE = 0.075;
     private final Analyzer analyzer;
     private final CandleFactory candleFactory;
     @Getter
@@ -150,7 +151,9 @@ public class TradingService {
                     side,
                     openingPrice,
                     tpAndSlAndSize.first(),
-                    tpAndSlAndSize.second()
+                    tpAndSlAndSize.second(),
+                    DEFAULT_FEE,
+                    false
             );
 
             if (trade.getStatus() == TradeStatus.UNFUNDED) {
@@ -272,7 +275,7 @@ public class TradingService {
             }
             case EQUAL -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
-                stopLoss = takeProfit;
+                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) / 100);
                 size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             default -> {
