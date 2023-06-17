@@ -46,6 +46,9 @@ public final class PatternSettings {
         TIMEFRAME,
         TIMEFRAME_LONG,
         TIMEFRAME_VERY_LONG,
+        HALF_LENGTH,
+        EQUAL_LENGTH,
+        THIRD_LENGTH,
         BYPASS_SAFETY_CHECK,
         TEST
     }

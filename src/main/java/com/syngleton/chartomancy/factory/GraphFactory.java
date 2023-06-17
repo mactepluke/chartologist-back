@@ -44,7 +44,7 @@ public final class GraphFactory {
 
             do {
                 line = reader.readLine();
-                if (line != null) {
+                if (line != null && !line.equals("")) {
                     String[] values = line.split(csvFormat.delimiter);
                     FloatCandle floatCandle = new FloatCandle(
                             LocalDateTime.ofEpochSecond(Long.parseLong(

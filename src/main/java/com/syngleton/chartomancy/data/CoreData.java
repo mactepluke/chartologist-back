@@ -5,6 +5,7 @@ import com.syngleton.chartomancy.model.charting.misc.PatternBox;
 import com.syngleton.chartomancy.model.charting.misc.Symbol;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 import java.io.Serializable;
@@ -30,7 +31,7 @@ public class CoreData implements Serializable {
         this.tradingPatternSettings = new DataSettings();
     }
 
-    public void copy(CoreData coreData) {
+    public void copy(@NonNull CoreData coreData) {
         this.graphs = coreData.getGraphs();
         this.patternBoxes = coreData.getPatternBoxes();
         this.tradingPatternBoxes = coreData.getTradingPatternBoxes();

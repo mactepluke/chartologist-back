@@ -33,3 +33,5 @@ build/
 .vscode/
 /logs/
 /data/Bitfinex_BTCUSD_d.csv
+/archives/
+

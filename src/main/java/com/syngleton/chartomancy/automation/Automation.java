@@ -32,23 +32,27 @@ public class Automation implements Runnable {
     private static final String DUMMY_TRADES_FOLDER_PATH = "./trades_history/";
     private static final String DUMMY_TRADES_SUMMARY_FILE_NAME = "dummy_trades_summary";
     private static final String NEW_LINE = System.getProperty("line.separator");
+    private static final int MAX_BLANK_TRADE_MULTIPLIER = 10;
 
     private final boolean printCoreData;
     private final boolean printPricePredictionSummary;
     private final boolean runBasicDummyTrades;
     private final boolean runAdvancedDummyTrades;
+    private final boolean runAdvancedDummyTradesOnDummyGraphs;
     private final double initialBalance;
     private final double minimumBalance;
     private final int expectedBalanceX;
     private final int maxTrades;
     private final boolean writeDummyTradeReports;
+    private final String dummyGraphsDataFolderName;
+    private final List<String> dummyGraphsDataFilesNames;
     private final boolean printTasksHistory;
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private final List<String> tasksHistory;
-    CoreData coreData;
-    DataService dataService;
-    PatternService patternService;
-    TradingService tradingService;
+    private final CoreData coreData;
+    private final DataService dataService;
+    private final PatternService patternService;
+    private final TradingService tradingService;
     private String reportLog = "";
 
     public Automation(CoreData coreData,
@@ -59,11 +63,14 @@ public class Automation implements Runnable {
                       boolean printPricePredictionSummary,
                       boolean runBasicDummyTrades,
                       boolean runAdvancedDummyTrades,
+                      boolean runAdvancedDummyTradesOnDummyGraphs,
                       double initialBalance,
                       double minimumBalance,
                       int expectedBalanceX,
                       int maxTrades,
                       boolean writeDummyTradeReports,
+                      String dummyGraphsDataFolderName,
+                      List<String> dummyGraphsDataFilesNames,
                       boolean printTasksHistory) {
         this.coreData = coreData;
         this.dataService = dataService;
@@ -73,11 +80,14 @@ public class Automation implements Runnable {
         this.printPricePredictionSummary = printPricePredictionSummary;
         this.runBasicDummyTrades = runBasicDummyTrades;
         this.runAdvancedDummyTrades = runAdvancedDummyTrades;
+        this.runAdvancedDummyTradesOnDummyGraphs = runAdvancedDummyTradesOnDummyGraphs;
         this.initialBalance = initialBalance;
         this.minimumBalance = minimumBalance;
         this.expectedBalanceX = expectedBalanceX;
         this.maxTrades = maxTrades;
         this.writeDummyTradeReports = writeDummyTradeReports;
+        this.dummyGraphsDataFolderName = dummyGraphsDataFolderName;
+        this.dummyGraphsDataFilesNames = dummyGraphsDataFilesNames;
         this.printTasksHistory = printTasksHistory;
 
         dummyTradesSummaryTable = new DummyTradesSummaryTable();
@@ -96,12 +106,14 @@ public class Automation implements Runnable {
                         + "printPricePredictionSummary {}," + NEW_LINE
                         + "runBasicDummyTrades {}," + NEW_LINE
                         + "runAdvancedDummyTrades {}," + NEW_LINE
+                        + "runAdvancedDummyTradesOnDummyGraphs {}," + NEW_LINE
                         + "writeDummyTradesReports {}," + NEW_LINE
                         + "printTasksHistory {}," + NEW_LINE,
                 printCoreData,
                 printPricePredictionSummary,
                 runBasicDummyTrades,
                 runAdvancedDummyTrades,
+                runAdvancedDummyTradesOnDummyGraphs,
                 writeDummyTradeReports,
                 printTasksHistory
         );
@@ -121,6 +133,10 @@ public class Automation implements Runnable {
         if (runAdvancedDummyTrades) {
             runAdvancedDummyTrades();
             tasksHistory.add("RAN ADVANCED DUMMY TRADES");
+        }
+        if (runAdvancedDummyTradesOnDummyGraphs) {
+            runAdvancedDummyTradesOnDummyGraphs();
+            tasksHistory.add("RAN ADVANCED DUMMY TRADES ON DUMMY GRAPHS");
         }
         if (writeDummyTradeReports) {
             writeDummyTradesReports();
@@ -228,13 +244,28 @@ public class Automation implements Runnable {
             clearLog();
 
             Optional<Graph> graph = coreData.getGraphs().stream().findAny();
-            graph.ifPresent(this::runDummyTradesOnGraph);
+
+            graph.ifPresent(value -> runDummyTradesOnGraph(value, coreData));
         }
 
     }
 
     private void runAdvancedDummyTrades() {
+        runAdvancedDummyTrades(coreData);
+    }
 
+    private void runAdvancedDummyTradesOnDummyGraphs() {
+        CoreData dummyGraphsData = new CoreData();
+
+        dummyGraphsData.copy(coreData);
+        dummyGraphsData.purgeNonTrading();
+        dataService.loadGraphs(dummyGraphsData, dummyGraphsDataFolderName, dummyGraphsDataFilesNames);
+        dataService.createGraphsForMissingTimeframes(dummyGraphsData);
+
+        runAdvancedDummyTrades(dummyGraphsData);
+    }
+
+    private void runAdvancedDummyTrades(CoreData coreData) {
         if (coreData == null
                 || !Check.notNullNotEmpty(coreData.getGraphs())
                 || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
@@ -247,16 +278,19 @@ public class Automation implements Runnable {
             pb.start();
 
             for (Graph graph : coreData.getGraphs()) {
-                runDummyTradesOnGraph(graph);
+                runDummyTradesOnGraph(graph, coreData);
 
                 pb.step();
             }
             pb.stop();
         }
-
     }
 
-    private void runDummyTradesOnGraph(@NonNull Graph graph) {
+    private void clearLog() {
+        reportLog = "";
+    }
+
+    private void runDummyTradesOnGraph(@NonNull Graph graph, @NonNull CoreData coreData) {
 
         TradingAccount account = new TradingAccount();
         DummyTradesSummaryEntry dummyTradesSummaryEntry;
@@ -285,17 +319,11 @@ public class Automation implements Runnable {
                     blankTradesCount++;
                 }
 
-            } while (
-                    trade == null
-                            || trade.getStatus() == TradeStatus.BLANK
-                            || (
-                            !account.isLiquidated()
-                                    && account.getBalance() > minimumBalance
-                                    && account.getBalance() < initialBalance * expectedBalanceX
-                                    && trade.getStatus() != TradeStatus.UNFUNDED
-                                    && account.getNumberOfTrades() < maxTrades
-                    )
-            );
+            } while (blankTradesCount < MAX_BLANK_TRADE_MULTIPLIER * maxTrades
+                    && account.getNumberOfTrades() < maxTrades
+                    && !account.isLiquidated()
+                    && account.getBalance() > minimumBalance
+                    && account.getBalance() < initialBalance * expectedBalanceX);
 
             String result = "NEUTRAL";
             if (account.getBalance() > initialBalance * expectedBalanceX) {
@@ -327,7 +355,7 @@ public class Automation implements Runnable {
 
             DataSettings settings = coreData.getTradingPatternSettings();
 
-            String fileName = account.getName() + "_" + Format.toFileNameCompatibleDateTime(LocalDateTime.now()) + "_" + result;
+            String fileName = account.getName() + "_" + graph.getName() + "_" + Format.toFileNameCompatibleDateTime(LocalDateTime.now()) + "_" + result;
 
             dummyTradesSummaryEntry = new DummyTradesSummaryEntry(
                     Format.toFrenchDateTime(LocalDateTime.now()),
@@ -391,17 +419,9 @@ public class Automation implements Runnable {
         }
     }
 
-    private synchronized void writeDummyTradesReports() {
-        log.info(reportLog);
-        dataService.writeCsvFile(DUMMY_TRADES_FOLDER_PATH + DUMMY_TRADES_SUMMARY_FILE_NAME, dummyTradesSummaryTable);
-    }
-
-    private void addDummyTradeEntry(DummyTradesSummaryEntry dummyTradesSummaryEntry) {
-        this.dummyTradesSummaryTable.getPrintableData().add(dummyTradesSummaryEntry);
-    }
-
     private Trade generateAndProcessAdvancedRandomTrades(Graph graph, TradingAccount account, int maxScope, int patternLength) {
-        int tradeOpenCandle = ThreadLocalRandom.current().nextInt(graph.getFloatCandles().size() - maxScope - patternLength - 1) + patternLength;
+        int bound = graph.getFloatCandles().size() - maxScope - patternLength - 1;
+        int tradeOpenCandle = ThreadLocalRandom.current().nextInt(Math.max(bound, 1)) + patternLength;
 
         Trade trade = tradingService.generateParameterizedTrade(
                 account,
@@ -423,7 +443,12 @@ public class Automation implements Runnable {
         return trade;
     }
 
-    private void clearLog() {
-        reportLog = "";
+    private void addDummyTradeEntry(DummyTradesSummaryEntry dummyTradesSummaryEntry) {
+        this.dummyTradesSummaryTable.getPrintableData().add(dummyTradesSummaryEntry);
+    }
+
+    private synchronized void writeDummyTradesReports() {
+        log.info(reportLog);
+        dataService.writeCsvFile(DUMMY_TRADES_FOLDER_PATH + DUMMY_TRADES_SUMMARY_FILE_NAME, dummyTradesSummaryTable);
     }
 }

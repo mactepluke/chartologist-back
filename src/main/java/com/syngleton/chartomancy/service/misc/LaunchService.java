@@ -11,6 +11,8 @@ import com.syngleton.chartomancy.view.InteractiveShell;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class LaunchService {
 
@@ -22,6 +24,12 @@ public class LaunchService {
     private boolean runBasicDummyTrades;
     @Value("${run_advanced_dummy_trades:false}")
     private boolean runAdvancedDummyTrades;
+    @Value("${run_advanced_dummy_trades_on_dummy_graphs:false}")
+    private boolean runAdvancedDummyTradesOnDummyGraphs;
+    @Value("${dummy_graphs_data_folder_name:dummy_data}")
+    private String dummyGraphsDataFolderName;
+    @Value("#{'${dummy_graphs_data_files_names}'.split(',')}")
+    private List<String> dummyGraphsDataFilesNames;
     @Value("${dummy_trades_initial_balance:100000}")
     private double initialBalance;
     @Value("${dummy_trades_minimum_balance:50000}")
@@ -56,11 +64,14 @@ public class LaunchService {
                 printPricePredictionSummary,
                 runBasicDummyTrades,
                 runAdvancedDummyTrades,
+                runAdvancedDummyTradesOnDummyGraphs,
                 initialBalance,
                 minimumBalance,
                 expectedBalanceX,
                 maxTrades,
                 writeDummyTradeReports,
+                dummyGraphsDataFolderName,
+                dummyGraphsDataFilesNames,
                 printTasksHistory));
         automation.start();
     }

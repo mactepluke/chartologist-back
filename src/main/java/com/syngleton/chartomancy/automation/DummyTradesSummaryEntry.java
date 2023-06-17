@@ -10,6 +10,8 @@ import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.trading.ProfitFactor;
 import com.syngleton.chartomancy.model.trading.TradingSettings;
 import com.syngleton.chartomancy.util.datatabletool.PrintableData;
+import lombok.NonNull;
+import org.jetbrains.annotations.Contract;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -66,8 +68,9 @@ public record DummyTradesSummaryEntry(String dummyTradesDateTime,
                                       double profitFactor,
                                       ProfitFactor profitFactorQualification) implements PrintableData {
 
+    @Contract(" -> new")
     @Override
-    public List<Serializable> toRow() {
+    public @NonNull List<Serializable> toRow() {
         return new ArrayList<>(List.of(
                 dummyTradesDateTime,
                 computationDateTime,

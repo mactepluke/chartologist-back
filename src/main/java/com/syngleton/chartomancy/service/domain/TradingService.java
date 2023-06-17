@@ -51,43 +51,6 @@ public class TradingService {
         return tradingSettings.toString();
     }
 
-    public Trade generateOptimalBasicTrade(Account tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
-
-        Trade trade = null;
-
-/*        if (tradingInputDataAreLegit(tradingAccount, graph, coreData, tradeOpenCandle)) {
-
-            Triad<Integer, Float, Float> mostProfitableMomentAndPriceVariationAndStopLoss = findMostProfitableMomentAndPriceAndStopLoss(
-                    graph,
-                    coreData,
-                    tradeOpenCandle,
-                    -1);
-
-            boolean side = mostProfitableMomentAndPriceVariationAndStopLoss.second() > 0;
-
-            trade = new Trade(
-                    graph.getName(),
-                    graph.getTimeframe(),
-                    graph.getSymbol(),
-                    tradingAccount,
-                    graph.getFloatCandles().get(tradeOpenCandle).dateTime(),
-                    graph.getFloatCandles()
-                            .get(tradeOpenCandle)
-                            .dateTime()
-                            .plusSeconds(mostProfitableMomentAndPriceVariationAndStopLoss.first() * graph.getTimeframe().durationInSeconds),
-                    side,
-                    getCandleClosePrice(graph, tradeOpenCandle),
-                    1
-            );
-
-            if (trade.getStatus() == TradeStatus.UNFUNDED) {
-                log.error("Could not open trade: not enough funds (account balance: {})", tradingAccount.getBalance());
-                trade = null;
-            }
-        }*/
-        return trade;
-    }
-
     /**
      * This method finds the best price variation percentages and uses it to se the take profit;
      * then it sets the stop loss as being under or above the price by a percentage that equals that of the
@@ -191,7 +154,6 @@ public class TradingService {
             for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
 
                 float priceVariationForScope = predictPriceVariationForScope(graph, patternBox, tradeOpenCandle, entry.getKey());
-//TODO Faire une moyenne des pricePrediction de tous les scopes ? Ou plutôt une courbe d'évolution ?
 
                 if (highestPrice == 0) {
                     highestPrice = priceVariationForScope;
