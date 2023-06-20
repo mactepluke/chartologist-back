@@ -78,6 +78,10 @@ public class TradingAccount implements PrintableDataTable, Account {
                 / trades.stream().filter(trade -> trade.getPnL() < 0).mapToDouble(Trade::getPnL).sum()));
     }
 
+    public long getTotalTradeDurationsInSeconds() {
+        return trades.stream().mapToLong(Trade::getTradeDurationInSeconds).sum();
+    }
+
     public String generatePrintableTradesStats() {
 
         double profitFactor = getProfitFactor();

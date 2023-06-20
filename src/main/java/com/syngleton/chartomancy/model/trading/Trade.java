@@ -12,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -141,6 +142,10 @@ public class Trade extends ChartObject implements PrintableData {
         this.lastUpdate = LocalDateTime.now();
     }
 
+    public static Trade blank() {
+        return new Trade();
+    }
+
     /**
      * @param stopLoss zero means "no stop loss"
      */
@@ -181,8 +186,16 @@ public class Trade extends ChartObject implements PrintableData {
         return abs((size * openingPrice * feePercentage) / 100);
     }
 
-    public static Trade blank() {
-        return new Trade();
+    public long getTradeDurationInSeconds() {
+
+        LocalDateTime endTime;
+
+        if (status == TradeStatus.OPENED) {
+            endTime = expectedClose;
+        } else {
+            endTime = closeDateTime;
+        }
+        return endTime.toEpochSecond(ZoneOffset.UTC) - openDateTime.toEpochSecond(ZoneOffset.UTC);
     }
 
     public void orderLimitHit() {

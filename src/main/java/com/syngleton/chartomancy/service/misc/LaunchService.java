@@ -22,10 +22,12 @@ public class LaunchService {
     private boolean printPricePredictionSummary;
     @Value("${run_basic_dummy_trades:false}")
     private boolean runBasicDummyTrades;
-    @Value("${run_advanced_dummy_trades:false}")
-    private boolean runAdvancedDummyTrades;
-    @Value("${run_advanced_dummy_trades_on_dummy_graphs:false}")
-    private boolean runAdvancedDummyTradesOnDummyGraphs;
+    @Value("${run_randomized_dummy_trades:false}")
+    private boolean runRandomizedDummyTrades;
+    @Value("${run_randomized_dummy_trades_on_dummy_graphs:false}")
+    private boolean runRandomizedDummyTradesOnDummyGraphs;
+    @Value("${run_deterministic_dummy_trades_on_dummy_graphs:false}")
+    private boolean runDeterministicDummyTradesOnDummyGraphs;
     @Value("${dummy_graphs_data_folder_name:dummy_data}")
     private String dummyGraphsDataFolderName;
     @Value("#{'${dummy_graphs_data_files_names}'.split(',')}")
@@ -63,8 +65,9 @@ public class LaunchService {
                 printCoreData,
                 printPricePredictionSummary,
                 runBasicDummyTrades,
-                runAdvancedDummyTrades,
-                runAdvancedDummyTradesOnDummyGraphs,
+                runRandomizedDummyTrades,
+                runRandomizedDummyTradesOnDummyGraphs,
+                runDeterministicDummyTradesOnDummyGraphs,
                 initialBalance,
                 minimumBalance,
                 expectedBalanceX,
