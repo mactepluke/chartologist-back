@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.analytics;
 
-import com.syngleton.chartomancy.dto.ComputationSettingsDTO;
+import com.syngleton.chartomancy.dto.internal.ComputationSettingsDTO;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
 import lombok.Getter;
@@ -31,13 +31,7 @@ public class ComputationSettings {
     @Getter
     private final int minPredictivePricePredictionToKeep;
 
-    public enum Autoconfig {
-        NONE,
-        DEFAULT,
-        TEST
-    }
-
-    private ComputationSettings(Builder builder)    {
+    private ComputationSettings(Builder builder) {
         this.autoconfig = builder.autoconfig;
         this.computationType = builder.computationType;
         this.graph = builder.graph;
@@ -49,8 +43,13 @@ public class ComputationSettings {
         this.minPredictivePricePredictionToKeep = builder.minPredictivePricePredictionToKeep;
     }
 
+    public enum Autoconfig {
+        NONE,
+        DEFAULT,
+        TEST
+    }
 
-    public static class Builder    {
+    public static class Builder {
         private Autoconfig autoconfig = Autoconfig.DEFAULT;
         private ComputationType computationType = ComputationType.BASIC_ITERATION;
         private Graph graph = null;
@@ -69,8 +68,8 @@ public class ComputationSettings {
             return this;
         }
 
-        public Builder computationType(ComputationType computationType)    {
-            if (computationType != null)   {
+        public Builder computationType(ComputationType computationType) {
+            if (computationType != null) {
                 this.computationType = computationType;
             }
             return this;
@@ -115,7 +114,7 @@ public class ComputationSettings {
             return this;
         }
 
-        public Builder map(ComputationSettingsDTO computationSettingsDTO)   {
+        public Builder map(ComputationSettingsDTO computationSettingsDTO) {
 
             if (computationSettingsDTO != null) {
                 this.autoconfig = computationSettingsDTO.autoconfig() != null ? computationSettingsDTO.autoconfig() : this.autoconfig;

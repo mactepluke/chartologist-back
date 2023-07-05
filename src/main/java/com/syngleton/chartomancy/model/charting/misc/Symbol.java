@@ -1,7 +1,15 @@
 package com.syngleton.chartomancy.model.charting.misc;
 
 public enum Symbol {
-    UNDEFINED,
-    BTC_USD,
-    ETH_USD
+    UNDEFINED("VOID", "VOID"),
+    BTC_USD("BTC", "USD"),
+    ETH_USD("BTC", "USD");
+
+    public final String base;
+    public final String quote;
+
+    Symbol(String base, String quote) {
+        this.base = base;
+        this.quote = quote;
+    }
 }

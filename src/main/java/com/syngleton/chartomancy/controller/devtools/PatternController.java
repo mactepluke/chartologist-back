@@ -1,9 +1,9 @@
 package com.syngleton.chartomancy.controller.devtools;
 
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.dto.ComputationSettingsDTO;
+import com.syngleton.chartomancy.dto.internal.ComputationSettingsDTO;
+import com.syngleton.chartomancy.dto.internal.PatternSettingsDTO;
 import com.syngleton.chartomancy.model.charting.patterns.Pattern;
-import com.syngleton.chartomancy.dto.PatternSettingsDTO;
 import com.syngleton.chartomancy.service.domain.PatternService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 

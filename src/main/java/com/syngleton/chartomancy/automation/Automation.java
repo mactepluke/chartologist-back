@@ -5,19 +5,18 @@ import com.syngleton.chartomancy.automation.dummytrades.DummyTradesSummaryTable;
 import com.syngleton.chartomancy.data.CoreData;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.PatternBox;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.charting.patterns.interfaces.ScopedPattern;
 import com.syngleton.chartomancy.service.domain.DataService;
 import com.syngleton.chartomancy.service.domain.PatternService;
 import com.syngleton.chartomancy.service.domain.TradingService;
 import com.syngleton.chartomancy.util.Check;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
 import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -25,6 +24,7 @@ public class Automation implements Runnable {
     private static final String DUMMY_TRADES_FOLDER_PATH = "./trades_history/";
     private static final String DUMMY_TRADES_SUMMARY_FILE_NAME = "dummy_trades_summary";
     private static final String NEW_LINE = System.getProperty("line.separator");
+    private static final String DATA_MISSING_ERROR = "Could not run dummy trades: core data are missing.";
     private final boolean printCoreData;
     private final boolean printPricePredictionSummary;
     private final boolean runBasicDummyTrades;
@@ -34,6 +34,7 @@ public class Automation implements Runnable {
     private final boolean writeDummyTradeReports;
     private final String dummyGraphsDataFolderName;
     private final List<String> dummyGraphsDataFilesNames;
+    private final Set<Timeframe> dummyTradesTimeframes;
     private final boolean printTasksHistory;
     private final List<String> tasksHistory;
     private final CoreData coreData;
@@ -57,6 +58,7 @@ public class Automation implements Runnable {
                       double minimumBalance,
                       int expectedBalanceX,
                       int maxTrades,
+                      Set<Timeframe> dummyTradesTimeframes,
                       boolean writeDummyTradeReports,
                       String dummyGraphsDataFolderName,
                       List<String> dummyGraphsDataFilesNames,
@@ -73,6 +75,20 @@ public class Automation implements Runnable {
         this.writeDummyTradeReports = writeDummyTradeReports;
         this.dummyGraphsDataFolderName = dummyGraphsDataFolderName;
         this.dummyGraphsDataFilesNames = dummyGraphsDataFilesNames;
+
+        if (dummyTradesTimeframes == null || dummyTradesTimeframes.isEmpty()) {
+            dummyTradesTimeframes = new HashSet<>(List.of(
+                    Timeframe.SECOND,
+                    Timeframe.MINUTE,
+                    Timeframe.HALF_HOUR,
+                    Timeframe.HOUR,
+                    Timeframe.FOUR_HOUR,
+                    Timeframe.DAY,
+                    Timeframe.WEEK
+            ));
+        }
+
+        this.dummyTradesTimeframes = dummyTradesTimeframes;
         this.printTasksHistory = printTasksHistory;
         this.reportLog = "";
 
@@ -243,7 +259,7 @@ public class Automation implements Runnable {
         if (coreData == null
                 || !Check.notNullNotEmpty(coreData.getGraphs())
                 || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
-            log.error("Could not run dummy trades: core data are missing.");
+            log.error(DATA_MISSING_ERROR);
         } else {
 
             Optional<Graph> graph = coreData.getGraphs().stream().findAny();
@@ -260,23 +276,57 @@ public class Automation implements Runnable {
         if (coreData == null
                 || !Check.notNullNotEmpty(coreData.getGraphs())
                 || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
-            log.error("Could not run dummy trades: core data are missing.");
+            log.error(DATA_MISSING_ERROR);
         } else {
 
-            ProgressBar pb = new ProgressBar("Processing trades...", coreData.getGraphs().size());
+            ProgressBar pb = new ProgressBar("Processing randomized trades...", dummyTradesTimeframes.size());
 
             pb.start();
 
             for (Graph graph : coreData.getGraphs()) {
-                reportLog = dtm.launchDummyTrades(graph, coreData, true, reportLog);
 
-                pb.step();
+                if (dummyTradesTimeframes.contains(graph.getTimeframe())) {
+                    reportLog = dtm.launchDummyTrades(graph, coreData, true, reportLog);
+                    pb.step();
+                }
+
             }
             pb.stop();
         }
     }
 
     private void runRandomizedDummyTradesOnDummyGraphs() {
+        runRandomizedDummyTrades(cloneCoreDataWithDummyGraphs());
+    }
+
+    private void runDeterministicDummyTradesOnDummyGraphs() {
+        runDeterministicDummyTrades(cloneCoreDataWithDummyGraphs());
+    }
+
+    private void runDeterministicDummyTrades(CoreData coreData) {
+        if (coreData == null
+                || !Check.notNullNotEmpty(coreData.getGraphs())
+                || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
+            log.error(DATA_MISSING_ERROR);
+        } else {
+
+            ProgressBar pb = new ProgressBar("Processing deterministic trades...", dummyTradesTimeframes.size());
+
+            pb.start();
+
+            for (Graph graph : coreData.getGraphs()) {
+
+                if (dummyTradesTimeframes.contains(graph.getTimeframe())) {
+                    reportLog = dtm.launchDummyTrades(graph, coreData, false, reportLog);
+                    pb.step();
+                }
+
+            }
+            pb.stop();
+        }
+    }
+
+    private @NonNull CoreData cloneCoreDataWithDummyGraphs() {
         CoreData dummyGraphsData = new CoreData();
 
         dummyGraphsData.copy(coreData);
@@ -284,12 +334,7 @@ public class Automation implements Runnable {
         dataService.loadGraphs(dummyGraphsData, dummyGraphsDataFolderName, dummyGraphsDataFilesNames);
         dataService.createGraphsForMissingTimeframes(dummyGraphsData);
 
-        runRandomizedDummyTrades(dummyGraphsData);
-    }
-
-    private void runDeterministicDummyTradesOnDummyGraphs() {
-
-
+        return dummyGraphsData;
     }
 
     private synchronized void writeDummyTradesReports() {

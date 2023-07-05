@@ -5,22 +5,27 @@ import lombok.Data;
 @Data
 public class TradingSettings {
 
-    private final int rewardToRiskRatio;
-    private final int riskPercentage;
-    private final float priceVariationThreshold;
-    private final int priceVariationMultiplier;
-    private final SL_TP_Strategy slTpStrategy;
+    private int rewardToRiskRatio;
+    private int riskPercentage;
+    private float priceVariationThreshold;
+    private int priceVariationMultiplier;
+    private SL_TP_Strategy slTpStrategy;
+    private double feePercentage;
+    private double defaultAccountBalance;
 
     public TradingSettings(int rewardToRiskRatio,
                            int riskPercentage,
                            float priceVariationThreshold,
                            int priceVariationMultiplier,
-                           SL_TP_Strategy slTpStrategy) {
+                           SL_TP_Strategy slTpStrategy,
+                           double feePercentage) {
         this.rewardToRiskRatio = rewardToRiskRatio;
         this.riskPercentage = riskPercentage;
         this.priceVariationThreshold = priceVariationThreshold;
         this.priceVariationMultiplier = priceVariationMultiplier;
         this.slTpStrategy = slTpStrategy;
+        this.feePercentage = feePercentage;
+        this.defaultAccountBalance = 100;
     }
 
     public enum SL_TP_Strategy {
@@ -29,7 +34,8 @@ public class TradingSettings {
         BASIC_RR,
         EQUAL,
         SL_NO_TP,
-        TP_NO_SL
+        TP_NO_SL,
+        SL_IS_2X_TP
     }
 
 }

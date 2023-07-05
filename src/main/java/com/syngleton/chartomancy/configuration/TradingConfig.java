@@ -13,8 +13,9 @@ public class TradingConfig {
 
     private static final int DEFAULT_REWARD_TO_RISK_RATIO = 3;
     private static final int DEFAULT_RISK_PERCENTAGE = 2;
-    private static final float DEFAULT_TRADING_PRICE_VARIATION_THRESHOLD = 0;
+    private static final float DEFAULT_TRADING_PRICE_VARIATION_THRESHOLD = 1;
     private static final TradingSettings.SL_TP_Strategy DEFAULT_SL_TP_STRATEGY = TradingSettings.SL_TP_Strategy.BASIC_RR;
+    private static final double MAX_FEE_PERCENTAGE = 5;
 
     @Value("${reward_to_risk_ratio:0}")
     private int rewardToRiskRatio;
@@ -26,6 +27,8 @@ public class TradingConfig {
     private int priceVariationMultiplier;
     @Value("${SL_TP_Strategy:VOID}")
     private TradingSettings.SL_TP_Strategy slTpStrategy;
+    @Value("${fee_percentage:0.075}")
+    private double feePercentage;
 
     @Bean
     TradingSettings tradingSettings() {
@@ -34,6 +37,7 @@ public class TradingConfig {
         riskPercentage = riskPercentage <= 0 ? DEFAULT_RISK_PERCENTAGE : riskPercentage;
         tradingPriceVariationThreshold = tradingPriceVariationThreshold <= 0 ? DEFAULT_TRADING_PRICE_VARIATION_THRESHOLD : tradingPriceVariationThreshold;
         slTpStrategy = slTpStrategy == TradingSettings.SL_TP_Strategy.VOID ? DEFAULT_SL_TP_STRATEGY : slTpStrategy;
+        feePercentage = Format.streamline(feePercentage, 0, MAX_FEE_PERCENTAGE);
 
         rewardToRiskRatio = Format.streamline(abs(rewardToRiskRatio), 1, 10);
         tradingPriceVariationThreshold = Format.streamline(abs(tradingPriceVariationThreshold), 0, 100);
@@ -45,7 +49,8 @@ public class TradingConfig {
                 riskPercentage,
                 tradingPriceVariationThreshold,
                 priceVariationMultiplier,
-                slTpStrategy
+                slTpStrategy,
+                feePercentage
         );
     }
 }

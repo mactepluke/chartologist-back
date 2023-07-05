@@ -3,15 +3,21 @@ package com.syngleton.chartomancy.service.misc;
 import com.syngleton.chartomancy.automation.Automation;
 import com.syngleton.chartomancy.controller.devtools.DataController;
 import com.syngleton.chartomancy.controller.devtools.PatternController;
+import com.syngleton.chartomancy.daemons.MailingDaemon;
 import com.syngleton.chartomancy.data.CoreData;
+import com.syngleton.chartomancy.data.MailingList;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.service.domain.DataService;
 import com.syngleton.chartomancy.service.domain.PatternService;
 import com.syngleton.chartomancy.service.domain.TradingService;
+import com.syngleton.chartomancy.service.enduser.EmailService;
+import com.syngleton.chartomancy.service.enduser.TradingRequestManager;
 import com.syngleton.chartomancy.view.InteractiveShell;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class LaunchService {
@@ -40,6 +46,8 @@ public class LaunchService {
     private int expectedBalanceX;
     @Value("${dummy_trades_max_trades:1000}")
     private int maxTrades;
+    @Value("#{'${dummy_trades_timeframes}'.split(',')}")
+    private Set<Timeframe> dummyTradesTimeframes;
     @Value("${write_dummy_trades_reports:false}")
     private boolean writeDummyTradeReports;
     @Value("${print_tasks_history:false}")
@@ -72,11 +80,17 @@ public class LaunchService {
                 minimumBalance,
                 expectedBalanceX,
                 maxTrades,
+                dummyTradesTimeframes,
                 writeDummyTradeReports,
                 dummyGraphsDataFolderName,
                 dummyGraphsDataFilesNames,
                 printTasksHistory));
         automation.start();
+    }
+
+    public void launchMailingDaemon(MailingList mailingList, TradingRequestManager tradingRequestManager, EmailService emailService) {
+        Thread mailingDaemon = new Thread(new MailingDaemon(mailingList, tradingRequestManager, emailService));
+        mailingDaemon.start();
     }
 
 }

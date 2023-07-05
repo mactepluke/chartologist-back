@@ -19,6 +19,7 @@ import java.util.List;
 
 import static com.syngleton.chartomancy.util.Format.setIfZero;
 import static com.syngleton.chartomancy.util.Format.streamline;
+import static java.lang.Math.round;
 import static org.apache.commons.collections4.ListUtils.partition;
 
 @Log4j2
@@ -145,6 +146,22 @@ public final class PatternFactory {
                     .length(streamline(initialParams.getGraph().getTimeframe().scope * 6, minPatternLength, maxPatternLength))
                     .granularity(defaultGranularity)
                     .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, minScope, maxScope));
+            case HALF_LENGTH -> paramsInput = paramsInput
+                    .length(defaultPatternLength)
+                    .granularity(defaultGranularity)
+                    .scope(round(defaultPatternLength / (float) 2));
+            case EQUAL_LENGTH -> paramsInput = paramsInput
+                    .length(defaultPatternLength)
+                    .granularity(defaultGranularity)
+                    .scope(defaultPatternLength);
+            case THIRD_LENGTH -> paramsInput = paramsInput
+                    .length(defaultPatternLength)
+                    .granularity(defaultGranularity)
+                    .scope(round(defaultPatternLength / (float) 3));
+            case TWO_THIRDS_LENGTH -> paramsInput = paramsInput
+                    .length(defaultPatternLength)
+                    .granularity(defaultGranularity)
+                    .scope(round(2 * defaultPatternLength / (float) 3));
             case MINIMIZE -> paramsInput = paramsInput
                     .length(minPatternLength)
                     .granularity(minGranularity)

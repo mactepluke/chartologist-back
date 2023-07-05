@@ -2,6 +2,7 @@ package com.syngleton.chartomancy.service.domain;
 
 import com.syngleton.chartomancy.analytics.Analyzer;
 import com.syngleton.chartomancy.data.CoreData;
+import com.syngleton.chartomancy.exceptions.InvalidParametersException;
 import com.syngleton.chartomancy.factory.CandleFactory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import com.syngleton.chartomancy.model.charting.candles.IntCandle;
@@ -19,7 +20,9 @@ import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
 import com.syngleton.chartomancy.util.Triad;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.Contract;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +35,6 @@ import static java.lang.Math.abs;
 @Service
 public class TradingService {
 
-    private static final double DEFAULT_FEE = 0.075;
     private final Analyzer analyzer;
     private final CandleFactory candleFactory;
     @Getter
@@ -115,7 +117,7 @@ public class TradingService {
                     openingPrice,
                     tpAndSlAndSize.first(),
                     tpAndSlAndSize.second(),
-                    DEFAULT_FEE,
+                    tradingSettings.getFeePercentage(),
                     false
             );
 
@@ -137,7 +139,8 @@ public class TradingService {
                 && tradingAccount.getBalance() > 0;
     }
 
-    private Triad<Integer, Float, Float> findMostProfitableMomentAndPriceAndStopLoss(Graph graph, CoreData coreData, int tradeOpenCandle, int maxDuration) {
+    @Contract("_, _, _, _ -> new")
+    private @NonNull Triad<Integer, Float, Float> findMostProfitableMomentAndPriceAndStopLoss(@NonNull Graph graph, @NonNull CoreData coreData, int tradeOpenCandle, int maxDuration) {
 
         int mostProfitableMoment = 0;
         float mostProfitablePrice = 0;
@@ -191,7 +194,7 @@ public class TradingService {
         return new Triad<>(mostProfitableMoment, mostProfitablePrice, stopLoss);
     }
 
-    private float filterPriceVariation(float priceVariation, TradingSettings settings) {
+    private float filterPriceVariation(float priceVariation, @NonNull TradingSettings settings) {
         if (abs(priceVariation) < settings.getPriceVariationThreshold()) {
             priceVariation = 0;
         }
@@ -211,7 +214,8 @@ public class TradingService {
         return mostCurrentPrice;
     }
 
-    private Triad<Float, Float, Double> defineTpAndSlAndSize(double balance, float openingPrice, float priceVariation, TradingSettings settings) {
+    @Contract("_, _, _, _ -> new")
+    private @NonNull Triad<Float, Float, Double> defineTpAndSlAndSize(double balance, float openingPrice, float priceVariation, @NonNull TradingSettings settings) {
 
         float takeProfit;
         float stopLoss;
@@ -240,16 +244,22 @@ public class TradingService {
                 stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) / 100);
                 size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
-            default -> {
+            case SL_IS_2X_TP -> {
+                takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
+                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) * 2 / 100);
+                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+            }
+            case BASIC_RR -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
                 stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / settings.getRewardToRiskRatio()) / 100);
                 size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
+            default -> throw new InvalidParametersException("SL_TP_Strategy is unspecified.");
         }
         return new Triad<>(takeProfit, stopLoss, size);
     }
 
-    private float predictPriceVariationForScope(Graph graph, PatternBox patternBox, int tradeOpenCandle, int scope) {
+    private float predictPriceVariationForScope(Graph graph, @NonNull PatternBox patternBox, int tradeOpenCandle, int scope) {
 
         List<Pattern> patterns = patternBox.getPatterns().get(scope);
         float pricePrediction = 0;
@@ -296,6 +306,9 @@ public class TradingService {
                 } else {
                     completeShortTradeOnLimitsHit(candle, trade, account);
                 }
+                if (trade.getStatus() != TradeStatus.OPENED) {
+                    break;
+                }
             }
             if (trade.getStatus() == TradeStatus.OPENED) {
                 completeExpiredTrade(candles, trade, account);
@@ -304,19 +317,19 @@ public class TradingService {
         }
     }
 
-    private void completeLongTradeOnLimitsHit(FloatCandle candle, Trade trade, Account account) {
+    private void completeLongTradeOnLimitsHit(@NonNull FloatCandle candle, @NonNull Trade trade, Account account) {
         if (candle.low() < trade.getStopLoss() && trade.getStatus() == TradeStatus.OPENED) {
             trade.close(candle.dateTime(), trade.getStopLoss(), TradeStatus.STOP_LOSS_HIT);
             account.debit(trade.getPnL());
         }
-        if (candle.high() > trade.getTakeProfit() && trade.getStatus() == TradeStatus.OPENED) {
+        if (candle.high() > trade.getTakeProfit() && trade.getStatus() == TradeStatus.OPENED && trade.getTakeProfit() != 0) {
             trade.close(candle.dateTime(), trade.getTakeProfit(), TradeStatus.TAKE_PROFIT_HIT);
             account.credit(trade.getPnL());
         }
     }
 
-    private void completeShortTradeOnLimitsHit(FloatCandle candle, Trade trade, Account account) {
-        if (candle.high() > trade.getStopLoss() && trade.getStatus() == TradeStatus.OPENED) {
+    private void completeShortTradeOnLimitsHit(@NonNull FloatCandle candle, @NonNull Trade trade, Account account) {
+        if (candle.high() > trade.getStopLoss() && trade.getStatus() == TradeStatus.OPENED && trade.getStopLoss() != 0) {
             trade.close(candle.dateTime(), trade.getStopLoss(), TradeStatus.STOP_LOSS_HIT);
             account.debit(trade.getPnL());
         }
@@ -326,7 +339,7 @@ public class TradingService {
         }
     }
 
-    private void completeExpiredTrade(List<FloatCandle> candles, Trade trade, Account account) {
+    private void completeExpiredTrade(@NonNull List<FloatCandle> candles, @NonNull Trade trade, Account account) {
         FloatCandle lastCandle = candles.get(candles.size() - 1);
         trade.close(lastCandle.dateTime(), lastCandle.close(), TradeStatus.EXPIRED);
 

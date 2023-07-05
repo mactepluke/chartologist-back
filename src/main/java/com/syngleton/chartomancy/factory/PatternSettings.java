@@ -1,6 +1,6 @@
 package com.syngleton.chartomancy.factory;
 
-import com.syngleton.chartomancy.dto.PatternSettingsDTO;
+import com.syngleton.chartomancy.dto.internal.PatternSettingsDTO;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
 import com.syngleton.chartomancy.model.charting.misc.PatternType;
 import lombok.Getter;
@@ -49,6 +49,7 @@ public final class PatternSettings {
         HALF_LENGTH,
         EQUAL_LENGTH,
         THIRD_LENGTH,
+        TWO_THIRDS_LENGTH,
         BYPASS_SAFETY_CHECK,
         TEST
     }

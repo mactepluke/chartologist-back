@@ -1,6 +1,7 @@
 package com.syngleton.chartomancy.service.domain;
 
 import com.syngleton.chartomancy.data.CoreData;
+import com.syngleton.chartomancy.exceptions.InvalidParametersException;
 import com.syngleton.chartomancy.factory.GraphFactory;
 import com.syngleton.chartomancy.model.charting.candles.FloatCandle;
 import com.syngleton.chartomancy.model.charting.misc.Graph;
@@ -11,7 +12,9 @@ import com.syngleton.chartomancy.model.charting.patterns.light.LightPredictivePa
 import com.syngleton.chartomancy.model.charting.patterns.light.LightTradingPattern;
 import com.syngleton.chartomancy.model.charting.patterns.pixelated.PredictivePattern;
 import com.syngleton.chartomancy.model.charting.patterns.pixelated.TradingPattern;
+import com.syngleton.chartomancy.service.api.ExternalDataSourceService;
 import com.syngleton.chartomancy.service.misc.CSVFormat;
+import com.syngleton.chartomancy.service.misc.ExternalDataSource;
 import com.syngleton.chartomancy.service.misc.PurgeOption;
 import com.syngleton.chartomancy.util.Check;
 import com.syngleton.chartomancy.util.Format;
@@ -19,7 +22,6 @@ import com.syngleton.chartomancy.util.datatabletool.DataTableTool;
 import com.syngleton.chartomancy.util.datatabletool.PrintableDataTable;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
-import me.tongfei.progressbar.ProgressBar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -34,12 +36,28 @@ public class DataService {
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final String DEFAULT_SERIALIZED_DATA_FILE_NAME = "./core_data/data.ser";
     private final GraphFactory graphFactory;
+    private final ExternalDataSourceService cryptoCompareService;
     @Value("${reading_attempts:3}")
     private int readingAttempts;
+    @Value("${external_data_source}")
+    private ExternalDataSource externalDataSource;
 
     @Autowired
-    public DataService(GraphFactory graphFactory) {
+    public DataService(GraphFactory graphFactory,
+                       ExternalDataSourceService cryptoCompareService) {
         this.graphFactory = graphFactory;
+        this.cryptoCompareService = cryptoCompareService;
+    }
+
+    public void setExternalDataSource(ExternalDataSource externalDataSource) {
+        this.externalDataSource = externalDataSource;
+    }
+
+    public ExternalDataSourceService getExternalDataSourceService() {
+        if (Objects.requireNonNull(externalDataSource) == ExternalDataSource.CRYPTO_COMPARE) {
+            return cryptoCompareService;
+        }
+        throw new InvalidParametersException("Data source is missing: check 'external_data_source' in properties file and make sure it is set.");
     }
 
     public boolean writeCsvFile(String fileName, PrintableDataTable content) {
@@ -142,12 +160,14 @@ public class DataService {
 
     public boolean loadCoreDataWithName(CoreData coreData, String dataFileName) {
 
+        log.info("> Loading core data from file...");
         CoreData readData;
         try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(dataFileName))) {
             readData = (CoreData) is.readObject();
 
             if (readData != null) {
                 coreData.copy(readData);
+                log.info("> Loaded core data successfully.");
                 return true;
             }
         } catch (Exception e) {
@@ -177,10 +197,6 @@ public class DataService {
 
         if ((coreData != null) && Check.notNullNotEmpty(coreData.getPatternBoxes())) {
 
-            ProgressBar pb = new ProgressBar("Generating trading data...", coreData.getPatternBoxes().size());
-
-            pb.start();
-
             for (PatternBox patternBox : coreData.getPatternBoxes()) {
 
                 Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
@@ -195,10 +211,8 @@ public class DataService {
                 if (Check.notNullNotEmpty(anyPatternList) && !tradingPatterns.isEmpty() && anyPatternList.get(0) != null) {
                     tradingData.add(new PatternBox(anyPatternList.get(0), tradingPatterns));
                 }
-                pb.step();
             }
             coreData.pushTradingPatternData(tradingData);
-            pb.stop();
         }
         return !tradingData.isEmpty();
     }

@@ -18,13 +18,16 @@ import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.Contract;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static java.lang.Math.round;
 
 @Log4j2
 public class DummyTradesManager {
     private static final String NEW_LINE = System.getProperty("line.separator");
-    private static final int MAX_BLANK_TRADE_MULTIPLIER = 10;
+    private static final int MAX_BLANK_TRADE_MULTIPLIER = 1;
     private final double initialBalance;
     private final double minimumBalance;
     private final int expectedBalanceX;
@@ -76,8 +79,8 @@ public class DummyTradesManager {
 
             int blankTradesCount;
 
-            blankTradesCount = randomized ? generateAndProcessAdvancedRandomTrades(graph, account, maxScope, patternLength)
-                    : generateAndProcessAdvancedDeterministicTrades(graph, account, maxScope, patternLength);
+            blankTradesCount = randomized ? generateAndProcessRandomTrades(graph, account, maxScope, patternLength)
+                    : generateAndProcessDeterministicTrades(graph, account, maxScope, patternLength);
 
 
             String result = checkAccount(account);
@@ -101,7 +104,7 @@ public class DummyTradesManager {
 
             DataSettings settings = coreData.getTradingPatternSettings();
 
-            String fileName = account.getName() + "_" + graph.getName() + "_" + Format.toFileNameCompatibleDateTime(LocalDateTime.now()) + "_" + result;
+            String fileName = Format.toFileNameCompatibleDateTime(LocalDateTime.now()) + "_" + account.getName() + "_" + graph.getName() + "_" + "_" + result;
 
             addDummyTradeEntry(getNewTradesSummaryEntry(
                     settings,
@@ -127,18 +130,16 @@ public class DummyTradesManager {
         return reportLog;
     }
 
-    //TODO Implement this method
-    private int generateAndProcessAdvancedDeterministicTrades(Graph graph, TradingAccount account, int maxScope, int patternLength) {
-
-        return 0;
-    }
-
-    private int generateAndProcessAdvancedRandomTrades(Graph graph, TradingAccount account, int maxScope, int patternLength) {
+    private int generateAndProcessRandomTrades(@NonNull Graph graph, TradingAccount account, int maxScope, int patternLength) {
 
         int blankTradesCount = 0;
+        int tradeOpenCandle;
+        int bound = graph.getFloatCandles().size() - maxScope - patternLength - 1;
 
         do {
-            Trade trade = generateAndProcessAdvancedRandomTrade(graph, account, maxScope, patternLength);
+            tradeOpenCandle = ThreadLocalRandom.current().nextInt(Math.max(bound, 1)) + patternLength;
+
+            Trade trade = generateAndProcessTrade(graph, account, maxScope, tradeOpenCandle);
 
             if (trade != null && trade.getStatus() == TradeStatus.BLANK) {
                 blankTradesCount++;
@@ -151,6 +152,51 @@ public class DummyTradesManager {
                 && account.getBalance() < initialBalance * expectedBalanceX);
 
         return blankTradesCount;
+    }
+
+    private int generateAndProcessDeterministicTrades(@NonNull Graph graph, @NonNull TradingAccount account, int maxScope, int patternLength) {
+
+        int blankTradesCount = 0;
+        int tradeOpenCandle = patternLength;
+        int bound = graph.getFloatCandles().size() - maxScope;
+
+        while (!account.isLiquidated()
+                && account.getBalance() > minimumBalance
+                && account.getBalance() < initialBalance * expectedBalanceX
+                && tradeOpenCandle < bound) {
+
+            Trade trade = generateAndProcessTrade(graph, account, maxScope, tradeOpenCandle);
+
+            if (trade != null) {
+                if (trade.getStatus() == TradeStatus.BLANK) {
+                    blankTradesCount++;
+                    tradeOpenCandle++;
+                } else {
+                    tradeOpenCandle = tradeOpenCandle + (round((trade.getCloseDateTime().toEpochSecond(ZoneOffset.UTC) - trade.getOpenDateTime().toEpochSecond(ZoneOffset.UTC))
+                            / (float) trade.getTimeframe().durationInSeconds) + 1);
+                }
+            }
+        }
+        return blankTradesCount;
+    }
+
+    private Trade generateAndProcessTrade(@NonNull Graph graph, TradingAccount account, int maxScope, int tradeOpenCandle) {
+
+        Trade trade = tradingService.generateParameterizedTrade(
+                account,
+                graph,
+                coreData,
+                tradeOpenCandle
+        );
+        if (trade != null && trade.getStatus() == TradeStatus.OPENED) {
+
+            tradingService.processTradeOnCompletedCandles(
+                    trade,
+                    account,
+                    graph.getFloatCandles().subList(tradeOpenCandle, tradeOpenCandle + maxScope)
+            );
+        }
+        return trade;
     }
 
     @Contract("_, _, _, _, _, _, _, _, _, _, _, _, _, _ -> new")
@@ -225,14 +271,14 @@ public class DummyTradesManager {
         );
     }
 
-    private String generateTradesReport(@NonNull TradingAccount account,
-                                        String result,
-                                        long longCount,
-                                        long shortCount,
-                                        long blankTradesCount,
-                                        float usefulToUselessTradesRatio,
-                                        double totalDuration,
-                                        double annualizedReturnPercentage) {
+    private @NonNull String generateTradesReport(@NonNull TradingAccount account,
+                                                 String result,
+                                                 long longCount,
+                                                 long shortCount,
+                                                 long blankTradesCount,
+                                                 float usefulToUselessTradesRatio,
+                                                 double totalDuration,
+                                                 double annualizedReturnPercentage) {
 
         String cur = account.getCurrency();
 
@@ -245,7 +291,7 @@ public class DummyTradesManager {
                         "Number of longs: " + longCount + NEW_LINE +
                         "Number of shorts: " + shortCount + NEW_LINE +
                         "Number of useless trades: " + blankTradesCount + NEW_LINE +
-                        "Used / Useless trade ratio: " + usefulToUselessTradesRatio + NEW_LINE +
+                        "Used to Useless trade ratio: " + usefulToUselessTradesRatio + NEW_LINE +
                         "Initial balance: " + cur + " " + initialBalance + NEW_LINE +
                         "Target balance amount: " + cur + " " + (initialBalance * expectedBalanceX) + NEW_LINE +
                         "Final Account Balance: " + cur + " " + account.getBalance() + NEW_LINE +
@@ -270,30 +316,9 @@ public class DummyTradesManager {
         return result;
     }
 
-    private Trade generateAndProcessAdvancedRandomTrade(@NonNull Graph graph, TradingAccount account, int maxScope, int patternLength) {
-        int bound = graph.getFloatCandles().size() - maxScope - patternLength - 1;
-        int tradeOpenCandle = ThreadLocalRandom.current().nextInt(Math.max(bound, 1)) + patternLength;
-
-        Trade trade = tradingService.generateParameterizedTrade(
-                account,
-                graph,
-                coreData,
-                tradeOpenCandle
-        );
-
-        if (trade != null && trade.getStatus() == TradeStatus.OPENED) {
-
-            tradingService.processTradeOnCompletedCandles(
-                    trade,
-                    account,
-                    graph.getFloatCandles().subList(tradeOpenCandle + 1, tradeOpenCandle + maxScope)
-            );
-        }
-        return trade;
-    }
 
     private void addDummyTradeEntry(DummyTradesSummaryEntry dummyTradesSummaryEntry) {
         this.dummyTradesSummaryTable.getPrintableData().add(dummyTradesSummaryEntry);
     }
-    
+
 }

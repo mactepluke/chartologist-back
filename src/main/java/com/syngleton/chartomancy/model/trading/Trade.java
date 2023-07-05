@@ -135,7 +135,11 @@ public class Trade extends ChartObject implements PrintableData {
             this.status = TradeStatus.UNFUNDED;
         }
 
-        if (getStopLoss() == getTakeProfit() || getTakeProfit() == openingPrice || getStopLoss() == openingPrice) {
+        if (getTakeProfit() == openingPrice
+                || getStopLoss() == openingPrice
+                || getExpectedProfit() < 0
+        ) {
+            log.debug("take profit={}, stop loss={}, expected profit={}", getTakeProfit(), getStopLoss(), getExpectedProfit());
             this.status = TradeStatus.BLANK;
         }
 
@@ -154,9 +158,15 @@ public class Trade extends ChartObject implements PrintableData {
         if (status == TradeStatus.OPENED || status == TradeStatus.LIMIT_ORDER) {
             stopLoss = Format.roundTwoDigits(stopLoss);
 
-            this.stopLoss = side ?
-                    Format.streamline(stopLoss, 0, openingPrice)
-                    : Format.streamline(stopLoss, openingPrice, Double.MAX_VALUE);
+            if (this.side && stopLoss > this.openingPrice) {
+                stopLoss = 0;
+            }
+
+            if (!this.side && stopLoss < this.openingPrice) {
+                stopLoss = 0;
+            }
+
+            this.stopLoss = stopLoss;
 
             this.lastUpdate = LocalDateTime.now();
         }
@@ -170,9 +180,15 @@ public class Trade extends ChartObject implements PrintableData {
         if (status == TradeStatus.OPENED || status == TradeStatus.LIMIT_ORDER) {
             takeProfit = Format.roundTwoDigits(takeProfit);
 
-            this.takeProfit = side ?
-                    Format.streamline(takeProfit, openingPrice, Double.MAX_VALUE)
-                    : Format.streamline(takeProfit, 0, openingPrice);
+            if (this.side && takeProfit < this.openingPrice) {
+                takeProfit = 0;
+            }
+
+            if (!this.side && takeProfit > this.openingPrice) {
+                takeProfit = 0;
+            }
+
+            this.takeProfit = takeProfit;
 
             this.lastUpdate = LocalDateTime.now();
         }
@@ -235,7 +251,7 @@ public class Trade extends ChartObject implements PrintableData {
                 ORDER_TYPE_NAME + "=" + (maker ? "MAKER" : "TAKER") + "}";
     }
 
-    private float getLeverage() {
+    public float getLeverage() {
         return (float) Format.roundNDigits((getSize() * openingPrice) / accountBalanceAtOpen, 3);
     }
 

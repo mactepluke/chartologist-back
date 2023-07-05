@@ -1,4 +1,4 @@
-package com.syngleton.chartomancy.dto;
+package com.syngleton.chartomancy.dto.internal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.syngleton.chartomancy.analytics.ComputationSettings;
