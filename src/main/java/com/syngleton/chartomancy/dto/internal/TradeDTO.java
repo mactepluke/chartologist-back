@@ -1,6 +1,7 @@
 package com.syngleton.chartomancy.dto.internal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.model.trading.Trade;
 import com.syngleton.chartomancy.model.trading.TradeStatus;
 
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 public record TradeDTO(
         @JsonProperty boolean blank,
+        @JsonProperty Timeframe timeframe,
         @JsonProperty double size,
         @JsonProperty String side,
         @JsonProperty double openingPrice,
@@ -23,6 +25,7 @@ public record TradeDTO(
     public TradeDTO(Trade trade) {
         this(
                 trade.getStatus() == TradeStatus.BLANK,
+                trade.getTimeframe(),
                 trade.getSize(),
                 trade.isSide() ? "LONG" : "SHORT",
                 trade.getOpeningPrice(),

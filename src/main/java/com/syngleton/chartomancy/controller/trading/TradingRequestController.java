@@ -32,6 +32,30 @@ public class TradingRequestController {
         this.tradingRequestManager = tradingRequestManager;
     }
 
+    //http://localhost:8080/trading/getbesttrade?symbol=<symbol>
+    @GetMapping("/getbesttrade")
+    public ResponseEntity<TradeDTO> getBestTrade(
+            @RequestParam Symbol symbol
+    ) {
+        HttpStatus status;
+        TradeDTO tradeDTO = null;
+
+        if (symbol == null
+                || symbol == Symbol.UNDEFINED) {
+            throw new InvalidParametersException("Undefined timeframe or symbol.");
+        }
+
+        Trade trade = tradingRequestManager.getCurrentBestTrade(symbol);
+
+        if (trade == null) {
+            status = NO_CONTENT;
+        } else {
+            tradeDTO = new TradeDTO(trade);
+            status = OK;
+        }
+        return new ResponseEntity<>(tradeDTO, status);
+    }
+
     //http://localhost:8080/trading/getbesttrade?symbol=<symbol>&timeframe=<timeframe>
     @GetMapping("/getbesttrade")
     public ResponseEntity<TradeDTO> getBestTrade(

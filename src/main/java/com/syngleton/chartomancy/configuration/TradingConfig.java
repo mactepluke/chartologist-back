@@ -1,5 +1,7 @@
 package com.syngleton.chartomancy.configuration;
 
+import com.syngleton.chartomancy.analytics.Analyzer;
+import com.syngleton.chartomancy.analytics.Smoothing;
 import com.syngleton.chartomancy.model.trading.TradingSettings;
 import com.syngleton.chartomancy.util.Format;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +15,7 @@ public class TradingConfig {
 
     private static final int DEFAULT_REWARD_TO_RISK_RATIO = 3;
     private static final int DEFAULT_RISK_PERCENTAGE = 2;
-    private static final float DEFAULT_TRADING_PRICE_VARIATION_THRESHOLD = 1;
+    private static final int DEFAULT_TRADING_PRICE_VARIATION_THRESHOLD = 1;
     private static final TradingSettings.SL_TP_Strategy DEFAULT_SL_TP_STRATEGY = TradingSettings.SL_TP_Strategy.BASIC_RR;
     private static final double MAX_FEE_PERCENTAGE = 5;
 
@@ -21,14 +23,22 @@ public class TradingConfig {
     private int rewardToRiskRatio;
     @Value("${risk_percentage:0}")
     private int riskPercentage;
-    @Value("${trading_price_variation_threshold:0}")
-    private float tradingPriceVariationThreshold;
     @Value("${price_variation_multiplier:1}")
     private int priceVariationMultiplier;
     @Value("${SL_TP_Strategy:VOID}")
     private TradingSettings.SL_TP_Strategy slTpStrategy;
     @Value("${fee_percentage:0.075}")
     private double feePercentage;
+    @Value("${trading_match_score_smoothing:NONE}")
+    private Smoothing tradingMatchScoreSmoothing;
+    @Value("${trading_match_score_threshold:0}")
+    private int tradingMatchScoreThreshold;
+    @Value("${trading_price_variation_threshold:0}")
+    private int tradingPriceVariationThreshold;
+    @Value("${trading_extrapolate_price_variation:false}")
+    private boolean tradingExtrapolatePriceVariation;
+    @Value("${trading_extrapolate_match_score:false}")
+    private boolean tradingExtrapolateMatchScore;
 
     @Bean
     TradingSettings tradingSettings() {
@@ -53,4 +63,14 @@ public class TradingConfig {
                 feePercentage
         );
     }
+
+    @Bean
+    Analyzer tradingAnalyzer() {
+        return new Analyzer(tradingMatchScoreSmoothing,
+                tradingMatchScoreThreshold,
+                tradingPriceVariationThreshold,
+                tradingExtrapolatePriceVariation,
+                tradingExtrapolateMatchScore);
+    }
+
 }

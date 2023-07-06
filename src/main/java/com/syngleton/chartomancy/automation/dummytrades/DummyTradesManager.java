@@ -135,6 +135,7 @@ public class DummyTradesManager {
         int blankTradesCount = 0;
         int tradeOpenCandle;
         int bound = graph.getFloatCandles().size() - maxScope - patternLength - 1;
+        boolean liquidated = false;
 
         do {
             tradeOpenCandle = ThreadLocalRandom.current().nextInt(Math.max(bound, 1)) + patternLength;
@@ -145,9 +146,14 @@ public class DummyTradesManager {
                 blankTradesCount++;
             }
 
+            if (trade != null && trade.getStatus() == TradeStatus.UNFUNDED) {
+                liquidated = true;
+            }
+
         } while (blankTradesCount < MAX_BLANK_TRADE_MULTIPLIER * maxTrades
                 && account.getNumberOfTrades() < maxTrades
                 && !account.isLiquidated()
+                && !liquidated
                 && account.getBalance() > minimumBalance
                 && account.getBalance() < initialBalance * expectedBalanceX);
 
@@ -159,11 +165,13 @@ public class DummyTradesManager {
         int blankTradesCount = 0;
         int tradeOpenCandle = patternLength;
         int bound = graph.getFloatCandles().size() - maxScope;
+        boolean liquidated = false;
 
         while (!account.isLiquidated()
                 && account.getBalance() > minimumBalance
                 && account.getBalance() < initialBalance * expectedBalanceX
-                && tradeOpenCandle < bound) {
+                && tradeOpenCandle < bound
+                && !liquidated) {
 
             Trade trade = generateAndProcessTrade(graph, account, maxScope, tradeOpenCandle);
 
@@ -171,6 +179,8 @@ public class DummyTradesManager {
                 if (trade.getStatus() == TradeStatus.BLANK) {
                     blankTradesCount++;
                     tradeOpenCandle++;
+                } else if (trade.getStatus() == TradeStatus.UNFUNDED) {
+                    liquidated = true;
                 } else {
                     tradeOpenCandle = tradeOpenCandle + (round((trade.getCloseDateTime().toEpochSecond(ZoneOffset.UTC) - trade.getOpenDateTime().toEpochSecond(ZoneOffset.UTC))
                             / (float) trade.getTimeframe().durationInSeconds) + 1);
@@ -188,6 +198,7 @@ public class DummyTradesManager {
                 coreData,
                 tradeOpenCandle
         );
+
         if (trade != null && trade.getStatus() == TradeStatus.OPENED) {
 
             tradingService.processTradeOnCompletedCandles(

@@ -41,10 +41,10 @@ public class TradingService {
     private final TradingSettings tradingSettings;
 
     @Autowired
-    public TradingService(Analyzer analyzer,
+    public TradingService(Analyzer tradingAnalyzer,
                           CandleFactory candleFactory,
                           TradingSettings tradingSettings) {
-        this.analyzer = analyzer;
+        this.analyzer = tradingAnalyzer;
         this.candleFactory = candleFactory;
         this.tradingSettings = tradingSettings;
     }
@@ -227,7 +227,7 @@ public class TradingService {
             case NONE -> {
                 takeProfit = 0;
                 stopLoss = 0;
-                size = ((balance * settings.getRiskPercentage()) / 100) / openingPrice;
+                size = balance / openingPrice;
             }
             case SL_NO_TP -> {
                 takeProfit = 0;
@@ -237,7 +237,7 @@ public class TradingService {
             case TP_NO_SL -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
                 stopLoss = 0;
-                size = ((balance * settings.getRiskPercentage()) / 100) / openingPrice;
+                size = balance / openingPrice;
             }
             case EQUAL -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
