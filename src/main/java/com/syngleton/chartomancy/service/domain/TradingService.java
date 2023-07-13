@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.Math.abs;
 
@@ -35,6 +36,7 @@ import static java.lang.Math.abs;
 @Service
 public class TradingService {
 
+    @Getter
     private final Analyzer analyzer;
     private final CandleFactory candleFactory;
     @Getter
@@ -105,6 +107,12 @@ public class TradingService {
                 return Trade.blank();
             }
 
+            int maxScope = 0;
+            Optional<PatternBox> tradingPatternBox = coreData.getTradingPatternBox(graph.getSymbol(), graph.getTimeframe());
+            if (tradingPatternBox.isPresent()) {
+                maxScope = tradingPatternBox.get().getMaxScope() - 1;
+            }
+
             trade = new Trade(
                     graph.getName(),
                     graph.getTimeframe(),
@@ -112,7 +120,7 @@ public class TradingService {
                     tradingAccount,
                     graph.getFloatCandles().get(tradeOpenCandle).dateTime(),
                     tpAndSlAndSize.third(),
-                    graph.getFloatCandles().get(tradeOpenCandle).dateTime().plusSeconds(mostProfitableMoment * graph.getTimeframe().durationInSeconds),
+                    graph.getFloatCandles().get(tradeOpenCandle).dateTime().plusSeconds(maxScope * graph.getTimeframe().durationInSeconds),
                     side,
                     openingPrice,
                     tpAndSlAndSize.first(),
@@ -227,7 +235,7 @@ public class TradingService {
             case NONE -> {
                 takeProfit = 0;
                 stopLoss = 0;
-                size = balance / openingPrice;
+                size = ((balance * settings.getRiskPercentage()) / 100) / openingPrice;
             }
             case SL_NO_TP -> {
                 takeProfit = 0;

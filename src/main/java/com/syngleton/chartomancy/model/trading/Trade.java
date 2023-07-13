@@ -229,10 +229,9 @@ public class Trade extends ChartObject implements PrintableData {
 
         double expectedProfit = 0;
 
-        if (!(side && takeProfit == 0)) {
+        if (takeProfit != 0) {
             expectedProfit = abs(takeProfit - openingPrice) * size - getFeeAmount();
         }
-
         return Format.roundTwoDigits(expectedProfit);
     }
 

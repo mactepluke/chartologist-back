@@ -3,15 +3,11 @@ package com.syngleton.chartomancy.service.misc;
 import com.syngleton.chartomancy.automation.Automation;
 import com.syngleton.chartomancy.controller.devtools.DataController;
 import com.syngleton.chartomancy.controller.devtools.PatternController;
-import com.syngleton.chartomancy.daemons.MailingDaemon;
 import com.syngleton.chartomancy.data.CoreData;
-import com.syngleton.chartomancy.data.MailingList;
 import com.syngleton.chartomancy.model.charting.misc.Timeframe;
 import com.syngleton.chartomancy.service.domain.DataService;
 import com.syngleton.chartomancy.service.domain.PatternService;
 import com.syngleton.chartomancy.service.domain.TradingService;
-import com.syngleton.chartomancy.service.enduser.EmailService;
-import com.syngleton.chartomancy.service.enduser.TradingRequestManager;
 import com.syngleton.chartomancy.view.InteractiveShell;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -86,11 +82,6 @@ public class LaunchService {
                 dummyGraphsDataFilesNames,
                 printTasksHistory));
         automation.start();
-    }
-
-    public void launchMailingDaemon(MailingList mailingList, TradingRequestManager tradingRequestManager, EmailService emailService) {
-        Thread mailingDaemon = new Thread(new MailingDaemon(mailingList, tradingRequestManager, emailService));
-        mailingDaemon.start();
     }
 
 }

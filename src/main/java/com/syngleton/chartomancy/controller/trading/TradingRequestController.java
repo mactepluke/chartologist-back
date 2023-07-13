@@ -56,9 +56,9 @@ public class TradingRequestController {
         return new ResponseEntity<>(tradeDTO, status);
     }
 
-    //http://localhost:8080/trading/getbesttrade?symbol=<symbol>&timeframe=<timeframe>
-    @GetMapping("/getbesttrade")
-    public ResponseEntity<TradeDTO> getBestTrade(
+    //http://localhost:8080/trading/getbesttradefortimeframe?symbol=<symbol>&timeframe=<timeframe>
+    @GetMapping("/getbesttradefortimeframe")
+    public ResponseEntity<TradeDTO> getBestTradeForTimeframe(
             @RequestParam Symbol symbol,
             @RequestParam Timeframe timeframe
     ) {

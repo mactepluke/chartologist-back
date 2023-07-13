@@ -27,9 +27,13 @@ public class DummyTradesSummaryTable implements PrintableDataTable {
     private static final String FULL_SCOPE = "Full Scope";
     private static final String PATTERN_LENGTH = "Pattern Length";
     private static final String PATTERN_GRANULARITY = "Pattern Granularity";
+    private static final String TRADING_MATCH_SCORE_SMOOTHING = "Trading Match Score Smoothing";
+    private static final String TRADING_MATCH_SCORE_THRESHOLD = "Trading Match Score Threshold";
+    private static final String TRADING_PRICE_VAR_THRESHOLD = "Trading Price Variation Threshold";
+    private static final String TRADING_EXTRAPOLATE_PRICE_VAR = "Trading Extrapolate Price Variation";
+    private static final String TRADING_EXTRAPOLATE_MATCH_SCORE = "Trading Extrapolate Match Score";
     private static final String RR_RATIO = "Reward to Risk ratio";
     private static final String RISK_PERCENTAGE = "Risk Percentage";
-    private static final String TRADING_PRICE_VAR_THRESHOLD = "Trading Price Variation Threshold";
     private static final String PRICE_VAR_MULTIPLIER = "Price Variation Multiplier";
     private static final String SL_TP_STRATEGY = "SL_TP Strategy";
     private static final String MAX_TRADES = "Max Trades";
@@ -92,9 +96,13 @@ public class DummyTradesSummaryTable implements PrintableDataTable {
                 FULL_SCOPE,
                 PATTERN_LENGTH,
                 PATTERN_GRANULARITY,
+                TRADING_MATCH_SCORE_SMOOTHING,
+                TRADING_MATCH_SCORE_THRESHOLD,
+                TRADING_PRICE_VAR_THRESHOLD,
+                TRADING_EXTRAPOLATE_PRICE_VAR,
+                TRADING_EXTRAPOLATE_MATCH_SCORE,
                 RR_RATIO,
                 RISK_PERCENTAGE,
-                TRADING_PRICE_VAR_THRESHOLD,
                 PRICE_VAR_MULTIPLIER,
                 SL_TP_STRATEGY,
                 MAX_TRADES,
