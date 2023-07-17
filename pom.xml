@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.syngleton</groupId>
-    <artifactId>chartomancy</artifactId>
+    <artifactId>chartomancer</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>chartomancy</name>
-    <description>chartomancy</description>
+    <name>chartomancer</name>
+    <description>chartomancer</description>
     <properties>
         <java.version>19</java.version>
     </properties>
