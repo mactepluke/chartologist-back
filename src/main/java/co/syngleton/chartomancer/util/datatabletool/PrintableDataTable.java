@@ -7,7 +7,7 @@ public interface PrintableDataTable {
     /**
      * This method checks if the PrintableDataTable is structure in a way that allows it to be exploited.
      * It is used by the PDT class, but can also be used any time checks must be performed, to throw an exception, etc.
-     * If not overriden
+     * If not overridden
      *
      * @param table is the PrintableDataTable to check for integrity.
      * @return true if the table can be used to generate data, or false if it is empty or broken.
