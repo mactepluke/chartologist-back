@@ -1,9 +1,9 @@
 package co.syngleton.chartomancer.factory;
 
+import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
 import co.syngleton.chartomancer.model.charting.misc.Graph;
 import co.syngleton.chartomancer.model.charting.misc.Symbol;
 import co.syngleton.chartomancer.model.charting.misc.Timeframe;
-import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
 import co.syngleton.chartomancer.service.misc.CSVFormat;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
@@ -23,7 +23,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 @Log4j2
 @Component
@@ -45,7 +47,7 @@ public final class GraphFactory {
             do {
                 line = reader.readLine();
                 if (line != null && !line.equals("")) {
-                    String[] values = line.split(csvFormat.delimiter);
+                    String[] values = line.trim().split(csvFormat.delimiter);
                     FloatCandle floatCandle = new FloatCandle(
                             LocalDateTime.ofEpochSecond(Long.parseLong(
                                             Format.cutString(values[csvFormat.unixPosition], 10)),
@@ -93,7 +95,6 @@ public final class GraphFactory {
     private @NonNull List<FloatCandle> repairMissingCandles(@NonNull List<FloatCandle> floatCandles) {
 
         List<FloatCandle> repairedFloatCandles = new ArrayList<>();
-        Timeframe timeframe = getTimeframe(floatCandles);
 
         for (var i = 0; i < floatCandles.size() - 1; i++) {
 
@@ -101,15 +102,15 @@ public final class GraphFactory {
 
             repairedFloatCandles.add(floatCandles.get(i));
 
-            while ((i + j + 1 < floatCandles.size())
-                    &&
-                    (floatCandles.get(i + j + 1).dateTime().toEpochSecond(ZoneOffset.UTC) >
-                            (floatCandles.get(i + j).dateTime().toEpochSecond(ZoneOffset.UTC) + timeframe.durationInSeconds))
+            int position = i + j;
+            int nextPosition = position + 1;
+
+            while ((nextPosition + 1 < floatCandles.size()) && nextCandleIsMissing(floatCandles, position)
             ) {
 
                 FloatCandle missingCandle = new FloatCandle(
                         LocalDateTime.ofEpochSecond(floatCandles.get(i).dateTime().toEpochSecond(
-                                ZoneOffset.UTC) + (j + 1) * timeframe.durationInSeconds, 0, ZoneOffset.UTC),
+                                ZoneOffset.UTC) + (j + 1) * getTimeframe(floatCandles).durationInSeconds, 0, ZoneOffset.UTC),
                         floatCandles.get(i).close(),
                         floatCandles.get(i).high(),
                         floatCandles.get(i).low(),
@@ -124,6 +125,13 @@ public final class GraphFactory {
         repairedFloatCandles.add(floatCandles.get(floatCandles.size() - 1));
 
         return repairedFloatCandles;
+    }
+
+    private boolean nextCandleIsMissing(List<FloatCandle> floatCandles, int position) {
+        int nextPosition = position + 1;
+
+        return floatCandles.get(nextPosition).dateTime().toEpochSecond(ZoneOffset.UTC) >
+                (floatCandles.get(position).dateTime().toEpochSecond(ZoneOffset.UTC) + getTimeframe(floatCandles).durationInSeconds);
     }
 
     private Timeframe getTimeframe(@NonNull List<FloatCandle> floatCandles) {
