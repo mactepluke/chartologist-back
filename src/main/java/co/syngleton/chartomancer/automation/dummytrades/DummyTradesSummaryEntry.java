@@ -1,12 +1,12 @@
 package co.syngleton.chartomancer.automation.dummytrades;
 
+import co.syngleton.chartomancer.analytics.ComputationSettings;
 import co.syngleton.chartomancer.analytics.ComputationType;
 import co.syngleton.chartomancer.analytics.Smoothing;
+import co.syngleton.chartomancer.factory.PatternSettings;
 import co.syngleton.chartomancer.model.charting.misc.PatternType;
 import co.syngleton.chartomancer.model.charting.misc.Symbol;
 import co.syngleton.chartomancer.model.charting.misc.Timeframe;
-import co.syngleton.chartomancer.analytics.ComputationSettings;
-import co.syngleton.chartomancer.factory.PatternSettings;
 import co.syngleton.chartomancer.model.trading.ProfitFactor;
 import co.syngleton.chartomancer.model.trading.TradingSettings;
 import co.syngleton.chartomancer.util.datatabletool.PrintableData;
@@ -44,7 +44,7 @@ public record DummyTradesSummaryEntry(String dummyTradesDateTime,
                                       boolean tradingExtrapolateMatchScore,
                                       double riskToRewardRatio,
                                       int riskPercentage,
-                                      int priceVariationMultiplier,
+                                      float priceVariationMultiplier,
                                       TradingSettings.SL_TP_Strategy slTpStrategy,
                                       int maxTrades,
                                       String tradesResult,

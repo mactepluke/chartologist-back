@@ -24,7 +24,7 @@ public class TradingConfig {
     @Value("${risk_percentage:0}")
     private int riskPercentage;
     @Value("${price_variation_multiplier:1}")
-    private int priceVariationMultiplier;
+    private float priceVariationMultiplier;
     @Value("${SL_TP_Strategy:VOID}")
     private TradingSettings.SL_TP_Strategy slTpStrategy;
     @Value("${fee_percentage:0.075}")

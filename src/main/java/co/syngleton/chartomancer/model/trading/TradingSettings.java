@@ -8,7 +8,7 @@ public class TradingSettings {
     private int rewardToRiskRatio;
     private int riskPercentage;
     private float priceVariationThreshold;
-    private int priceVariationMultiplier;
+    private float priceVariationMultiplier;
     private SL_TP_Strategy slTpStrategy;
     private double feePercentage;
     private double defaultAccountBalance;
@@ -16,7 +16,7 @@ public class TradingSettings {
     public TradingSettings(int rewardToRiskRatio,
                            int riskPercentage,
                            float priceVariationThreshold,
-                           int priceVariationMultiplier,
+                           float priceVariationMultiplier,
                            SL_TP_Strategy slTpStrategy,
                            double feePercentage) {
         this.rewardToRiskRatio = rewardToRiskRatio;
