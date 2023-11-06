@@ -5,10 +5,15 @@ import co.syngleton.chartomancer.factory.CandleFactory;
 import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
 import co.syngleton.chartomancer.model.charting.candles.IntCandle;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
@@ -22,14 +27,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
+@ActiveProfiles("test")
 class AnalyserTests {
 
     private static final int GRANULARITY = 100;
-    private Analyzer analyzer;
-
     @Autowired
     CandleFactory candleFactory;
-
+    private Analyzer analyzer;
     private List<IntCandle> intCandles;
 
     @BeforeAll
@@ -53,7 +57,7 @@ class AnalyserTests {
 
     @Test
     @DisplayName("[UNIT] Calculates match score")
-    void calculateMatchScoreBasicTest()   {
+    void calculateMatchScoreBasicTest() {
 
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2)));
@@ -65,7 +69,7 @@ class AnalyserTests {
 
     @Test
     @DisplayName("[UNIT] Calculates match score")
-    void calculateMatchScoreExtrapolatedTest()   {
+    void calculateMatchScoreExtrapolatedTest() {
 
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2)));

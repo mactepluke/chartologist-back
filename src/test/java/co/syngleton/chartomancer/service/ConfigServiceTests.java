@@ -1,43 +1,49 @@
 package co.syngleton.chartomancer.service;
 
-import co.syngleton.chartomancer.analytics.ComputationType;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.analytics.ComputationSettings;
+import co.syngleton.chartomancer.analytics.ComputationType;
+import co.syngleton.chartomancer.configuration.DataConfigTest;
+import co.syngleton.chartomancer.data.CoreData;
 import co.syngleton.chartomancer.factory.PatternSettings;
 import co.syngleton.chartomancer.model.charting.misc.PatternType;
 import co.syngleton.chartomancer.service.misc.ConfigService;
 import co.syngleton.chartomancer.service.misc.PurgeOption;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
+@ActiveProfiles("test")
 class ConfigServiceTests {
 
-    @Value("${test_data_folder_name}")
-    private String testDataFolderName;
-    @Value("#{'${test_data_files_names}'.split(',')}")
-    private List<String> testDataFilesNames;
-
     private final static int NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES = 2;
-
     @Autowired
     CoreData coreData;
     @Autowired
     ConfigService configService;
+    @Value("${test_data_folder_name}")
+    private String testDataFolderName;
+    @Value("#{'${test_data_files_names}'.split(',')}")
+    private List<String> testDataFilesNames;
 
     @BeforeAll
     void setUp() {

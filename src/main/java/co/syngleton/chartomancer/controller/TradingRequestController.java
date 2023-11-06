@@ -1,9 +1,9 @@
-package co.syngleton.chartomancer.controller.trading;
+package co.syngleton.chartomancer.controller;
 
 import co.syngleton.chartomancer.dto.internal.TradeDTO;
+import co.syngleton.chartomancer.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.model.charting.misc.Symbol;
 import co.syngleton.chartomancer.model.charting.misc.Timeframe;
-import co.syngleton.chartomancer.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.model.trading.Trade;
 import co.syngleton.chartomancer.service.enduser.TradingRequestManager;
 import lombok.extern.log4j.Log4j2;

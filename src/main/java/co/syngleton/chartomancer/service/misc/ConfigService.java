@@ -170,16 +170,19 @@ public class ConfigService {
         stopWatch.start();
 
         //LOADING GRAPHS
+        log.debug("Loading graphs from folder {} with files {}...", dataFolderName, dataFilesNames);
         if (dataService.loadGraphs(coreData, dataFolderName, dataFilesNames)) {
             log.info("Created {} graph(s)", coreData.getGraphs().size());
         } else {
             log.error("Application could not initialize its data: no files of correct format could be read.");
         }
         //CREATING GRAPHS FOR MISSING TIMEFRAMES
+        log.debug("Creating graphs for missing timeframes...");
         log.info("Created graphs for missing timeframes: {}",
                 Check.executeIfTrue(createGraphsForMissingTimeframes, dataService::createGraphsForMissingTimeframes, coreData));
 
         //CREATING PREDICTIVE PATTERNS
+        log.info("Creating pattern boxes...");
         PatternSettings.Builder patternSettingsInput = new PatternSettings.Builder()
                 .patternType(computablePatternType)
                 .autoconfig(patternSettingsAutoconfig);
@@ -197,6 +200,7 @@ public class ConfigService {
             log.error("Application could not initialize its data: no pattern boxes could be created.");
         }
         //COMPUTING PREDICTIVE PATTERNS
+        log.debug("Computing pattern boxes...");
         ComputationSettings.Builder computationSettingsInput = new ComputationSettings.Builder()
                 .computationType(computationType)
                 .autoconfig(computationSettings);

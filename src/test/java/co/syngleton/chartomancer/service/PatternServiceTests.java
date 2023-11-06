@@ -1,36 +1,40 @@
 package co.syngleton.chartomancer.service;
 
+import co.syngleton.chartomancer.analytics.ComputationSettings;
 import co.syngleton.chartomancer.analytics.ComputationType;
-import co.syngleton.chartomancer.data.CoreData;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
-import co.syngleton.chartomancer.analytics.ComputationSettings;
+import co.syngleton.chartomancer.data.CoreData;
 import co.syngleton.chartomancer.factory.PatternSettings;
-import co.syngleton.chartomancer.model.charting.patterns.Pattern;
 import co.syngleton.chartomancer.model.charting.misc.PatternType;
+import co.syngleton.chartomancer.model.charting.patterns.Pattern;
 import co.syngleton.chartomancer.service.domain.DataService;
 import co.syngleton.chartomancer.service.domain.PatternService;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
+@ActiveProfiles("test")
 class PatternServiceTests {
-
-    private List<Pattern> patterns;
-    private PatternSettings.Builder testPatternSettingsBuilder;
-    private ComputationSettings.Builder testComputationSettingsBuilder;
 
     @Autowired
     PatternService patternService;
@@ -40,6 +44,9 @@ class PatternServiceTests {
     CoreData coreData;
     @Autowired
     DataService dataService;
+    private List<Pattern> patterns;
+    private PatternSettings.Builder testPatternSettingsBuilder;
+    private ComputationSettings.Builder testComputationSettingsBuilder;
 
     @BeforeAll
     void setUp() {

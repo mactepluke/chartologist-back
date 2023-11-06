@@ -1,8 +1,8 @@
 package co.syngleton.chartomancer.service;
 
-import co.syngleton.chartomancer.data.CoreData;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
+import co.syngleton.chartomancer.data.CoreData;
 import co.syngleton.chartomancer.model.charting.misc.PatternBox;
 import co.syngleton.chartomancer.model.charting.patterns.Pattern;
 import co.syngleton.chartomancer.model.charting.patterns.pixelated.BasicPattern;
@@ -10,11 +10,17 @@ import co.syngleton.chartomancer.model.charting.patterns.pixelated.PredictivePat
 import co.syngleton.chartomancer.service.domain.DataService;
 import co.syngleton.chartomancer.service.misc.PurgeOption;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
@@ -30,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
+@ActiveProfiles("test")
 class DataServiceTests {
 
     @Autowired

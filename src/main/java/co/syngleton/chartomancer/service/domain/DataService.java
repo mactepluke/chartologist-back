@@ -1,13 +1,12 @@
 package co.syngleton.chartomancer.service.domain;
 
 import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.model.charting.misc.Graph;
-import co.syngleton.chartomancer.model.charting.misc.PatternBox;
-import co.syngleton.chartomancer.model.charting.misc.Timeframe;
-import co.syngleton.chartomancer.service.misc.ExternalDataSource;
 import co.syngleton.chartomancer.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.factory.GraphFactory;
 import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
+import co.syngleton.chartomancer.model.charting.misc.Graph;
+import co.syngleton.chartomancer.model.charting.misc.PatternBox;
+import co.syngleton.chartomancer.model.charting.misc.Timeframe;
 import co.syngleton.chartomancer.model.charting.patterns.Pattern;
 import co.syngleton.chartomancer.model.charting.patterns.light.LightPredictivePattern;
 import co.syngleton.chartomancer.model.charting.patterns.light.LightTradingPattern;
@@ -15,6 +14,7 @@ import co.syngleton.chartomancer.model.charting.patterns.pixelated.PredictivePat
 import co.syngleton.chartomancer.model.charting.patterns.pixelated.TradingPattern;
 import co.syngleton.chartomancer.service.api.ExternalDataSourceService;
 import co.syngleton.chartomancer.service.misc.CSVFormat;
+import co.syngleton.chartomancer.service.misc.ExternalDataSource;
 import co.syngleton.chartomancer.service.misc.PurgeOption;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
@@ -26,8 +26,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 @Log4j2
 @Service

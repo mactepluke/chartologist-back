@@ -3,12 +3,9 @@ package co.syngleton.chartomancer.service.misc;
 import co.syngleton.chartomancer.automation.Automation;
 import co.syngleton.chartomancer.data.CoreData;
 import co.syngleton.chartomancer.model.charting.misc.Timeframe;
+import co.syngleton.chartomancer.service.domain.DataService;
 import co.syngleton.chartomancer.service.domain.PatternService;
 import co.syngleton.chartomancer.service.domain.TradingService;
-import co.syngleton.chartomancer.controller.devtools.DataController;
-import co.syngleton.chartomancer.controller.devtools.PatternController;
-import co.syngleton.chartomancer.service.domain.DataService;
-import co.syngleton.chartomancer.view.InteractiveShell;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -48,14 +45,6 @@ public class LaunchService {
     private boolean writeDummyTradeReports;
     @Value("${print_tasks_history:false}")
     private boolean printTasksHistory;
-
-    public boolean launchShell(DataController dataController,
-                               PatternController patternController,
-                               CoreData coreData) {
-        Thread interactiveShell = new Thread(new InteractiveShell(dataController, patternController, coreData));
-        interactiveShell.start();
-        return true;
-    }
 
     public void launchAutomation(CoreData coreData,
                                  DataService dataService,

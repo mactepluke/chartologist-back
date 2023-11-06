@@ -3,19 +3,24 @@ package co.syngleton.chartomancer.analytics;
 import co.syngleton.chartomancer.configuration.AnalyzerConfigTest;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.factory.CandleFactory;
+import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
+import co.syngleton.chartomancer.model.charting.candles.IntCandle;
 import co.syngleton.chartomancer.model.charting.misc.Graph;
 import co.syngleton.chartomancer.model.charting.misc.Symbol;
 import co.syngleton.chartomancer.model.charting.misc.Timeframe;
 import co.syngleton.chartomancer.model.charting.patterns.Pattern;
 import co.syngleton.chartomancer.model.charting.patterns.light.LightBasicPattern;
 import co.syngleton.chartomancer.model.charting.patterns.light.LightPredictivePattern;
-import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
-import co.syngleton.chartomancer.model.charting.candles.IntCandle;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
@@ -29,14 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = {DataConfigTest.class, AnalyzerConfigTest.class})
+@ActiveProfiles("test")
 class PatternComputerTests {
 
+    private static final int GRANULARITY = 100;
     @Autowired
     CandleFactory candleFactory;
     @Autowired
     PatternComputer patternComputer;
-
-    private static final int GRANULARITY = 100;
     private LocalDateTime candleDate;
     private List<FloatCandle> floatCandles;
     private List<IntCandle> intCandles;
@@ -55,8 +60,7 @@ class PatternComputerTests {
 
     @Test
     @DisplayName("[UNIT] Streamlines float to int candles")
-
-    void streamlineToIntCandlesTest()   {
+    void streamlineToIntCandlesTest() {
         FloatCandle floatCandle = new FloatCandle(candleDate, 20, 100, 0, 80, 20);
         floatCandles = new ArrayList<>(List.of(floatCandle));
 
