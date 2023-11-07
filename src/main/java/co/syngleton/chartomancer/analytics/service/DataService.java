@@ -1,5 +1,6 @@
 package co.syngleton.chartomancer.analytics.service;
 
+import co.syngleton.chartomancer.analytics.dao.CoreDataDAO;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.factory.GraphFactory;
 import co.syngleton.chartomancer.analytics.misc.CSVFormat;
@@ -23,16 +24,13 @@ import co.syngleton.chartomancer.signaling.service.ExternalDataSourceService;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,19 +45,21 @@ import java.util.TreeSet;
 public class DataService {
 
     private static final String NEW_LINE = System.getProperty("line.separator");
-    private static final String DEFAULT_SERIALIZED_DATA_FILE_NAME = "./core_data/data.ser";
+    private static final String DEFAULT_DATA_SOURCE_NAME = "./core_data/data.ser";
     private final GraphFactory graphFactory;
     private final ExternalDataSourceService cryptoCompareService;
+    private final CoreDataDAO coreDataDAO;
     @Value("${reading_attempts:3}")
     private int readingAttempts;
     @Value("${external_data_source}")
     private ExternalDataSource externalDataSource;
 
+    //TODO: add support for multiple data sources
     @Autowired
-    public DataService(GraphFactory graphFactory,
-                       ExternalDataSourceService cryptoCompareService) {
+    public DataService(GraphFactory graphFactory, ExternalDataSourceService cryptoCompareService, @Qualifier("serialized") CoreDataDAO coreDataDAO) {
         this.graphFactory = graphFactory;
         this.cryptoCompareService = cryptoCompareService;
+        this.coreDataDAO = coreDataDAO;
     }
 
     public void setExternalDataSource(ExternalDataSource externalDataSource) {
@@ -109,10 +109,7 @@ public class DataService {
 
         if (currentFormat != null) {
             graph = graphFactory.create(path, currentFormat);
-            log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
-                    graph.getName(),
-                    graph.getSymbol(),
-                    graph.getTimeframe());
+            log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
             return graph;
         } else {
             log.error("File format header not found (parsed the first {} lines without success). List of supported headers:", readingAttempts);
@@ -152,10 +149,7 @@ public class DataService {
     public boolean printGraph(Graph graph) {
 
         if (graph != null) {
-            log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***",
-                    graph.getName(),
-                    graph.getSymbol(),
-                    graph.getTimeframe());
+            log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
             int i = 1;
             for (FloatCandle floatCandle : graph.getFloatCandles()) {
                 log.info("{} -> {}", i++, floatCandle.toString());
@@ -168,40 +162,31 @@ public class DataService {
     }
 
     public boolean loadCoreData(CoreData coreData) {
-        return loadCoreDataWithName(coreData, DEFAULT_SERIALIZED_DATA_FILE_NAME);
+        return loadCoreDataWithName(coreData, DEFAULT_DATA_SOURCE_NAME);
     }
 
-    public boolean loadCoreDataWithName(CoreData coreData, String dataFileName) {
+    public boolean loadCoreDataWithName(CoreData coreData, String dataSourceName) {
 
-        log.info("> Loading core data from file...");
-        CoreData readData;
-        try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(dataFileName))) {
-            readData = (CoreData) is.readObject();
+        log.info("> Loading core data from: {}", "serialized");
 
-            if (readData != null) {
-                coreData.copy(readData);
-                log.info("> Loaded core data successfully.");
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        CoreData readData = coreDataDAO.loadCoreDataWithName(dataSourceName);
+
+        if (readData != null) {
+            coreData.copy(readData);
+            log.info("> Loaded core data successfully.");
+            return true;
         }
         return false;
     }
 
     public boolean saveCoreData(CoreData coreData) {
-        return saveCoreDataWithName(coreData, DEFAULT_SERIALIZED_DATA_FILE_NAME);
+        return saveCoreDataWithName(coreData, DEFAULT_DATA_SOURCE_NAME);
     }
 
     public boolean saveCoreDataWithName(CoreData coreData, String dataFileName) {
 
-        try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(dataFileName))) {
-            os.writeObject(coreData);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+        log.info("> Saving core data to: {}", "serialized");
+        return coreDataDAO.saveCoreDataWithName(coreData, dataFileName);
     }
 
     public boolean generateTradingData(CoreData coreData) {
@@ -287,18 +272,10 @@ public class DataService {
             Timeframe lowestTimeframe = Timeframe.UNKNOWN;
             Graph lowestTimeframeGraph = null;
 
-            Set<Timeframe> missingTimeframes = new TreeSet<>(List.of(
-                    Timeframe.SECOND,
-                    Timeframe.MINUTE,
-                    Timeframe.HALF_HOUR,
-                    Timeframe.HOUR,
-                    Timeframe.FOUR_HOUR,
-                    Timeframe.DAY,
-                    Timeframe.WEEK));
+            Set<Timeframe> missingTimeframes = new TreeSet<>(List.of(Timeframe.SECOND, Timeframe.MINUTE, Timeframe.HALF_HOUR, Timeframe.HOUR, Timeframe.FOUR_HOUR, Timeframe.DAY, Timeframe.WEEK));
 
             for (Graph graph : coreData.getGraphs()) {
-                if (lowestTimeframe == Timeframe.UNKNOWN
-                        || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds) {
+                if (lowestTimeframe == Timeframe.UNKNOWN || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds) {
                     lowestTimeframe = graph.getTimeframe();
                     lowestTimeframeGraph = graph;
                 }
@@ -321,13 +298,7 @@ public class DataService {
 
         if (coreData != null) {
 
-            String coreDataToPrint =
-                    NEW_LINE +
-                            "*** CORE DATA ***" +
-                            generateGraphsToPrint(coreData.getGraphs()) +
-                            generatePatternBoxesToPrint(coreData.getPatternBoxes(), "PATTERN") +
-                            generatePatternBoxesToPrint(coreData.getTradingPatternBoxes(), "TRADING PATTERN") +
-                            generateMemoryUsageToPrint();
+            String coreDataToPrint = NEW_LINE + "*** CORE DATA ***" + generateGraphsToPrint(coreData.getGraphs()) + generatePatternBoxesToPrint(coreData.getPatternBoxes(), "PATTERN") + generatePatternBoxesToPrint(coreData.getTradingPatternBoxes(), "TRADING PATTERN") + generateMemoryUsageToPrint();
 
             log.info(coreDataToPrint);
             return true;
@@ -342,30 +313,12 @@ public class DataService {
         StringBuilder graphsBuilder = new StringBuilder();
 
         if (Check.notNullNotEmpty(graphs)) {
-            graphsBuilder
-                    .append(NEW_LINE)
-                    .append(graphs.size())
-                    .append(" GRAPH(S)")
-                    .append(NEW_LINE);
+            graphsBuilder.append(NEW_LINE).append(graphs.size()).append(" GRAPH(S)").append(NEW_LINE);
             for (Graph graph : graphs) {
-                graphsBuilder
-                        .append("-> ")
-                        .append(graph.getName())
-                        .append(", ")
-                        .append(graph.getSymbol())
-                        .append(", ")
-                        .append(graph.getTimeframe())
-                        .append(", ")
-                        .append(graph.getFloatCandles().size())
-                        .append(" candles")
-                        .append(NEW_LINE);
+                graphsBuilder.append("-> ").append(graph.getName()).append(", ").append(graph.getSymbol()).append(", ").append(graph.getTimeframe()).append(", ").append(graph.getFloatCandles().size()).append(" candles").append(NEW_LINE);
             }
         } else {
-            graphsBuilder
-                    .append(NEW_LINE)
-                    .append("0 GRAPH(S)")
-                    .append(NEW_LINE)
-                    .append("***");
+            graphsBuilder.append(NEW_LINE).append("0 GRAPH(S)").append(NEW_LINE).append("***");
         }
         return graphsBuilder.toString();
     }
@@ -375,13 +328,7 @@ public class DataService {
         StringBuilder patternBoxesBuilder = new StringBuilder();
 
         if (Check.notNullNotEmpty(patternBoxes)) {
-            patternBoxesBuilder
-                    .append(NEW_LINE)
-                    .append(patternBoxes.size())
-                    .append(" ")
-                    .append(nameOfContent)
-                    .append(" BOX(ES)")
-                    .append(NEW_LINE);
+            patternBoxesBuilder.append(NEW_LINE).append(patternBoxes.size()).append(" ").append(nameOfContent).append(" BOX(ES)").append(NEW_LINE);
             for (PatternBox patternBox : patternBoxes) {
 
                 for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
@@ -390,54 +337,21 @@ public class DataService {
 
                         Pattern anyPattern = patternBox.getPatterns().entrySet().iterator().next().getValue().get(0);
 
-                        patternBoxesBuilder
-                                .append("-> ")
-                                .append(entry.getValue().size())
-                                .append(" patterns, ")
-                                .append(patternBox.getSymbol())
-                                .append(", ")
-                                .append(patternBox.getTimeframe())
-                                .append(", pattern scope=")
-                                .append(entry.getKey())
-                                .append(", pattern type=")
-                                .append(anyPattern.getPatternType())
-                                .append(", pattern length=")
-                                .append(anyPattern.getLength())
-                                .append(", pattern granularity=")
-                                .append(anyPattern.getGranularity())
-                                .append(NEW_LINE);
+                        patternBoxesBuilder.append("-> ").append(entry.getValue().size()).append(" patterns, ").append(patternBox.getSymbol()).append(", ").append(patternBox.getTimeframe()).append(", pattern scope=").append(entry.getKey()).append(", pattern type=").append(anyPattern.getPatternType()).append(", pattern length=").append(anyPattern.getLength()).append(", pattern granularity=").append(anyPattern.getGranularity()).append(NEW_LINE);
                     }
 
                 }
-                patternBoxesBuilder
-                        .append("***")
-                        .append(NEW_LINE);
+                patternBoxesBuilder.append("***").append(NEW_LINE);
             }
         } else {
-            patternBoxesBuilder
-                    .append(NEW_LINE)
-                    .append("0")
-                    .append(" ")
-                    .append(nameOfContent)
-                    .append(" BOX(ES)")
-                    .append(NEW_LINE)
-                    .append("***");
+            patternBoxesBuilder.append(NEW_LINE).append("0").append(" ").append(nameOfContent).append(" BOX(ES)").append(NEW_LINE).append("***");
         }
         return patternBoxesBuilder.toString();
     }
 
     private @NonNull String generateMemoryUsageToPrint() {
 
-        return NEW_LINE +
-                "Current heap size (MB): " +
-                Format.roundAccordingly((float) Runtime.getRuntime().totalMemory() / 1000000) +
-                NEW_LINE +
-                "Max heap size (MB): " +
-                Format.roundAccordingly((float) Runtime.getRuntime().maxMemory() / 1000000) +
-                NEW_LINE +
-                "Free heap size (MB): " +
-                Format.roundAccordingly((float) Runtime.getRuntime().freeMemory() / 1000000) +
-                NEW_LINE;
+        return NEW_LINE + "Current heap size (MB): " + Format.roundAccordingly((float) Runtime.getRuntime().totalMemory() / 1000000) + NEW_LINE + "Max heap size (MB): " + Format.roundAccordingly((float) Runtime.getRuntime().maxMemory() / 1000000) + NEW_LINE + "Free heap size (MB): " + Format.roundAccordingly((float) Runtime.getRuntime().freeMemory() / 1000000) + NEW_LINE;
     }
 }
 

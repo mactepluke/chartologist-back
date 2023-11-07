@@ -123,7 +123,6 @@ class TradingServiceTests {
         assertEquals(3683, patternBox.getPatterns().get(12).size());
     }
 
-    //TODO: create a mock bean for tradingService
     @Test
     @DisplayName("[IT] Tests if dummy trades results are correct")
     void dummyTradesTest() {
