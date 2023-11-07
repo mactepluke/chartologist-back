@@ -1,16 +1,18 @@
 package co.syngleton.chartomancer.analytics;
 
+import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
+import co.syngleton.chartomancer.analytics.computation.PatternComputer;
 import co.syngleton.chartomancer.configuration.AnalyzerConfigTest;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.factory.CandleFactory;
-import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
-import co.syngleton.chartomancer.model.charting.candles.IntCandle;
-import co.syngleton.chartomancer.model.charting.misc.Graph;
-import co.syngleton.chartomancer.model.charting.misc.Symbol;
-import co.syngleton.chartomancer.model.charting.misc.Timeframe;
-import co.syngleton.chartomancer.model.charting.patterns.Pattern;
-import co.syngleton.chartomancer.model.charting.patterns.light.LightBasicPattern;
-import co.syngleton.chartomancer.model.charting.patterns.light.LightPredictivePattern;
+import co.syngleton.chartomancer.analytics.factory.CandleFactory;
+import co.syngleton.chartomancer.analytics.model.FloatCandle;
+import co.syngleton.chartomancer.analytics.model.IntCandle;
+import co.syngleton.chartomancer.analytics.model.Graph;
+import co.syngleton.chartomancer.analytics.model.Symbol;
+import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.analytics.model.BasicPattern;
+import co.syngleton.chartomancer.analytics.model.PredictivePattern;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -89,8 +91,8 @@ class PatternComputerTests {
 
         intCandles = candleFactory.streamlineToIntCandles(new ArrayList<>(List.of(floatCandle1)), GRANULARITY);
 
-        LightBasicPattern lightBasicPattern = new LightBasicPattern(intCandles, GRANULARITY, 1, Symbol.UNDEFINED, Timeframe.HOUR, candleDate);
-        LightPredictivePattern lightPredictivePattern = new LightPredictivePattern(lightBasicPattern, 1);
+        BasicPattern basicPattern = new BasicPattern(intCandles, GRANULARITY, 1, Symbol.UNDEFINED, Timeframe.HOUR, candleDate);
+        PredictivePattern lightPredictivePattern = new PredictivePattern(basicPattern, 1);
 
         List<Pattern> patterns = new ArrayList<>(List.of(lightPredictivePattern));
 
@@ -101,7 +103,7 @@ class PatternComputerTests {
                 .graph(graph)
                 .autoconfig(ComputationSettings.Autoconfig.TEST));
 
-        LightPredictivePattern resultPattern = (LightPredictivePattern) patterns.get(0);
+        PredictivePattern resultPattern = (PredictivePattern) patterns.get(0);
 
         //assertEquals(1, resultPattern.getComputationsHistory().get(0).computations());
         assertEquals(25, resultPattern.getPriceVariationPrediction());

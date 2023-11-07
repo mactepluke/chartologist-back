@@ -1,9 +1,11 @@
 package co.syngleton.chartomancer.analytics;
 
+import co.syngleton.chartomancer.analytics.computation.Analyzer;
+import co.syngleton.chartomancer.analytics.computation.Smoothing;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.factory.CandleFactory;
-import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
-import co.syngleton.chartomancer.model.charting.candles.IntCandle;
+import co.syngleton.chartomancer.analytics.factory.CandleFactory;
+import co.syngleton.chartomancer.analytics.model.FloatCandle;
+import co.syngleton.chartomancer.analytics.model.IntCandle;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

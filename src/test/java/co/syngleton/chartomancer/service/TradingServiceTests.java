@@ -1,17 +1,17 @@
 package co.syngleton.chartomancer.service;
 
-import co.syngleton.chartomancer.automation.dummytrades.DummyTradesManager;
-import co.syngleton.chartomancer.automation.dummytrades.DummyTradesSummaryTable;
+import co.syngleton.chartomancer.analytics.data.CoreData;
+import co.syngleton.chartomancer.analytics.misc.PurgeOption;
+import co.syngleton.chartomancer.analytics.model.Graph;
+import co.syngleton.chartomancer.analytics.model.PatternBox;
+import co.syngleton.chartomancer.analytics.model.Symbol;
+import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.analytics.service.DataService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.TradingServiceConfig;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.model.charting.misc.Graph;
-import co.syngleton.chartomancer.model.charting.misc.PatternBox;
-import co.syngleton.chartomancer.model.charting.misc.Symbol;
-import co.syngleton.chartomancer.model.charting.misc.Timeframe;
-import co.syngleton.chartomancer.service.domain.DataService;
-import co.syngleton.chartomancer.service.domain.TradingService;
-import co.syngleton.chartomancer.service.misc.PurgeOption;
+import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTradesManager;
+import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTradesSummaryTable;
+import co.syngleton.chartomancer.trading.service.TradingService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

@@ -1,10 +1,10 @@
 package co.syngleton.chartomancer.configuration;
 
-import co.syngleton.chartomancer.model.charting.misc.Graph;
-import co.syngleton.chartomancer.model.charting.misc.Symbol;
-import co.syngleton.chartomancer.model.charting.misc.Timeframe;
-import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
-import co.syngleton.chartomancer.util.Format;
+import co.syngleton.chartomancer.analytics.model.Graph;
+import co.syngleton.chartomancer.analytics.model.Symbol;
+import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.analytics.model.FloatCandle;
+import co.syngleton.chartomancer.global.tools.Format;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

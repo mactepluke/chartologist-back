@@ -1,14 +1,14 @@
 package co.syngleton.chartomancer.service;
 
+import co.syngleton.chartomancer.analytics.data.CoreData;
+import co.syngleton.chartomancer.analytics.misc.PurgeOption;
+import co.syngleton.chartomancer.analytics.model.BasicPattern;
+import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.analytics.model.PatternBox;
+import co.syngleton.chartomancer.analytics.model.PredictivePattern;
+import co.syngleton.chartomancer.analytics.service.DataService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.model.charting.misc.PatternBox;
-import co.syngleton.chartomancer.model.charting.patterns.Pattern;
-import co.syngleton.chartomancer.model.charting.patterns.pixelated.BasicPattern;
-import co.syngleton.chartomancer.model.charting.patterns.pixelated.PredictivePattern;
-import co.syngleton.chartomancer.service.domain.DataService;
-import co.syngleton.chartomancer.service.misc.PurgeOption;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

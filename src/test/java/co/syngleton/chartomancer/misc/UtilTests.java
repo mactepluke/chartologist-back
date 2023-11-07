@@ -1,8 +1,8 @@
 package co.syngleton.chartomancer.misc;
 
 import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.util.Calc;
-import co.syngleton.chartomancer.util.Format;
+import co.syngleton.chartomancer.global.tools.Calc;
+import co.syngleton.chartomancer.global.tools.Format;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

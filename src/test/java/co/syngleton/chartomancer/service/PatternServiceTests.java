@@ -1,15 +1,15 @@
 package co.syngleton.chartomancer.service;
 
-import co.syngleton.chartomancer.analytics.ComputationSettings;
-import co.syngleton.chartomancer.analytics.ComputationType;
+import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
+import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.factory.PatternSettings;
-import co.syngleton.chartomancer.model.charting.misc.PatternType;
-import co.syngleton.chartomancer.model.charting.patterns.Pattern;
-import co.syngleton.chartomancer.service.domain.DataService;
-import co.syngleton.chartomancer.service.domain.PatternService;
+import co.syngleton.chartomancer.analytics.data.CoreData;
+import co.syngleton.chartomancer.analytics.factory.PatternSettings;
+import co.syngleton.chartomancer.analytics.model.PatternType;
+import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.analytics.service.DataService;
+import co.syngleton.chartomancer.analytics.service.PatternService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -73,7 +73,7 @@ class PatternServiceTests {
     @DisplayName("[UNIT] Create basic patterns from mock graph")
     void createBasicPatternsTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.BASIC));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.BASIC_OBSOLETE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -83,7 +83,7 @@ class PatternServiceTests {
     @DisplayName("[UNIT] Create light basic patterns from mock graph")
     void createLightBasicPatternsTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.LIGHT_BASIC));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.BASIC));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -93,7 +93,7 @@ class PatternServiceTests {
     @DisplayName("[UNIT] Create predictive patterns from mock graph")
     void createPredictivePatternsTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE_OBSOLETE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -103,7 +103,7 @@ class PatternServiceTests {
     @DisplayName("[UNIT] Create light predictive patterns from mock graph")
     void createLightPredictivePatternsTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.LIGHT_PREDICTIVE));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -113,7 +113,7 @@ class PatternServiceTests {
     @DisplayName("[IT] Compute patterns from created predictive patterns")
     void computeBasicIterationTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE_OBSOLETE));
         patterns = patternService.computePatterns(testComputationSettingsBuilder
                 .patterns(patterns)
                 .computationType(ComputationType.BASIC_ITERATION)

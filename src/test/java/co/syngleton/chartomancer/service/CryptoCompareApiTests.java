@@ -1,11 +1,11 @@
 package co.syngleton.chartomancer.service;
 
+import co.syngleton.chartomancer.analytics.model.Graph;
+import co.syngleton.chartomancer.analytics.model.Symbol;
+import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.analytics.service.DataService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.model.charting.misc.Graph;
-import co.syngleton.chartomancer.model.charting.misc.Symbol;
-import co.syngleton.chartomancer.model.charting.misc.Timeframe;
-import co.syngleton.chartomancer.service.api.ExternalDataSourceService;
-import co.syngleton.chartomancer.service.domain.DataService;
+import co.syngleton.chartomancer.signaling.service.ExternalDataSourceService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
