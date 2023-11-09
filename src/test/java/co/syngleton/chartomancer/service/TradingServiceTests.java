@@ -79,13 +79,11 @@ class TradingServiceTests {
     private List<String> testDataFilesNames;
     @Value("#{'${test_dummy_graphs_data_files_names}'.split(',')}")
     private List<String> testDummyGraphsDataFilesNames;
-    @Value("${test_data_core_data_name}")
-    private String testDataCoreDataName;
 
     @BeforeAll
     void setUp() {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
-        dataService.loadCoreDataWithName(coreData, TEST_PATH + testDataFolderName + "/" + testDataCoreDataName);
+        dataService.loadCoreData(coreData);
         dataService.generateTradingData(coreData);
         dataService.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS);
         dataService.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);

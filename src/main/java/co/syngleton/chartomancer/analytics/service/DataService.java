@@ -21,11 +21,14 @@ import co.syngleton.chartomancer.global.tools.datatabletool.DataTableTool;
 import co.syngleton.chartomancer.global.tools.datatabletool.PrintableDataTable;
 import co.syngleton.chartomancer.signaling.misc.ExternalDataSource;
 import co.syngleton.chartomancer.signaling.service.ExternalDataSourceService;
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -42,24 +45,43 @@ import java.util.TreeSet;
 
 @Log4j2
 @Service
-public class DataService {
+public class DataService implements ApplicationContextAware {
 
     private static final String NEW_LINE = System.getProperty("line.separator");
-    private static final String DEFAULT_DATA_SOURCE_NAME = "./core_data/data.ser";
     private final GraphFactory graphFactory;
     private final ExternalDataSourceService cryptoCompareService;
-    private final CoreDataDAO coreDataDAO;
+    private final String dataSource;
+    private ApplicationContext applicationContext;
+    private CoreDataDAO coreDataDAO;
     @Value("${reading_attempts:3}")
     private int readingAttempts;
     @Value("${external_data_source}")
     private ExternalDataSource externalDataSource;
+    @Value("${data_source_name:data.ser}")
+    private String dataSourceName;
 
-    //TODO: add support for multiple data sources
     @Autowired
-    public DataService(GraphFactory graphFactory, ExternalDataSourceService cryptoCompareService, @Qualifier("serialized") CoreDataDAO coreDataDAO) {
+    public DataService(@Value("${data_source}") String dataSource,
+                       GraphFactory graphFactory,
+                       ExternalDataSourceService cryptoCompareService) {
         this.graphFactory = graphFactory;
         this.cryptoCompareService = cryptoCompareService;
-        this.coreDataDAO = coreDataDAO;
+        this.dataSource = dataSource;
+    }
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    @PostConstruct
+    public void init() {
+        log.debug("Using data source: {}", dataSource);
+        this.coreDataDAO = getCoreDataDAO(dataSource);
+    }
+
+    private CoreDataDAO getCoreDataDAO(String dataSource) {
+        return applicationContext.getBean(dataSource, CoreDataDAO.class);
     }
 
     public void setExternalDataSource(ExternalDataSource externalDataSource) {
@@ -162,7 +184,7 @@ public class DataService {
     }
 
     public boolean loadCoreData(CoreData coreData) {
-        return loadCoreDataWithName(coreData, DEFAULT_DATA_SOURCE_NAME);
+        return loadCoreDataWithName(coreData, dataSourceName);
     }
 
     public boolean loadCoreDataWithName(CoreData coreData, String dataSourceName) {
@@ -180,7 +202,7 @@ public class DataService {
     }
 
     public boolean saveCoreData(CoreData coreData) {
-        return saveCoreDataWithName(coreData, DEFAULT_DATA_SOURCE_NAME);
+        return saveCoreDataWithName(coreData, dataSourceName);
     }
 
     public boolean saveCoreDataWithName(CoreData coreData, String dataFileName) {
