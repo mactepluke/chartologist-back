@@ -2,9 +2,7 @@ package co.syngleton.chartomancer.analytics.computation;
 
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
-import co.syngleton.chartomancer.analytics.model.PixelatedCandle;
 import co.syngleton.chartomancer.analytics.model.IntPattern;
-import co.syngleton.chartomancer.analytics.model.PixelatedPattern;
 import co.syngleton.chartomancer.global.tools.Calc;
 import co.syngleton.chartomancer.global.tools.Format;
 import lombok.Getter;
@@ -13,7 +11,9 @@ import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
 
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 @Log4j2
 @ToString
@@ -40,18 +40,17 @@ public class Analyzer {
 
     public float calculatePriceVariation(List<FloatCandle> floatFollowingCandles, int scope) {
 
-        if (floatFollowingCandles.size() >= scope) {
-            FloatCandle firstCandle = floatFollowingCandles.get(0);
-            FloatCandle predictionCandle = floatFollowingCandles.get(scope - 1);
-
-            return filterPricePrediction(Calc.variationPercentage(firstCandle.open(), predictionCandle.close()));
-
-        } else {
+        if (floatFollowingCandles.size() < scope) {
             log.error("Unable to calculate price variation prediction : target candles size {} in smaller than scope {}",
                     floatFollowingCandles.size(),
                     scope);
             return 0;
         }
+
+        FloatCandle firstCandle = floatFollowingCandles.get(0);
+        FloatCandle predictionCandle = floatFollowingCandles.get(scope - 1);
+
+        return filterPricePrediction(Calc.variationPercentage(firstCandle.open(), predictionCandle.close()));
     }
 
     public float filterPricePrediction(float priceVariation) {
@@ -60,41 +59,14 @@ public class Analyzer {
             return 0;
         }
         if (extrapolatePriceVariation) {
-            priceVariation = Format.streamline(priceVariation + priceVariation * abs(priceVariation) / 100, -100, 100);
+            priceVariation = extrapolatePriceVariation(priceVariation);
         }
         return priceVariation;
     }
 
-    public int calculateMatchScore(PixelatedPattern pattern, List<PixelatedCandle> pixelatedCandlesToMatch) {
+    private float extrapolatePriceVariation(float priceVariation) {
 
-        int length = pattern.getLength();
-        int granularity = pattern.getGranularity();
-        int inkedPixels = 0;
-        int matchScore = 0;
-
-        if (length != pixelatedCandlesToMatch.size()) {
-            log.error("Pattern size does not match graph sample size.");
-            return 0;
-        }
-
-        for (var i = 0; i < length; i++) {
-
-            for (int j = 0; j < granularity; j++) {
-
-                byte patternPixel = pattern.getPixelatedCandles().get(i).candle()[j];
-
-                if (patternPixel != 0) {
-                    inkedPixels++;
-
-                    byte pixelatedCandlesToMatchPixel = pixelatedCandlesToMatch.get(i).candle()[j];
-
-                    if (pixelatedCandlesToMatchPixel != 0) {
-                        matchScore++;
-                    }
-                }
-            }
-        }
-        return Calc.positivePercentage(matchScore, inkedPixels);
+        return Format.streamline(priceVariation + priceVariation * abs(priceVariation) / 100, -100, 100);
     }
 
     public int calculateMatchScore(IntPattern pattern, List<IntCandle> intCandlesToMatch) {
@@ -115,19 +87,36 @@ public class Analyzer {
 
         for (var i = 0; i < length; i++) {
 
-            patternCandlesSurface = patternCandlesSurface + smooth(calculateCandleSurface(intCandles.get(i)), i);
+            IntCandle candle = intCandles.get(i);
+            IntCandle candleToMatch = intCandlesToMatch.get(i);
 
-            if (haveSameColor(intCandles.get(i), intCandlesToMatch.get(i))) {
+            patternCandlesSurface = patternCandlesSurface + smooth(calculateCandleSurface(candle), i);
+
+            if (haveSameColor(candle, candleToMatch)) {
+
+                double candleSurfaceOverlap = (double) calculateBodyOverlap(candle, candleToMatch) + calculateWickOverlap(candle, candleToMatch);
 
                 matchScore = matchScore +
-                        smooth(
-                                calculateBodyOverlap(intCandles.get(i), intCandlesToMatch.get(i))
-                                        + calculateWickOverlap(intCandles.get(i), intCandlesToMatch.get(i)),
-                                i
-                        );
+                        smooth(candleSurfaceOverlap, i);
             }
         }
         return filterMatchScore(Calc.positivePercentage(matchScore, patternCandlesSurface));
+    }
+
+    private float extrapolateMatchScore(float matchScore) {
+        return Format.streamline(matchScore + matchScore * (matchScore / 100f), 0, 100);
+    }
+
+    private int filterMatchScore(int matchScore) {
+
+        if (matchScore < matchScoreThreshold) {
+            return 0;
+        }
+
+        if (extrapolateMatchScore) {
+            matchScore = (int) extrapolateMatchScore(matchScore);
+        }
+        return matchScore;
     }
 
     private double smooth(double value, int step) {
@@ -171,42 +160,41 @@ public class Analyzer {
 
     private int calculateWickOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
 
-        if (intCandle.open() > intCandle.close()) {
-            return overlapAmount(
-                    intCandle.high(),
-                    intCandle.open(),
-                    intCandleToMatch.high(),
-                    intCandleToMatch.open())
-                    + overlapAmount(
-                    intCandle.close(),
-                    intCandle.low(),
-                    intCandleToMatch.close(),
-                    intCandleToMatch.low());
+        if (isRedCandle(intCandle)) {
+            return calculateRedCandleWickOverlap(intCandle, intCandleToMatch);
         } else {
-            return overlapAmount(
-                    intCandle.low(),
-                    intCandle.open(),
-                    intCandleToMatch.low(),
-                    intCandleToMatch.open())
-                    + overlapAmount(
-                    intCandle.close(),
-                    intCandle.high(),
-                    intCandleToMatch.close(),
-                    intCandleToMatch.high());
+            return calculateGreenCandleWickOverlap(intCandle, intCandleToMatch);
         }
     }
 
-    private int filterMatchScore(int matchScore) {
+    private boolean isRedCandle(IntCandle intCandle) {
+        return intCandle.open() > intCandle.close();
+    }
 
-        if (matchScore < matchScoreThreshold) {
-            return 0;
-        }
-        if (extrapolateMatchScore) {
+    private int calculateRedCandleWickOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
+        return overlapAmount(
+                intCandle.high(),
+                intCandle.open(),
+                intCandleToMatch.high(),
+                intCandleToMatch.open())
+                + overlapAmount(
+                intCandle.close(),
+                intCandle.low(),
+                intCandleToMatch.close(),
+                intCandleToMatch.low());
+    }
 
-            float adjustedMatchScore = matchScore * (matchScore / 100f) + (float) matchScore;
-            matchScore = Format.streamline((int) adjustedMatchScore, 0, 100);
-        }
-        return matchScore;
+    private int calculateGreenCandleWickOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
+        return overlapAmount(
+                intCandle.low(),
+                intCandle.open(),
+                intCandleToMatch.low(),
+                intCandleToMatch.open())
+                + overlapAmount(
+                intCandle.close(),
+                intCandle.high(),
+                intCandleToMatch.close(),
+                intCandleToMatch.high());
     }
 
     private int overlapAmount(int aStart, int aEnd, int bStart, int bEnd) {
