@@ -1,6 +1,5 @@
 package co.syngleton.chartomancer.analytics.computation;
 
-import co.syngleton.chartomancer.analytics.dto.ComputationSettingsDTO;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import lombok.Getter;
@@ -114,7 +113,7 @@ public class ComputationSettings {
             return this;
         }
 
-        public Builder map(ComputationSettingsDTO computationSettingsDTO) {
+        /*public Builder map(ComputationSettingsDTO computationSettingsDTO) {
 
             if (computationSettingsDTO != null) {
                 this.autoconfig = computationSettingsDTO.autoconfig() != null ? computationSettingsDTO.autoconfig() : this.autoconfig;
@@ -126,7 +125,7 @@ public class ComputationSettings {
                 this.minPredictivePricePredictionToKeep = computationSettingsDTO.minPredictivePricePredictionToKeep();
             }
             return this;
-        }
+        }*/
 
         public ComputationSettings build() {
             return new ComputationSettings(this);

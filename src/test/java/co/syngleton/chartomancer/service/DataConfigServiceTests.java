@@ -71,6 +71,7 @@ class DataConfigServiceTests {
                 false,
                 false,
                 false,
+                false,
                 PurgeOption.NO,
                 PatternSettings.Autoconfig.TEST,
                 ComputationSettings.Autoconfig.TEST,

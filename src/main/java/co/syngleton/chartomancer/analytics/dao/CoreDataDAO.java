@@ -4,8 +4,8 @@ import co.syngleton.chartomancer.analytics.data.CoreData;
 
 public interface CoreDataDAO {
 
-    CoreData loadCoreDataWithName(String dataSourceName);
+    CoreData loadCoreDataFrom(String dataSourceName);
 
-    boolean saveCoreDataWithName(CoreData coreData, String dataSourceName);
+    boolean saveCoreDataTo(CoreData coreData, String dataSourceName);
 
 }

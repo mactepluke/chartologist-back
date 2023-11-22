@@ -1,31 +1,24 @@
 package co.syngleton.chartomancer.analytics.factory;
 
-import co.syngleton.chartomancer.analytics.dto.PatternSettingsDTO;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.PatternType;
 import lombok.Getter;
 import lombok.ToString;
 
 @ToString
+@Getter
 public final class PatternSettings {
 
-    @Getter
     private final Autoconfig autoconfig;
     @ToString.Exclude
-    @Getter
     private final Graph graph;
-    @Getter
     private final PatternType patternType;
-    @Getter
     private final int granularity;
-    @Getter
     private final int length;
-    @Getter
     private final int scope;
-    @Getter
     private final boolean fullScope;
-    @Getter
     private final boolean atomicPartition;
+    /*private final Set<Timeframe> timeframes;*/
 
     private PatternSettings(Builder builder) {
         this.graph = builder.graph;
@@ -36,6 +29,7 @@ public final class PatternSettings {
         this.scope = builder.scope;
         this.fullScope = builder.fullScope;
         this.atomicPartition = builder.atomicPartition;
+        /*this.timeframes = builder.timeframes;*/
     }
 
     public enum Autoconfig {
@@ -63,6 +57,7 @@ public final class PatternSettings {
         private int length;
         private boolean fullScope = false;
         private boolean atomicPartition = false;
+        /*private Set<Timeframe> timeframes = new HashSet<>();*/
 
         public Builder patternType(PatternType patternType) {
             if (patternType != null) {
@@ -112,7 +107,14 @@ public final class PatternSettings {
             return this;
         }
 
-        public Builder map(PatternSettingsDTO patternSettingsDTO) {
+        /*public Builder timeframes(Set<Timeframe> timeframes) {
+            if (timeframes != null) {
+                this.timeframes = timeframes;
+            }
+            return this;
+        }*/
+
+        /*public Builder map(PatternSettingsDTO patternSettingsDTO) {
 
             if (patternSettingsDTO != null) {
                 this.patternType = patternSettingsDTO.patternType() != null ? patternSettingsDTO.patternType() : this.patternType;
@@ -122,7 +124,7 @@ public final class PatternSettings {
                 this.scope = patternSettingsDTO.scope();
             }
             return this;
-        }
+        }*/
 
         public PatternSettings build() {
             return new PatternSettings(this);

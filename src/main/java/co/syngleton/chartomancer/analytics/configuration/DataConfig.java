@@ -31,6 +31,8 @@ public class DataConfig {
     private boolean loadCoreDataAtStartup;
     @Value("${override_saved_core_data:false}")
     private boolean overrideSavedCoreData;
+    @Value("${override_saved_test_core_data:false}")
+    private boolean overrideSavedTestCoreData;
     @Value("${create_timestamped_core_data_archive:false}")
     private boolean createTimestampedCoreDataArchive;
     @Value("${purge_after_trading_data_generation:NO}")
@@ -65,6 +67,7 @@ public class DataConfig {
                 createGraphsForMissingTimeframes,
                 loadCoreDataAtStartup,
                 overrideSavedCoreData,
+                overrideSavedTestCoreData,
                 createTimestampedCoreDataArchive,
                 purgeAfterTradingDataGeneration,
                 patternSettingsAutoconfig,

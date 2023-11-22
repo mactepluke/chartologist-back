@@ -1,20 +1,22 @@
 package co.syngleton.chartomancer.analytics.service;
 
-import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.analytics.data.DataSettings;
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.PatternComputer;
+import co.syngleton.chartomancer.analytics.data.CoreData;
+import co.syngleton.chartomancer.analytics.data.DataSettings;
 import co.syngleton.chartomancer.analytics.factory.PatternFactory;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
-import co.syngleton.chartomancer.analytics.model.PixelatedCandle;
+import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.analytics.model.PatternBox;
+import co.syngleton.chartomancer.analytics.model.PixelatedCandle;
 import co.syngleton.chartomancer.analytics.model.PixelatedPattern;
+import co.syngleton.chartomancer.analytics.model.Timeframe;
 import co.syngleton.chartomancer.global.tools.Check;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +32,8 @@ public class PatternService {
     private static final String NEW_LINE = System.getProperty("line.separator");
     private final PatternFactory patternFactory;
     private final PatternComputer patternComputer;
+    @Value("#{'${patternboxes_timeframes}'.split(',')}")
+    private Set<Timeframe> patternBoxesTimeframes;
 
     @Autowired
     public PatternService(PatternFactory patternFactory,
@@ -49,7 +53,10 @@ public class PatternService {
                 patternBoxes = coreData.getPatternBoxes();
             }
             for (Graph graph : coreData.getGraphs()) {
-                if (graph.doesNotMatchAnyChartObjectIn(patternBoxes)) {
+
+                if (graph.doesNotMatchAnyChartObjectIn(patternBoxes) && patternBoxesTimeframes.contains(graph.getTimeframe())) {
+
+                    log.debug(">>> Creating patterns for graph: " + graph.getTimeframe() + " " + graph.getSymbol());
                     List<Pattern> patterns = createPatterns(settingsInput.graph(graph));
 
                     if (Check.notNullNotEmpty(patterns)) {

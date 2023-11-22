@@ -15,7 +15,7 @@ public class SerializedCoreDataDAO implements CoreDataDAO {
     public static final String DATA_SOURCE_PATH = "./core_data/";
 
     @Override
-    public CoreData loadCoreDataWithName(String dataSourceName) {
+    public CoreData loadCoreDataFrom(String dataSourceName) {
 
         CoreData readData = new CoreData();
 
@@ -29,7 +29,7 @@ public class SerializedCoreDataDAO implements CoreDataDAO {
     }
 
     @Override
-    public boolean saveCoreDataWithName(CoreData coreData, String dataSourceName) {
+    public boolean saveCoreDataTo(CoreData coreData, String dataSourceName) {
         try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(DATA_SOURCE_PATH + dataSourceName))) {
             os.writeObject(coreData);
         } catch (IOException e) {

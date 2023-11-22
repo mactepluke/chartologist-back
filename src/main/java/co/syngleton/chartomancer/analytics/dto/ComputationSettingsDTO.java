@@ -1,3 +1,4 @@
+/*
 package co.syngleton.chartomancer.analytics.dto;
 
 import co.syngleton.chartomancer.analytics.computation.ComputationType;
@@ -26,3 +27,4 @@ public record ComputationSettingsDTO(
         );
     }
 }
+*/

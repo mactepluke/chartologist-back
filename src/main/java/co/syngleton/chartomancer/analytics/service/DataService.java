@@ -189,9 +189,9 @@ public class DataService implements ApplicationContextAware {
 
     public boolean loadCoreDataWithName(CoreData coreData, String dataSourceName) {
 
-        log.info("> Loading core data from: {}", "serialized");
+        log.info("> Loading core data from: {}", dataSource);
 
-        CoreData readData = coreDataDAO.loadCoreDataWithName(dataSourceName);
+        CoreData readData = coreDataDAO.loadCoreDataFrom(dataSourceName);
 
         if (readData != null) {
             coreData.copy(readData);
@@ -207,8 +207,8 @@ public class DataService implements ApplicationContextAware {
 
     public boolean saveCoreDataWithName(CoreData coreData, String dataFileName) {
 
-        log.info("> Saving core data to: {}", "serialized");
-        return coreDataDAO.saveCoreDataWithName(coreData, dataFileName);
+        log.info("> Saving core data to: {}", dataSource);
+        return coreDataDAO.saveCoreDataTo(coreData, dataFileName);
     }
 
     public boolean generateTradingData(CoreData coreData) {

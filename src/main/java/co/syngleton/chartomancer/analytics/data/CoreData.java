@@ -7,8 +7,6 @@ import co.syngleton.chartomancer.analytics.model.Timeframe;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -16,19 +14,14 @@ import java.util.Optional;
 import java.util.Set;
 
 @Getter
-@Document(collection = "core_data")
+@Setter
 public class CoreData implements Serializable {
-    private final DataSettings patternSettings;
-    private final DataSettings tradingPatternSettings;
-    @Id
-    @Getter
-    @Setter
-    private String id;
-    @Setter
     private Set<Graph> graphs;
-    @Setter
     private Set<PatternBox> patternBoxes;
+    private DataSettings patternSettings;
     private Set<PatternBox> tradingPatternBoxes;
+    private DataSettings tradingPatternSettings;
+
 
     public CoreData() {
         this.graphs = new HashSet<>();

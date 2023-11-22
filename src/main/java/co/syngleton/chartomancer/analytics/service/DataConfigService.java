@@ -47,6 +47,7 @@ public class DataConfigService {
                                        boolean createGraphsForMissingTimeframes,
                                        boolean loadCoreDataAtStartup,
                                        boolean overrideSavedCoreData,
+                                       boolean overrideSavedTestCoreData,
                                        boolean createTimestampedCoreDataArchive,
                                        PurgeOption purgeAfterTradingDataGeneration,
                                        PatternSettings.Autoconfig patternSettingsAutoconfig,
@@ -125,6 +126,12 @@ public class DataConfigService {
 
             log.info("Saved core data overriden with newly generated core data: {}",
                     Check.executeIfTrue(overrideSavedCoreData, dataService::saveCoreData, coreData));
+
+            //TODO: refactor and extract the field to a shared constant
+            if (overrideSavedTestCoreData) {
+                log.info("Saved test core data overriden with newly generated core data: {}",
+                        dataService.saveCoreDataWithName(coreData, "datatest.ser"));
+            }
 
             boolean result = false;
 

@@ -1,3 +1,4 @@
+/*
 package co.syngleton.chartomancer.analytics.dto;
 
 import co.syngleton.chartomancer.analytics.model.PatternType;
@@ -27,3 +28,4 @@ public record PatternSettingsDTO(
         this(patternType, autoconfig, 0, 0, 0);
     }
 }
+*/
