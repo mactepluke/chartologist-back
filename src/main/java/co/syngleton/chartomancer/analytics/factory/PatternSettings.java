@@ -18,7 +18,6 @@ public final class PatternSettings {
     private final int scope;
     private final boolean fullScope;
     private final boolean atomicPartition;
-    /*private final Set<Timeframe> timeframes;*/
 
     private PatternSettings(Builder builder) {
         this.graph = builder.graph;
@@ -29,7 +28,6 @@ public final class PatternSettings {
         this.scope = builder.scope;
         this.fullScope = builder.fullScope;
         this.atomicPartition = builder.atomicPartition;
-        /*this.timeframes = builder.timeframes;*/
     }
 
     public enum Autoconfig {
@@ -50,14 +48,13 @@ public final class PatternSettings {
 
     public static class Builder {
         private Graph graph = null;
-        private PatternType patternType = PatternType.BASIC_OBSOLETE;
+        private PatternType patternType = PatternType.BASIC;
         private Autoconfig autoconfig = Autoconfig.DEFAULT;
         private int granularity = 1;
         private int scope = 1;
         private int length;
         private boolean fullScope = false;
         private boolean atomicPartition = false;
-        /*private Set<Timeframe> timeframes = new HashSet<>();*/
 
         public Builder patternType(PatternType patternType) {
             if (patternType != null) {
@@ -106,25 +103,6 @@ public final class PatternSettings {
             }
             return this;
         }
-
-        /*public Builder timeframes(Set<Timeframe> timeframes) {
-            if (timeframes != null) {
-                this.timeframes = timeframes;
-            }
-            return this;
-        }*/
-
-        /*public Builder map(PatternSettingsDTO patternSettingsDTO) {
-
-            if (patternSettingsDTO != null) {
-                this.patternType = patternSettingsDTO.patternType() != null ? patternSettingsDTO.patternType() : this.patternType;
-                this.autoconfig = patternSettingsDTO.autoconfig() != null ? patternSettingsDTO.autoconfig() : this.autoconfig;
-                this.granularity = patternSettingsDTO.granularity();
-                this.length = patternSettingsDTO.length();
-                this.scope = patternSettingsDTO.scope();
-            }
-            return this;
-        }*/
 
         public PatternSettings build() {
             return new PatternSettings(this);

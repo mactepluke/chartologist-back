@@ -1,15 +1,13 @@
 package co.syngleton.chartomancer.analytics.computation;
 
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.factory.CandleFactory;
-import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.IntCandle;
-import co.syngleton.chartomancer.analytics.model.PixelatedCandle;
-import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.ComputablePattern;
+import co.syngleton.chartomancer.analytics.model.FloatCandle;
+import co.syngleton.chartomancer.analytics.model.Graph;
+import co.syngleton.chartomancer.analytics.model.IntCandle;
+import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.model.PredictivePattern;
-import co.syngleton.chartomancer.analytics.model.ObsoletePredictivePattern;
 import co.syngleton.chartomancer.global.tools.Futures;
 import lombok.Getter;
 import lombok.Setter;
@@ -109,8 +107,7 @@ public class PatternComputer {
 
     private boolean areComputable(List<Pattern> patterns) {
         return (!patterns.isEmpty()
-                && (patterns.get(0).getPatternType() == PatternType.PREDICTIVE_OBSOLETE
-                || patterns.get(0).getPatternType() == PatternType.PREDICTIVE));
+                && (patterns.get(0).getPatternType() == PatternType.PREDICTIVE));
     }
 
     private Pattern computeBasicIterationPattern(ComputablePattern computablePattern, Graph graph, ProgressBar pb) {
@@ -133,19 +130,12 @@ public class PatternComputer {
 
                 if (priceVariation != 0) {
 
-                    switch (computablePattern.getPatternType()) {
-                        case PREDICTIVE -> {
-                            List<IntCandle> intCandlesToMatch = candleFactory.streamlineToIntCandles(candlesToMatches, computablePattern.getGranularity());
-                            assert computablePattern instanceof PredictivePattern;
-                            matchScore = analyzer.calculateMatchScore((PredictivePattern) computablePattern, intCandlesToMatch);
-                        }
-                        case PREDICTIVE_OBSOLETE -> {
-                            List<PixelatedCandle> pixelatedCandlesToMatch = candleFactory.pixelateCandles(candlesToMatches, computablePattern.getGranularity());
-                            assert computablePattern instanceof ObsoletePredictivePattern;
-                            matchScore = analyzer.calculateMatchScore((ObsoletePredictivePattern) computablePattern, pixelatedCandlesToMatch);
-                        }
-                        default ->
-                                log.error("Could not compute patterns because of unrecognized pattern type: {}", computablePattern.getPatternType());
+                    if (Objects.requireNonNull(computablePattern.getPatternType()) == PatternType.PREDICTIVE) {
+                        List<IntCandle> intCandlesToMatch = candleFactory.streamlineToIntCandles(candlesToMatches, computablePattern.getGranularity());
+                        assert computablePattern instanceof PredictivePattern;
+                        matchScore = analyzer.calculateMatchScore((PredictivePattern) computablePattern, intCandlesToMatch);
+                    } else {
+                        log.error("Could not compute patterns because of unrecognized pattern type: {}", computablePattern.getPatternType());
                     }
 
                     computablePattern.setPriceVariationPrediction(

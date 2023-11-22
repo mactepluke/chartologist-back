@@ -4,7 +4,11 @@ import co.syngleton.chartomancer.global.tools.Check;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 @Log4j2
 public final class PatternBox extends ChartObject {
@@ -27,10 +31,10 @@ public final class PatternBox extends ChartObject {
             for (Pattern pattern : patterns) {
                 if (pattern != null) {
                     int key = 0;
-                    switch (pattern.getPatternType()) {
-                        case PREDICTIVE_OBSOLETE, PREDICTIVE -> key = ((ComputablePattern) pattern).getScope();
-                        case TRADING_OBSOLETE -> key = ((ObsoleteTradingPattern) pattern).getScope();
-                        default -> key = ((pattern).getLength());
+                    if (Objects.requireNonNull(pattern.getPatternType()) == PatternType.PREDICTIVE) {
+                        key = ((ComputablePattern) pattern).getScope();
+                    } else {
+                        key = ((pattern).getLength());
                     }
                     this.patterns.computeIfAbsent(key, k -> new ArrayList<>());
                     this.patterns.get(key).add(pattern);

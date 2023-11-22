@@ -1,13 +1,11 @@
 package co.syngleton.chartomancer.analytics.factory;
 
+import co.syngleton.chartomancer.analytics.model.BasicPattern;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
-import co.syngleton.chartomancer.analytics.model.PixelatedCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.model.BasicPattern;
+import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.model.PredictivePattern;
-import co.syngleton.chartomancer.analytics.model.ObsoleteBasicPattern;
-import co.syngleton.chartomancer.analytics.model.ObsoletePredictivePattern;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static co.syngleton.chartomancer.global.tools.Format.setIfZero;
 import static co.syngleton.chartomancer.global.tools.Format.streamline;
@@ -82,17 +81,11 @@ public final class PatternFactory {
         PatternSettings patternSettings = configParams(paramsInput);
 
         switch (patternSettings.getPatternType()) {
-            case BASIC_OBSOLETE -> {
+            case BASIC -> {
                 return generateBasicPatterns(patternSettings);
             }
-            case PREDICTIVE_OBSOLETE -> {
-                return generatePredictivePatterns(patternSettings);
-            }
-            case BASIC -> {
-                return generateLightBasicPatterns(patternSettings);
-            }
             case PREDICTIVE -> {
-                return generateLightPredictivePatterns(patternSettings);
+                return generatePredictivePatterns(patternSettings);
             }
 
             default -> {
@@ -185,14 +178,14 @@ public final class PatternFactory {
         return paramsInput.build();
     }
 
-    private List<Pattern> generateLightPredictivePatterns(PatternSettings patternSettings) {
-        List<Pattern> lightBasicPatterns;
-        lightBasicPatterns = generateLightBasicPatterns(patternSettings);
+    private List<Pattern> generatePredictivePatterns(PatternSettings patternSettings) {
+        List<Pattern> basicPatterns;
+        basicPatterns = generateBasicPatterns(patternSettings);
 
-        return convertPatterns(lightBasicPatterns, patternSettings);
+        return convertPatterns(basicPatterns, patternSettings);
     }
 
-    private List<Pattern> generateLightBasicPatterns(PatternSettings patternSettings) {
+    private List<Pattern> generateBasicPatterns(PatternSettings patternSettings) {
 
         List<Pattern> patterns = new ArrayList<>();
 
@@ -250,78 +243,18 @@ public final class PatternFactory {
                 && patternSettings.getGraph().getFloatCandles().size() / patternSettings.getLength() > minPatternsPerGraph;
     }
 
-    private List<Pattern> generateBasicPatterns(PatternSettings patternSettings) {
-
-        List<Pattern> patterns = new ArrayList<>();
-
-        if (settingsAreValid(patternSettings)) {
-
-            List<List<FloatCandle>> graphChunks = partitionGraph(patternSettings);
-
-            for (List<FloatCandle> graphChunk : graphChunks) {
-                if (graphChunk.size() >= patternSettings.getLength()) {
-
-                    List<PixelatedCandle> pixelatedChunk = candleFactory.pixelateCandles(graphChunk, patternSettings.getGranularity());
-
-                    ObsoleteBasicPattern obsoleteBasicPattern = new ObsoleteBasicPattern(
-                            pixelatedChunk,
-                            patternSettings.getGranularity(),
-                            patternSettings.getLength(),
-                            patternSettings.getGraph().getSymbol(),
-                            patternSettings.getGraph().getTimeframe(),
-                            graphChunk.get(0).dateTime()
-                    );
-                    patterns.add(obsoleteBasicPattern);
-                }
-            }
-        } else {
-            log.error("Could not use those pattern parameters (or the graph may be empty): {}", patternSettings.toString());
-        }
-        return patterns;
-    }
-
-    private List<Pattern> generatePredictivePatterns(PatternSettings patternSettings) {
-
-        List<Pattern> basicPatterns;
-        basicPatterns = generateBasicPatterns(patternSettings);
-
-        return convertPatterns(basicPatterns, patternSettings);
-    }
-
     private List<Pattern> convertPatterns(List<Pattern> patterns, PatternSettings patternSettings) {
         List<Pattern> predictivePatterns = new ArrayList<>();
 
         if (!patterns.isEmpty()) {
 
-            switch (patterns.get(0).getPatternType()) {
-                case BASIC -> {
-                    return convertFromLightBasicToLightPredictivePatterns(patterns, patternSettings);
-                }
-                case BASIC_OBSOLETE -> {
-                    return convertFromBasicToPredictivePatterns(patterns, patternSettings);
-                }
-                default ->
-                        log.error("Could not convert patterns because of unrecognized pattern type: {}", patterns.get(0).getPatternType());
+            if (Objects.requireNonNull(patterns.get(0).getPatternType()) == PatternType.BASIC) {
+                return convertFromBasicToPredictivePatterns(patterns, patternSettings);
+            } else {
+                log.error("Could not convert patterns because of unrecognized pattern type: {}", patterns.get(0).getPatternType());
             }
         }
         return predictivePatterns;
-    }
-
-    private List<Pattern> convertFromLightBasicToLightPredictivePatterns(List<Pattern> lightBasicPatterns, PatternSettings patternSettings) {
-
-        List<Pattern> lightPredictivePatterns = new ArrayList<>();
-
-        for (Pattern pattern : lightBasicPatterns) {
-            if (patternSettings.isFullScope()) {
-                for (int scope = 1; scope < patternSettings.getScope(); scope++) {
-                    PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern, scope);
-                    lightPredictivePatterns.add(predictivePattern);
-                }
-            }
-            PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern, patternSettings.getScope());
-            lightPredictivePatterns.add(predictivePattern);
-        }
-        return lightPredictivePatterns;
     }
 
     private List<Pattern> convertFromBasicToPredictivePatterns(List<Pattern> basicPatterns, PatternSettings patternSettings) {
@@ -329,15 +262,14 @@ public final class PatternFactory {
         List<Pattern> predictivePatterns = new ArrayList<>();
 
         for (Pattern pattern : basicPatterns) {
-
             if (patternSettings.isFullScope()) {
                 for (int scope = 1; scope < patternSettings.getScope(); scope++) {
-                    ObsoletePredictivePattern obsoletePredictivePattern = new ObsoletePredictivePattern((ObsoleteBasicPattern) pattern, scope);
-                    predictivePatterns.add(obsoletePredictivePattern);
+                    PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern, scope);
+                    predictivePatterns.add(predictivePattern);
                 }
             }
-            ObsoletePredictivePattern obsoletePredictivePattern = new ObsoletePredictivePattern((ObsoleteBasicPattern) pattern, patternSettings.getScope());
-            predictivePatterns.add(obsoletePredictivePattern);
+            PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern, patternSettings.getScope());
+            predictivePatterns.add(predictivePattern);
         }
         return predictivePatterns;
     }

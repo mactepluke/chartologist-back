@@ -7,10 +7,9 @@ import co.syngleton.chartomancer.analytics.misc.CSVFormat;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.ObsoletePredictivePattern;
-import co.syngleton.chartomancer.analytics.model.ObsoleteTradingPattern;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
+import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.model.PredictivePattern;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
 import co.syngleton.chartomancer.analytics.model.TradingPattern;
@@ -249,13 +248,10 @@ public class DataService implements ApplicationContextAware {
 
                 for (Pattern pattern : entry.getValue()) {
 
-                    switch (pattern.getPatternType()) {
-                        case PREDICTIVE_OBSOLETE ->
-                                tradingPatternsList.add(new ObsoleteTradingPattern((ObsoletePredictivePattern) pattern));
-                        case PREDICTIVE -> tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
-                        default -> {
-                            return patterns;
-                        }
+                    if (Objects.requireNonNull(pattern.getPatternType()) == PatternType.PREDICTIVE) {
+                        tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
+                    } else {
+                        return patterns;
                     }
                 }
                 tradingPatterns.put(entry.getKey(), tradingPatternsList);
