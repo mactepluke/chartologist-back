@@ -4,7 +4,6 @@ import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.service.DataService;
 import co.syngleton.chartomancer.analytics.service.PatternService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
@@ -72,7 +71,7 @@ class PatternServiceTests {
     @DisplayName("[UNIT] Create light basic patterns from mock graph")
     void createBasicPatternsTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.BASIC));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.BASIC));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -82,7 +81,7 @@ class PatternServiceTests {
     @DisplayName("[UNIT] Create light predictive patterns from mock graph")
     void createPredictivePatternsTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternType.PREDICTIVE));
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.PREDICTIVE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());

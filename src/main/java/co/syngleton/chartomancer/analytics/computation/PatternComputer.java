@@ -3,11 +3,8 @@ package co.syngleton.chartomancer.analytics.computation;
 import co.syngleton.chartomancer.analytics.factory.CandleFactory;
 import co.syngleton.chartomancer.analytics.model.ComputablePattern;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.model.PatternType;
-import co.syngleton.chartomancer.analytics.model.PredictivePattern;
 import co.syngleton.chartomancer.global.tools.Futures;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +28,8 @@ public class PatternComputer {
     @Getter
     @Setter
     private Analyzer analyzer;
+    private ComputationSettings computationSettings;
+    private ProgressBar pb;
 
     @Autowired
     public PatternComputer(CandleFactory candleFactory, Analyzer analyzer) {
@@ -38,18 +37,13 @@ public class PatternComputer {
         this.analyzer = analyzer;
     }
 
-    public String printAnalyserConfig() {
-        return analyzer.toString();
-    }
-
     public List<Pattern> compute(ComputationSettings.Builder paramsInput) {
 
-        initializeCheckVariables();
-        ComputationSettings computationSettings = configParams(paramsInput);
+        computationSettings = paramsInput.build();
 
         if (Objects.requireNonNull(computationSettings.getComputationType()) == ComputationType.BASIC_ITERATION) {
             try {
-                return computeBasicIterationPatterns(computationSettings);
+                return computeBasicIterationPatterns();
             } catch (ExecutionException e) {
                 e.printStackTrace();
                 return Collections.emptyList();
@@ -63,95 +57,88 @@ public class PatternComputer {
         return Collections.emptyList();
     }
 
-    private void initializeCheckVariables() {
-        //TODO define, initialize computation settings and implement their use in corresponding methods
-    }
+    private List<Pattern> computeBasicIterationPatterns() throws ExecutionException, InterruptedException {
 
-    private ComputationSettings configParams(ComputationSettings.Builder paramsInput) {
-//TODO refine this method
-        return paramsInput.build();
-    }
-
-    private List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) throws ExecutionException, InterruptedException {
-
-        List<Pattern> patterns = Collections.unmodifiableList(computationSettings.getPatterns());
-        Graph graph = computationSettings.getGraph();
         List<Pattern> computedPatterns = new ArrayList<>();
 
-        String pbMessage = "Processing " + graph.getSymbol() + ", " + graph.getTimeframe();
+        if (areValid(computationSettings.getPatterns())) {
 
-        if (areComputable(patterns)) {
+            startProgressBar();
+            computedPatterns = launchMultiThreadedComputations();
+            stopProgressBar();
 
-            ProgressBar pb = new ProgressBar(pbMessage, patterns.size());
-            pb.start();
-
-            computedPatterns = Futures.listCompleted(
-                            patterns.stream().map(pattern -> CompletableFuture.supplyAsync(
-                                            () -> computeBasicIterationPattern((ComputablePattern) pattern, graph, pb)
-                                    ))
-                                    .toList()
-                    )
-                    .stream()
-                    .filter(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction() != 0)
-                    .toList();
-
-            pb.stop();
         } else {
             log.error("Could not compute: no computable patterns found.");
         }
-        if (computedPatterns.isEmpty()) {
-            computedPatterns = null;
-        }
-        return computedPatterns;
+        return filterOutUselessPatterns(computedPatterns);
     }
 
-    private boolean areComputable(List<Pattern> patterns) {
-        return (!patterns.isEmpty()
-                && (patterns.get(0).getPatternType() == PatternType.PREDICTIVE));
+    private boolean areValid(List<Pattern> patterns) {
+        return (!patterns.isEmpty() && patterns.get(0) instanceof ComputablePattern);
     }
 
-    private Pattern computeBasicIterationPattern(ComputablePattern computablePattern, Graph graph, ProgressBar pb) {
+    private void startProgressBar() {
+        pb = new ProgressBar("Processing " + computationSettings.getGraph().getSymbol() + ", " + computationSettings.getGraph().getTimeframe(), computationSettings.getPatterns().size());
+        pb.start();
+    }
+
+    private void incrementProgressBar() {
+        pb.step();
+    }
+
+    private void stopProgressBar() {
+        pb.stop();
+    }
+
+    private List<Pattern> launchMultiThreadedComputations() throws ExecutionException, InterruptedException {
+
+        return Futures.listCompleted(Collections.unmodifiableList(computationSettings.getPatterns()).stream().map(pattern -> CompletableFuture.supplyAsync(() -> computeBasicIterationPattern((ComputablePattern) pattern))).toList());
+    }
+
+    private Pattern computeBasicIterationPattern(ComputablePattern pattern) {
 
         int matchScore = 0;
         float priceVariation;
 
-        if (computablePattern != null) {
+        if (pattern != null) {
 
-            int computations = graph.getFloatCandles().size() - computablePattern.getLength() - computablePattern.getScope() + 1;
+            int computations = computationSettings.getGraph().getFloatCandles().size() - pattern.getLength() - pattern.getScope() + 1;
 
             float divider = 1;
 
             for (var i = 0; i < computations; i++) {
 
-                List<FloatCandle> candlesToMatches = graph.getFloatCandles().subList(i, i + computablePattern.getLength());
-                List<FloatCandle> followingFloatCandles = graph.getFloatCandles().subList(i + computablePattern.getLength(), i + computablePattern.getLength() + computablePattern.getScope());
 
-                priceVariation = analyzer.calculatePriceVariation(followingFloatCandles, computablePattern.getScope());
+                priceVariation = analyzer.calculatePriceVariation(getFollowingFloatCandles(pattern, i), pattern.getScope());
 
                 if (priceVariation != 0) {
 
-                    if (Objects.requireNonNull(computablePattern.getPatternType()) == PatternType.PREDICTIVE) {
-                        List<IntCandle> intCandlesToMatch = candleFactory.streamlineToIntCandles(candlesToMatches, computablePattern.getGranularity());
-                        assert computablePattern instanceof PredictivePattern;
-                        matchScore = analyzer.calculateMatchScore((PredictivePattern) computablePattern, intCandlesToMatch);
-                    } else {
-                        log.error("Could not compute patterns because of unrecognized pattern type: {}", computablePattern.getPatternType());
-                    }
+                    List<IntCandle> intCandlesToMatch = candleFactory.streamlineToIntCandles(getCandlesToMatch(pattern, i), pattern.getGranularity());
+                    matchScore = analyzer.calculateMatchScore((Pattern) pattern, intCandlesToMatch);
 
-                    computablePattern.setPriceVariationPrediction(
-                            computablePattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f)
-                    );
+                    pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f));
                     divider = divider + matchScore / 100f;
                 }
             }
 
-            computablePattern.setPriceVariationPrediction(computablePattern.getPriceVariationPrediction() / divider);
+            pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() / divider);
 
         }
-        pb.step();
-        return (Pattern) computablePattern;
+        incrementProgressBar();
+        return (Pattern) pattern;
     }
 
+    private List<FloatCandle> getCandlesToMatch(ComputablePattern pattern, int pivot) {
+        return computationSettings.getGraph().getFloatCandles().subList(pivot, pivot + pattern.getLength());
+    }
+
+    private List<FloatCandle> getFollowingFloatCandles(ComputablePattern pattern, int pivot) {
+        return computationSettings.getGraph().getFloatCandles().subList(pivot + pattern.getLength(), pivot + pattern.getLength() + pattern.getScope());
+    }
+
+    private List<Pattern> filterOutUselessPatterns(List<Pattern> patterns) {
+        return patterns.stream().filter(pattern -> ((ComputablePattern) pattern).getPriceVariationPrediction() != 0).toList();
+    }
 
 }
 

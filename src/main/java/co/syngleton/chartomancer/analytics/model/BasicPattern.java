@@ -5,17 +5,14 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Getter
-public final class BasicPattern extends Pattern implements IntPattern {
+public final class BasicPattern extends Pattern {
 
     private final LocalDateTime startDate;
-    @ToString.Exclude
-    private final List<IntCandle> intCandles;
 
     public BasicPattern(
             List<IntCandle> intCandles,
@@ -26,13 +23,12 @@ public final class BasicPattern extends Pattern implements IntPattern {
             LocalDateTime startDate
     ) {
         super(
-                PatternType.BASIC,
                 granularity,
                 length,
                 symbol,
-                timeframe
+                timeframe,
+                intCandles
         );
-        this.intCandles = Collections.unmodifiableList(intCandles);
         this.startDate = startDate;
     }
 }

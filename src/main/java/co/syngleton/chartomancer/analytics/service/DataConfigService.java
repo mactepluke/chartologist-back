@@ -5,7 +5,6 @@ import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.global.service.LaunchService;
 import co.syngleton.chartomancer.global.tools.Check;
 import co.syngleton.chartomancer.global.tools.Format;
@@ -53,7 +52,7 @@ public class DataConfigService {
                                        PatternSettings.Autoconfig patternSettingsAutoconfig,
                                        ComputationSettings.Autoconfig computationSettings,
                                        ComputationType computationType,
-                                       PatternType computablePatternType,
+                                       PatternSettings.PatternType computablePatternType,
                                        boolean atomicPartition,
                                        boolean fullScope,
                                        boolean launchAutomation
@@ -167,7 +166,7 @@ public class DataConfigService {
                                 PatternSettings.Autoconfig patternSettingsAutoconfig,
                                 ComputationSettings.Autoconfig computationSettings,
                                 ComputationType computationType,
-                                PatternType computablePatternType,
+                                PatternSettings.PatternType computablePatternType,
                                 boolean createGraphsForMissingTimeframes,
                                 boolean atomicPartition,
                                 boolean fullScope) {

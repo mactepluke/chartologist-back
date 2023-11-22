@@ -9,7 +9,6 @@ import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.model.PredictivePattern;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
 import co.syngleton.chartomancer.analytics.model.TradingPattern;
@@ -248,7 +247,7 @@ public class DataService implements ApplicationContextAware {
 
                 for (Pattern pattern : entry.getValue()) {
 
-                    if (Objects.requireNonNull(pattern.getPatternType()) == PatternType.PREDICTIVE) {
+                    if (pattern instanceof PredictivePattern) {
                         tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
                     } else {
                         return patterns;
@@ -355,7 +354,7 @@ public class DataService implements ApplicationContextAware {
 
                         Pattern anyPattern = patternBox.getPatterns().entrySet().iterator().next().getValue().get(0);
 
-                        patternBoxesBuilder.append("-> ").append(entry.getValue().size()).append(" patterns, ").append(patternBox.getSymbol()).append(", ").append(patternBox.getTimeframe()).append(", pattern scope=").append(entry.getKey()).append(", pattern type=").append(anyPattern.getPatternType()).append(", pattern length=").append(anyPattern.getLength()).append(", pattern granularity=").append(anyPattern.getGranularity()).append(NEW_LINE);
+                        patternBoxesBuilder.append("-> ").append(entry.getValue().size()).append(" patterns, ").append(patternBox.getSymbol()).append(", ").append(patternBox.getTimeframe()).append(", pattern scope=").append(entry.getKey()).append(", pattern type=").append(anyPattern.getClass()).append(", pattern length=").append(anyPattern.getLength()).append(", pattern granularity=").append(anyPattern.getGranularity()).append(NEW_LINE);
                     }
 
                 }

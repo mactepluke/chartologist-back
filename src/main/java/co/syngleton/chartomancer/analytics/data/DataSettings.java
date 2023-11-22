@@ -4,7 +4,6 @@ import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.computation.Smoothing;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -20,7 +19,7 @@ public final class DataSettings implements Serializable {
     private PatternSettings.Autoconfig patternAutoconfig;
     private ComputationSettings.Autoconfig computationAutoconfig;
     private ComputationType computationType;
-    private PatternType computationPatternType;
+    private PatternSettings.PatternType computationPatternType;
     private boolean atomicPartition;
     private int scope;
     private boolean fullScope;

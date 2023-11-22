@@ -31,7 +31,7 @@ public final class PatternBox extends ChartObject {
             for (Pattern pattern : patterns) {
                 if (pattern != null) {
                     int key = 0;
-                    if (Objects.requireNonNull(pattern.getPatternType()) == PatternType.PREDICTIVE) {
+                    if (pattern instanceof PredictivePattern) {
                         key = ((ComputablePattern) pattern).getScope();
                     } else {
                         key = ((pattern).getLength());

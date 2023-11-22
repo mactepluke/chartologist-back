@@ -5,7 +5,6 @@ import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.service.DataConfigService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import lombok.extern.log4j.Log4j2;
@@ -76,7 +75,7 @@ class DataConfigServiceTests {
                 PatternSettings.Autoconfig.TEST,
                 ComputationSettings.Autoconfig.TEST,
                 ComputationType.BASIC_ITERATION,
-                PatternType.PREDICTIVE,
+                PatternSettings.PatternType.PREDICTIVE,
                 false,
                 false,
                 false

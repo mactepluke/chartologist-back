@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.analytics.computation;
 
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
-import co.syngleton.chartomancer.analytics.model.IntPattern;
+import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.global.tools.Calc;
 import co.syngleton.chartomancer.global.tools.Format;
 import lombok.Getter;
@@ -59,18 +59,16 @@ public class Analyzer {
             return 0;
         }
         if (extrapolatePriceVariation) {
-            priceVariation = extrapolatePriceVariation(priceVariation);
+            priceVariation = extrapolate(priceVariation, -100, 100);
         }
         return priceVariation;
     }
 
-    private float extrapolatePriceVariation(float priceVariation) {
-
-        return Format.streamline(priceVariation + priceVariation * abs(priceVariation) / 100, -100, 100);
+    private float extrapolate(float value, float min, float max) {
+        return Format.streamline(value + value * abs(value) / 100, min, max);
     }
 
-    public int calculateMatchScore(IntPattern pattern, List<IntCandle> intCandlesToMatch) {
-
+    public int calculateMatchScore(Pattern pattern, List<IntCandle> intCandlesToMatch) {
         return calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
     }
 
@@ -103,10 +101,6 @@ public class Analyzer {
         return filterMatchScore(Calc.positivePercentage(matchScore, patternCandlesSurface));
     }
 
-    private float extrapolateMatchScore(float matchScore) {
-        return Format.streamline(matchScore + matchScore * (matchScore / 100f), 0, 100);
-    }
-
     private int filterMatchScore(int matchScore) {
 
         if (matchScore < matchScoreThreshold) {
@@ -114,7 +108,7 @@ public class Analyzer {
         }
 
         if (extrapolateMatchScore) {
-            matchScore = (int) extrapolateMatchScore(matchScore);
+            matchScore = (int) extrapolate(matchScore, 0, 100);
         }
         return matchScore;
     }

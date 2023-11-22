@@ -9,8 +9,6 @@ import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
-import co.syngleton.chartomancer.analytics.model.PixelatedCandle;
-import co.syngleton.chartomancer.analytics.model.PixelatedPattern;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
 import co.syngleton.chartomancer.global.tools.Check;
 import lombok.NonNull;
@@ -146,69 +144,5 @@ public class PatternService {
         settings.setMatchScoreThreshold(patternComputer.getAnalyzer().getMatchScoreThreshold());
         settings.setMatchScoreSmoothing(patternComputer.getAnalyzer().getMatchScoreSmoothing());
         settings.setComputationDate(LocalDateTime.now());
-    }
-
-    public boolean printPatterns(List<PixelatedPattern> patterns) {
-
-        String patternsToPrint = generatePatternsToPrint(patterns);
-
-        if (!patternsToPrint.isEmpty()) {
-            log.info(patternsToPrint);
-            return true;
-        } else {
-            log.info("Cannot print patterns: list is empty.");
-            return false;
-        }
-    }
-
-    public String generatePatternsToPrint(List<PixelatedPattern> patterns) {
-        StringBuilder patternsBuilder = new StringBuilder();
-
-        if (patterns != null) {
-            for (PixelatedPattern pattern : patterns) {
-                patternsBuilder.append(generatePatternToPrint(pattern));
-                patternsBuilder.append(NEW_LINE);
-
-            }
-        }
-        return patternsBuilder.toString();
-    }
-
-    private String generatePatternToPrint(PixelatedPattern pattern) {
-
-        StringBuilder patternsBuilder = new StringBuilder();
-
-        patternsBuilder.append(pattern.toString());
-        patternsBuilder.append(NEW_LINE);
-        patternsBuilder.append(NEW_LINE);
-
-        for (int i = pattern.getGranularity(); i > 0; i--) {
-
-            for (PixelatedCandle pixelatedCandle : pattern.getPixelatedCandles()) {
-                String point;
-                switch (pixelatedCandle.candle()[i - 1]) {
-                    case 1 -> point = "|";
-                    case 2 -> point = "H";
-                    case 3 -> point = "O";
-                    case 4 -> point = "C";
-                    default -> point = " ";
-                }
-                patternsBuilder.append(point);
-            }
-            patternsBuilder.append(NEW_LINE);
-        }
-        return patternsBuilder.toString();
-    }
-
-    public boolean printPatternsList(List<Pattern> patterns) {
-        if (patterns != null) {
-            for (Pattern pattern : patterns) {
-                log.info(pattern.toString());
-            }
-            return true;
-        } else {
-            log.info("Cannot print patterns list: no patterns have been created.");
-            return false;
-        }
     }
 }

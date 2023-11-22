@@ -5,7 +5,6 @@ import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.service.DataConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +43,7 @@ public class DataConfig {
     @Value("${computation_type:BASIC_ITERATON}")
     private ComputationType computationType;
     @Value("${computable_pattern_type:LIGHT_PREDICTIVE}")
-    private PatternType computablePatternType;
+    private PatternSettings.PatternType computablePatternType;
     @Value("${atomic_partition:false}")
     private boolean atomicPartition;
     @Value("${full_scope:false}")

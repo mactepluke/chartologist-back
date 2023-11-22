@@ -4,7 +4,6 @@ import co.syngleton.chartomancer.analytics.model.BasicPattern;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.model.PredictivePattern;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static co.syngleton.chartomancer.global.tools.Format.setIfZero;
 import static co.syngleton.chartomancer.global.tools.Format.streamline;
@@ -248,10 +246,10 @@ public final class PatternFactory {
 
         if (!patterns.isEmpty()) {
 
-            if (Objects.requireNonNull(patterns.get(0).getPatternType()) == PatternType.BASIC) {
+            if (patterns.get(0) instanceof BasicPattern) {
                 return convertFromBasicToPredictivePatterns(patterns, patternSettings);
             } else {
-                log.error("Could not convert patterns because of unrecognized pattern type: {}", patterns.get(0).getPatternType());
+                log.error("Could not convert patterns because of unrecognized pattern type");
             }
         }
         return predictivePatterns;

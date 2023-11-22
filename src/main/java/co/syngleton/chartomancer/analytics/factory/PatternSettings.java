@@ -1,7 +1,6 @@
 package co.syngleton.chartomancer.analytics.factory;
 
 import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -44,6 +43,12 @@ public final class PatternSettings {
         TWO_THIRDS_LENGTH,
         BYPASS_SAFETY_CHECK,
         TEST
+    }
+
+    public enum PatternType {
+        BASIC,
+        PREDICTIVE,
+        TRADING
     }
 
     public static class Builder {

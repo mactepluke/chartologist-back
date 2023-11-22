@@ -4,12 +4,11 @@ import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.computation.Smoothing;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
-import co.syngleton.chartomancer.analytics.model.PatternType;
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.global.tools.datatabletool.PrintableData;
 import co.syngleton.chartomancer.trading.model.ProfitFactor;
 import co.syngleton.chartomancer.trading.model.TradingSettings;
-import co.syngleton.chartomancer.global.tools.datatabletool.PrintableData;
 import lombok.NonNull;
 import org.jetbrains.annotations.Contract;
 
@@ -31,7 +30,7 @@ public record DummyTradesSummaryEntry(String dummyTradesDateTime,
                                       PatternSettings.Autoconfig patternAutoconfig,
                                       ComputationSettings.Autoconfig computationAutoconfig,
                                       ComputationType computationType,
-                                      PatternType computationPatternType,
+                                      PatternSettings.PatternType computationPatternType,
                                       boolean atomicPartition,
                                       int scope,
                                       boolean fullScope,

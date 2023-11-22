@@ -2,23 +2,22 @@ package co.syngleton.chartomancer.trading.service;
 
 import co.syngleton.chartomancer.analytics.computation.Analyzer;
 import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.analytics.factory.CandleFactory;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.PatternBox;
+import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.model.IntPattern;
+import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.model.TradingPattern;
+import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
+import co.syngleton.chartomancer.global.tools.Check;
+import co.syngleton.chartomancer.global.tools.Format;
+import co.syngleton.chartomancer.global.tools.Triad;
+import co.syngleton.chartomancer.trading.model.Account;
 import co.syngleton.chartomancer.trading.model.Trade;
 import co.syngleton.chartomancer.trading.model.TradeStatus;
 import co.syngleton.chartomancer.trading.model.TradingAccount;
 import co.syngleton.chartomancer.trading.model.TradingSettings;
-import co.syngleton.chartomancer.trading.model.Account;
-import co.syngleton.chartomancer.global.tools.Check;
-import co.syngleton.chartomancer.global.tools.Format;
-import co.syngleton.chartomancer.global.tools.Triad;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -287,12 +286,11 @@ public class TradingService {
             for (Pattern pattern : patterns) {
 
                 float patternPricePrediction = ((TradingPattern) pattern).getPriceVariationPrediction();
-                IntPattern tradingPattern = (IntPattern) pattern;
 
                 float price = analyzer.filterPricePrediction(patternPricePrediction);
 
                 if (price != 0) {
-                    int matchScore = analyzer.calculateMatchScore(tradingPattern, intCandles);
+                    int matchScore = analyzer.calculateMatchScore(pattern, intCandles);
 
                     pricePrediction = pricePrediction + price * (matchScore / 100f);
                     divider = divider + matchScore / 100f;

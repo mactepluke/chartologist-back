@@ -1,8 +1,10 @@
 package co.syngleton.chartomancer.analytics.model;
 
+import java.util.List;
+
 public interface ComputablePattern extends ScopedPattern {
 
-    PatternType getPatternType();
+    List<IntCandle> getIntCandles();
 
     int getLength();
 
