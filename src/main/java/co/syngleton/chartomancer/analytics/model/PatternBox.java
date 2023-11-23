@@ -11,9 +11,9 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 @Log4j2
+@Getter
 public final class PatternBox extends ChartObject {
 
-    @Getter
     private final Map<Integer, List<Pattern>> patterns;
 
     public PatternBox() {
@@ -30,7 +30,7 @@ public final class PatternBox extends ChartObject {
         if (Check.notNullNotEmpty(patterns)) {
             for (Pattern pattern : patterns) {
                 if (pattern != null) {
-                    int key = 0;
+                    int key;
                     if (pattern instanceof PredictivePattern) {
                         key = ((ComputablePattern) pattern).getScope();
                     } else {

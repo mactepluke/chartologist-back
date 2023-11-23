@@ -5,7 +5,7 @@ import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.service.DataConfigService;
+import co.syngleton.chartomancer.analytics.service.InitialiationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-public class DataConfig {
-    private final DataConfigService dataConfigService;
+public class CoreDataConfig {
+    private final InitialiationService dataConfigService;
     @Value("${data_folder_name:data}")
     private String dataFolderName;
     @Value("#{'${data_files_names}'.split(',')}")
@@ -52,7 +52,7 @@ public class DataConfig {
     private boolean launchAutomation;
 
     @Autowired
-    public DataConfig(DataConfigService dataConfigService) {
+    public CoreDataConfig(InitialiationService dataConfigService) {
         this.dataConfigService = dataConfigService;
     }
 

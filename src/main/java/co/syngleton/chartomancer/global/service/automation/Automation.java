@@ -3,20 +3,25 @@ package co.syngleton.chartomancer.global.service.automation;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
+import co.syngleton.chartomancer.analytics.model.ScopedPattern;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.PatternService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.analytics.service.PatternComputingService;
 import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTradesManager;
 import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTradesSummaryTable;
-import co.syngleton.chartomancer.analytics.model.ScopedPattern;
-import co.syngleton.chartomancer.analytics.service.DataService;
-import co.syngleton.chartomancer.trading.service.TradingService;
 import co.syngleton.chartomancer.global.tools.Check;
+import co.syngleton.chartomancer.global.tools.datatabletool.DataTableTool;
+import co.syngleton.chartomancer.trading.service.TradingService;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -38,15 +43,15 @@ public class Automation implements Runnable {
     private final boolean printTasksHistory;
     private final List<String> tasksHistory;
     private final CoreData coreData;
-    private final DataService dataService;
-    private final PatternService patternService;
+    private final CoreDataService coreDataService;
+    private final PatternComputingService patternComputingService;
     private final DummyTradesManager dtm;
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private String reportLog;
 
     public Automation(CoreData coreData,
-                      DataService dataService,
-                      PatternService patternService,
+                      CoreDataService coreDataService,
+                      PatternComputingService patternComputingService,
                       TradingService tradingService,
                       boolean printCoreData,
                       boolean printPricePredictionSummary,
@@ -64,8 +69,8 @@ public class Automation implements Runnable {
                       List<String> dummyGraphsDataFilesNames,
                       boolean printTasksHistory) {
         this.coreData = coreData;
-        this.dataService = dataService;
-        this.patternService = patternService;
+        this.coreDataService = coreDataService;
+        this.patternComputingService = patternComputingService;
         this.printCoreData = printCoreData;
         this.printPricePredictionSummary = printPricePredictionSummary;
         this.runBasicDummyTrades = runBasicDummyTrades;
@@ -103,7 +108,7 @@ public class Automation implements Runnable {
                 writeDummyTradeReports,
                 dummyTradesSummaryTable,
                 DUMMY_TRADES_FOLDER_PATH,
-                dataService);
+                coreDataService);
         tasksHistory = new ArrayList<>();
     }
 
@@ -182,7 +187,7 @@ public class Automation implements Runnable {
     }
 
     private void printCoreData() {
-        dataService.printCoreData(coreData);
+        coreDataService.printCoreData(coreData);
     }
 
     private void printPricePredictionSummary() {
@@ -331,15 +336,15 @@ public class Automation implements Runnable {
 
         dummyGraphsData.copy(coreData);
         dummyGraphsData.purgeNonTrading();
-        dataService.loadGraphs(dummyGraphsData, dummyGraphsDataFolderName, dummyGraphsDataFilesNames);
-        dataService.createGraphsForMissingTimeframes(dummyGraphsData);
+        coreDataService.loadGraphs(dummyGraphsData, dummyGraphsDataFolderName, dummyGraphsDataFilesNames);
+        coreDataService.createGraphsForMissingTimeframes(dummyGraphsData);
 
         return dummyGraphsData;
     }
 
     private synchronized void writeDummyTradesReports() {
         log.info(reportLog);
-        dataService.writeCsvFile(DUMMY_TRADES_FOLDER_PATH + DUMMY_TRADES_SUMMARY_FILE_NAME, dummyTradesSummaryTable);
+        DataTableTool.writeDataTableToFile(DUMMY_TRADES_FOLDER_PATH + DUMMY_TRADES_SUMMARY_FILE_NAME, dummyTradesSummaryTable);
         reportLog = "";
     }
 

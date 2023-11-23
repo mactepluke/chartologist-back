@@ -3,9 +3,9 @@ package co.syngleton.chartomancer.service;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.DataService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.signaling.service.ExternalDataSourceService;
+import co.syngleton.chartomancer.signaling.service.datasource.ExternalDataSourceService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +33,7 @@ class CryptoCompareApiTests {
     @Autowired
     ExternalDataSourceService cryptoCompareService;
     @Autowired
-    DataService dataService;
+    CoreDataService coreDataService;
 
     /*https://min-api.cryptocompare.com/data/v2/histohour?fsym=BTC&tsym=USD&limit=30&api_key=d65dc84a06302c8e5c992a22f9bcba743964c9d02e776270fe4251b564d47c25*/
     @Test
@@ -45,8 +45,6 @@ class CryptoCompareApiTests {
         int size = 30;
 
         Graph graph = cryptoCompareService.getLatestPriceHistoryGraph(symbol, timeframe, size);
-
-        dataService.printGraph(graph);
 
         assertEquals(symbol, graph.getSymbol());
         assertEquals(timeframe, graph.getTimeframe());

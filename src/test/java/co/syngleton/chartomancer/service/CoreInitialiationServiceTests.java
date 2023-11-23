@@ -5,7 +5,7 @@ import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.service.DataConfigService;
+import co.syngleton.chartomancer.analytics.service.InitialiationService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
@@ -23,8 +23,8 @@ import org.springframework.test.context.ContextConfiguration;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Log4j2
@@ -32,13 +32,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class DataConfigServiceTests {
+class CoreInitialiationServiceTests {
 
     private final static int NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES = 2;
     @Autowired
     CoreData coreData;
     @Autowired
-    DataConfigService dataConfigService;
+    InitialiationService dataConfigService;
     @Value("${test_data_folder_name}")
     private String testDataFolderName;
     @Value("#{'${test_data_files_names}'.split(',')}")
@@ -82,7 +82,7 @@ class DataConfigServiceTests {
         );
         assertNotNull(coreData.getTradingPatternBoxes());
         assertEquals(NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES + 2, coreData.getGraphs().size());
-        assertTrue(coreData.getPatternBoxes().size() >= 1);
+        assertFalse(coreData.getPatternBoxes().isEmpty());
         assertEquals(coreData.getPatternBoxes().size(), coreData.getTradingPatternBoxes().size());
     }
 }

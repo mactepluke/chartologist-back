@@ -1,10 +1,10 @@
 package co.syngleton.chartomancer.analytics.computation;
 
-import co.syngleton.chartomancer.analytics.factory.CandleFactory;
 import co.syngleton.chartomancer.analytics.model.ComputablePattern;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.analytics.service.CandleConverter;
 import co.syngleton.chartomancer.global.tools.Futures;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 @Component
 public class PatternComputer {
 
-    private final CandleFactory candleFactory;
+    private final CandleConverter candleConverter;
     @Getter
     @Setter
     private Analyzer analyzer;
@@ -32,8 +32,8 @@ public class PatternComputer {
     private ProgressBar pb;
 
     @Autowired
-    public PatternComputer(CandleFactory candleFactory, Analyzer analyzer) {
-        this.candleFactory = candleFactory;
+    public PatternComputer(CandleConverter candleConverter, Analyzer analyzer) {
+        this.candleConverter = candleConverter;
         this.analyzer = analyzer;
     }
 
@@ -97,7 +97,7 @@ public class PatternComputer {
 
     private Pattern computeBasicIterationPattern(ComputablePattern pattern) {
 
-        int matchScore = 0;
+        int matchScore;
         float priceVariation;
 
         if (pattern != null) {
@@ -108,32 +108,36 @@ public class PatternComputer {
 
             for (var i = 0; i < computations; i++) {
 
-
                 priceVariation = analyzer.calculatePriceVariation(getFollowingFloatCandles(pattern, i), pattern.getScope());
 
                 if (priceVariation != 0) {
 
-                    List<IntCandle> intCandlesToMatch = candleFactory.streamlineToIntCandles(getCandlesToMatch(pattern, i), pattern.getGranularity());
+                    List<IntCandle> intCandlesToMatch = candleConverter.rescaleToIntCandles(getCandlesToMatch(pattern, i), pattern.getGranularity());
                     matchScore = analyzer.calculateMatchScore((Pattern) pattern, intCandlesToMatch);
-
                     pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f));
-                    divider = divider + matchScore / 100f;
+                    divider = incrementDivider(divider, matchScore);
                 }
             }
-
-            pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() / divider);
-
+            adjustPriceVariationPrediction(pattern, divider);
         }
         incrementProgressBar();
         return (Pattern) pattern;
+    }
+
+    private List<FloatCandle> getFollowingFloatCandles(ComputablePattern pattern, int pivot) {
+        return computationSettings.getGraph().getFloatCandles().subList(pivot + pattern.getLength(), pivot + pattern.getLength() + pattern.getScope());
     }
 
     private List<FloatCandle> getCandlesToMatch(ComputablePattern pattern, int pivot) {
         return computationSettings.getGraph().getFloatCandles().subList(pivot, pivot + pattern.getLength());
     }
 
-    private List<FloatCandle> getFollowingFloatCandles(ComputablePattern pattern, int pivot) {
-        return computationSettings.getGraph().getFloatCandles().subList(pivot + pattern.getLength(), pivot + pattern.getLength() + pattern.getScope());
+    private float incrementDivider(float divider, int matchScore) {
+        return divider + matchScore / 100f;
+    }
+
+    private void adjustPriceVariationPrediction(ComputablePattern pattern, float divider) {
+        pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() / divider);
     }
 
     private List<Pattern> filterOutUselessPatterns(List<Pattern> patterns) {

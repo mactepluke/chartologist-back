@@ -25,17 +25,16 @@ import java.util.Set;
 
 @Log4j2
 @Service
-public class PatternService {
+public class PatternComputingService {
 
-    private static final String NEW_LINE = System.getProperty("line.separator");
     private final PatternFactory patternFactory;
     private final PatternComputer patternComputer;
     @Value("#{'${patternboxes_timeframes}'.split(',')}")
     private Set<Timeframe> patternBoxesTimeframes;
 
     @Autowired
-    public PatternService(PatternFactory patternFactory,
-                          PatternComputer patternComputer) {
+    public PatternComputingService(PatternFactory patternFactory,
+                                   PatternComputer patternComputer) {
         this.patternFactory = patternFactory;
         this.patternComputer = patternComputer;
     }

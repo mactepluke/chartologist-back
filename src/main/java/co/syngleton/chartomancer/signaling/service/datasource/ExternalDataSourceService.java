@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.signaling.service;
+package co.syngleton.chartomancer.signaling.service.datasource;
 
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Symbol;

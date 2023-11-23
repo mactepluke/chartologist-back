@@ -1,10 +1,10 @@
-package co.syngleton.chartomancer.signaling.service;
+package co.syngleton.chartomancer.signaling.service.datasource;
 
-import co.syngleton.chartomancer.analytics.factory.GraphFactory;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.analytics.service.ChartingService;
 import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.global.tools.Format;
 import co.syngleton.chartomancer.signaling.dto.api.cryptocompare.CryptoCompareOhlcvCandle;
@@ -24,12 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
-@Service
+@Service("CRYPTO_COMPARE")
 public class CryptoCompareService implements ExternalDataSourceService {
     private static final String SOURCE_API_NAME = "CryptoCompare_";
     private static final int MAX_CANDLES_TO_FETCH = 250;
     private final CryptoCompareApiProxy cryptoCompareApiProxy;
-    private final GraphFactory graphFactory;
+    private final ChartingService chartingService;
     @Value("${api_key}")
     private String apiKey;
     @Value("${free_subscription:true}")
@@ -37,9 +37,9 @@ public class CryptoCompareService implements ExternalDataSourceService {
 
     @Autowired
     public CryptoCompareService(CryptoCompareApiProxy cryptoCompareApiProxy,
-                                GraphFactory graphFactory) {
+                                ChartingService chartingService) {
         this.cryptoCompareApiProxy = cryptoCompareApiProxy;
-        this.graphFactory = graphFactory;
+        this.chartingService = chartingService;
     }
 
     private Symbol adjustSymbol(Symbol symbol) {
@@ -152,7 +152,7 @@ public class CryptoCompareService implements ExternalDataSourceService {
                 Timeframe.HOUR,
                 convertOhlcvDtoToFloatCandles(dto));
 
-        return graphFactory.upscaleTimeframe(graph, Timeframe.FOUR_HOUR);
+        return chartingService.upscaleTimeframe(graph, Timeframe.FOUR_HOUR);
     }
 
     private @NonNull Graph getLatestDayPriceHistoryGraph(@NonNull Symbol symbol, int size) {
@@ -182,7 +182,7 @@ public class CryptoCompareService implements ExternalDataSourceService {
                 Timeframe.DAY,
                 convertOhlcvDtoToFloatCandles(dto));
 
-        return graphFactory.upscaleTimeframe(graph, Timeframe.WEEK);
+        return chartingService.upscaleTimeframe(graph, Timeframe.WEEK);
     }
 
     private @NonNull List<FloatCandle> convertOhlcvDtoToFloatCandles(CryptoCompareOhlcvDto cryptoCompareOhlcvDto) {

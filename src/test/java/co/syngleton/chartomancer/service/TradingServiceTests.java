@@ -6,7 +6,7 @@ import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.DataService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.TradingServiceConfig;
 import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTradesManager;
@@ -72,7 +72,7 @@ class TradingServiceTests {
     @Autowired
     CoreData coreData;
     @Autowired
-    DataService dataService;
+    CoreDataService coreDataService;
     @Value("${test_data_folder_name}")
     private String testDataFolderName;
     @Value("#{'${test_data_files_names}'.split(',')}")
@@ -83,11 +83,11 @@ class TradingServiceTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
-        dataService.loadCoreData(coreData);
-        dataService.generateTradingData(coreData);
-        dataService.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS);
-        dataService.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);
-        dataService.createGraphsForMissingTimeframes(coreData);
+        coreDataService.loadCoreData(coreData);
+        coreDataService.generateTradingData(coreData);
+        coreDataService.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS);
+        coreDataService.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);
+        coreDataService.createGraphsForMissingTimeframes(coreData);
     }
 
     @AfterAll
@@ -99,7 +99,7 @@ class TradingServiceTests {
     @Test
     @DisplayName("[IT] Checks test core data integrity")
     void checkCoreDataIntegrity() {
-        dataService.printCoreData(coreData);
+        coreDataService.printCoreData(coreData);
         Optional<PatternBox> optionalPatternBox = coreData.getTradingPatternBox(Symbol.BTC_USD, Timeframe.FOUR_HOUR);
 
         assertTrue(optionalPatternBox.isPresent());
@@ -135,7 +135,7 @@ class TradingServiceTests {
                 WRITE_REPORTS,
                 new DummyTradesSummaryTable("testTable"),
                 TEST_PATH,
-                dataService);
+                coreDataService);
 
         Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.FOUR_HOUR);
 

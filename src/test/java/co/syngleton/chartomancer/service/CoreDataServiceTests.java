@@ -6,13 +6,12 @@ import co.syngleton.chartomancer.analytics.model.BasicPattern;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.model.PredictivePattern;
-import co.syngleton.chartomancer.analytics.service.DataService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -37,10 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class DataServiceTests {
+class CoreDataServiceTests {
 
     @Autowired
-    DataService dataService;
+    CoreDataService coreDataService;
     @Autowired
     MockData mockData;
     @Autowired
@@ -86,41 +85,39 @@ class DataServiceTests {
     void loadGraphsTest() {
         CoreData testCoreData = new CoreData();
 
-        assertTrue(dataService.loadGraphs(testCoreData, getTestDataFolderPath, testDataFilesNames));
+        assertTrue(coreDataService.loadGraphs(testCoreData, getTestDataFolderPath, testDataFilesNames));
         assertEquals(testDataFilesNames.size(), testCoreData.getGraphs().size());
     }
 
-    @Disabled
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
-        assertTrue(dataService.loadCoreData(coreData));
+        assertTrue(coreDataService.loadCoreData(coreData));
     }
 
-    @Disabled
     @Test
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
-        assertTrue(dataService.saveCoreData(coreData));
+        assertTrue(coreDataService.saveCoreData(coreData));
     }
 
     @Test
     @DisplayName("[UNIT] Generates trading data")
     void generateTradingDataTest() {
-        assertTrue(dataService.generateTradingData(coreData));
+        assertTrue(coreDataService.generateTradingData(coreData));
         assertEquals(coreData.getPatternBoxes().size(), coreData.getTradingPatternBoxes().size());
     }
 
     @Test
     @DisplayName("[UNIT] Purges non-trading data")
     void purgeNonTradingDataTest() {
-        assertTrue(dataService.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS));
+        assertTrue(coreDataService.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS));
     }
 
     @Test
     @DisplayName("[UNIT] Creates graphs for missing timeframes")
     void createGraphsForMissingTimeframesTest() {
-        assertTrue(dataService.createGraphsForMissingTimeframes(coreData));
+        assertTrue(coreDataService.createGraphsForMissingTimeframes(coreData));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes() + 2, coreData.getGraphs().size());
     }
 }

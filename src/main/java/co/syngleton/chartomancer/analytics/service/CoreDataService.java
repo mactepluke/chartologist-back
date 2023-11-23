@@ -2,23 +2,15 @@ package co.syngleton.chartomancer.analytics.service;
 
 import co.syngleton.chartomancer.analytics.dao.CoreDataDAO;
 import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.analytics.factory.GraphFactory;
-import co.syngleton.chartomancer.analytics.misc.CSVFormat;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.model.PredictivePattern;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
 import co.syngleton.chartomancer.analytics.model.TradingPattern;
-import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.global.tools.Check;
 import co.syngleton.chartomancer.global.tools.Format;
-import co.syngleton.chartomancer.global.tools.datatabletool.DataTableTool;
-import co.syngleton.chartomancer.global.tools.datatabletool.PrintableDataTable;
-import co.syngleton.chartomancer.signaling.misc.ExternalDataSource;
-import co.syngleton.chartomancer.signaling.service.ExternalDataSourceService;
 import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -29,41 +21,32 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 @Log4j2
 @Service
-public class DataService implements ApplicationContextAware {
+public class CoreDataService implements ApplicationContextAware {
 
     private static final String NEW_LINE = System.getProperty("line.separator");
-    private final GraphFactory graphFactory;
-    private final ExternalDataSourceService cryptoCompareService;
+
+    private final ChartingService chartingService;
     private final String dataSource;
     private ApplicationContext applicationContext;
     private CoreDataDAO coreDataDAO;
-    @Value("${reading_attempts:3}")
-    private int readingAttempts;
-    @Value("${external_data_source}")
-    private ExternalDataSource externalDataSource;
+
     @Value("${data_source_name:data.ser}")
     private String dataSourceName;
 
     @Autowired
-    public DataService(@Value("${data_source}") String dataSource,
-                       GraphFactory graphFactory,
-                       ExternalDataSourceService cryptoCompareService) {
-        this.graphFactory = graphFactory;
-        this.cryptoCompareService = cryptoCompareService;
+    public CoreDataService(@Value("${data_source}") String dataSource,
+                           ChartingService chartingService) {
+        this.chartingService = chartingService;
         this.dataSource = dataSource;
     }
 
@@ -82,21 +65,6 @@ public class DataService implements ApplicationContextAware {
         return applicationContext.getBean(dataSource, CoreDataDAO.class);
     }
 
-    public void setExternalDataSource(ExternalDataSource externalDataSource) {
-        this.externalDataSource = externalDataSource;
-    }
-
-    public ExternalDataSourceService getExternalDataSourceService() {
-        if (Objects.requireNonNull(externalDataSource) == ExternalDataSource.CRYPTO_COMPARE) {
-            return cryptoCompareService;
-        }
-        throw new InvalidParametersException("Data source is missing: check 'external_data_source' in properties file and make sure it is set.");
-    }
-
-    public boolean writeCsvFile(String fileName, PrintableDataTable content) {
-        return DataTableTool.writeDataTableToFile(fileName, content);
-    }
-
     public boolean loadGraphs(CoreData coreData, String dataFolderName, List<String> dataFilesNames) {
 
         Set<Graph> graphs = new HashSet<>();
@@ -104,7 +72,7 @@ public class DataService implements ApplicationContextAware {
         if (coreData != null) {
             for (String dataFileName : dataFilesNames) {
 
-                Graph graph = loadGraph("./" + dataFolderName + "/" + dataFileName);
+                Graph graph = chartingService.generateGraphFromFile("./" + dataFolderName + "/" + dataFileName);
 
                 if (graph != null && graph.doesNotMatchAnyChartObjectIn(coreData.getGraphs())) {
                     graphs.add(graph);
@@ -117,68 +85,6 @@ public class DataService implements ApplicationContextAware {
             }
         }
         return !graphs.isEmpty();
-    }
-
-    public Graph loadGraph(String path) {
-
-        Graph graph;
-
-        log.info("Reading file... : " + path);
-
-        CSVFormat currentFormat = readFileFormat(path);
-
-        if (currentFormat != null) {
-            graph = graphFactory.create(path, currentFormat);
-            log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
-            return graph;
-        } else {
-            log.error("File format header not found (parsed the first {} lines without success). List of supported headers:", readingAttempts);
-
-            for (CSVFormat csvReader : CSVFormat.values()) {
-                log.info("Format: {}, header: \"{}\"", csvReader, csvReader.formatHeader);
-            }
-            return null;
-        }
-    }
-
-    private CSVFormat readFileFormat(String path) {
-
-        CSVFormat csvFormat = null;
-        String line;
-        int count = 0;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-            do {
-                line = reader.readLine();
-                if (line != null) {
-                    count++;
-                    for (CSVFormat format : CSVFormat.values()) {
-
-                        if (line.matches(format.formatHeader)) {
-                            csvFormat = format;
-                        }
-                    }
-                }
-            } while (line != null && count < readingAttempts);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return csvFormat;
-    }
-
-    public boolean printGraph(Graph graph) {
-
-        if (graph != null) {
-            log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
-            int i = 1;
-            for (FloatCandle floatCandle : graph.getFloatCandles()) {
-                log.info("{} -> {}", i++, floatCandle.toString());
-            }
-            return true;
-        } else {
-            log.info("Cannot print graph: no data have been loaded.");
-            return false;
-        }
     }
 
     public boolean loadCoreData(CoreData coreData) {
@@ -226,7 +132,7 @@ public class DataService implements ApplicationContextAware {
                     anyPatternList = tradingPatterns.entrySet().iterator().next().getValue();
                 }
 
-                if (Check.notNullNotEmpty(anyPatternList) && !tradingPatterns.isEmpty() && anyPatternList.get(0) != null) {
+                if (Check.notNullNotEmpty(anyPatternList) && !tradingPatterns.isEmpty() && !anyPatternList.isEmpty()) {
                     tradingData.add(new PatternBox(anyPatternList.get(0), tradingPatterns));
                 }
             }
@@ -276,12 +182,6 @@ public class DataService implements ApplicationContextAware {
         return true;
     }
 
-    public void purgeAllData(CoreData coreData) {
-        if (coreData != null) {
-            coreData.purgeAll();
-        }
-    }
-
     public boolean createGraphsForMissingTimeframes(CoreData coreData) {
 
         if (coreData != null && Check.notNullNotEmpty(coreData.getGraphs())) {
@@ -301,7 +201,7 @@ public class DataService implements ApplicationContextAware {
 
             for (Timeframe timeframe : missingTimeframes) {
                 if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds) {
-                    lowestTimeframeGraph = graphFactory.upscaleTimeframe(lowestTimeframeGraph, timeframe);
+                    lowestTimeframeGraph = chartingService.generateGraphForTimeFrame(lowestTimeframeGraph, timeframe);
                     lowestTimeframe = timeframe;
                     coreData.getGraphs().add(lowestTimeframeGraph);
                 }

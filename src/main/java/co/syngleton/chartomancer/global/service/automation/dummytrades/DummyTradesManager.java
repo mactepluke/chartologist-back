@@ -6,13 +6,14 @@ import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.trading.service.TradingService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.global.tools.Calc;
+import co.syngleton.chartomancer.global.tools.Format;
+import co.syngleton.chartomancer.global.tools.datatabletool.DataTableTool;
 import co.syngleton.chartomancer.trading.model.Trade;
 import co.syngleton.chartomancer.trading.model.TradeStatus;
 import co.syngleton.chartomancer.trading.model.TradingAccount;
-import co.syngleton.chartomancer.analytics.service.DataService;
-import co.syngleton.chartomancer.global.tools.Calc;
-import co.syngleton.chartomancer.global.tools.Format;
+import co.syngleton.chartomancer.trading.service.TradingService;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.Contract;
@@ -37,7 +38,7 @@ public class DummyTradesManager {
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private final boolean writeReports;
     private final String dummyTradesFolderPath;
-    private final DataService dataService;
+    private final CoreDataService coreDataService;
 
     public DummyTradesManager(double initialBalance,
                               double minimumBalance,
@@ -48,7 +49,7 @@ public class DummyTradesManager {
                               boolean writeReports,
                               DummyTradesSummaryTable dummyTradesSummaryTable,
                               String dummyTradesFolderPath,
-                              DataService dataService) {
+                              CoreDataService coreDataService) {
         this.initialBalance = initialBalance;
         this.minimumBalance = minimumBalance;
         this.expectedBalanceX = expectedBalanceX;
@@ -58,7 +59,7 @@ public class DummyTradesManager {
         this.writeReports = writeReports;
         this.dummyTradesSummaryTable = dummyTradesSummaryTable;
         this.dummyTradesFolderPath = dummyTradesFolderPath;
-        this.dataService = dataService;
+        this.coreDataService = coreDataService;
     }
 
     public String launchDummyTrades(@NonNull Graph graph, @NonNull CoreData coreData, boolean randomized, String reportLog) {
@@ -124,7 +125,7 @@ public class DummyTradesManager {
             ));
 
             if (writeReports) {
-                dataService.writeCsvFile(dummyTradesFolderPath + fileName, account);
+                DataTableTool.writeDataTableToFile(dummyTradesFolderPath + fileName, account);
             }
         }
         return reportLog;

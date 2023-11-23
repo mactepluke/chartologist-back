@@ -19,22 +19,22 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Service
-public class DataConfigService {
+public class InitialiationService {
 
     private static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive_";
     private static final String NEW_LINE = System.getProperty("line.separator");
     private final LaunchService launchService;
-    private final DataService dataService;
-    private final PatternService patternService;
+    private final CoreDataService coreDataService;
+    private final PatternComputingService patternComputingService;
     private final TradingService tradingService;
 
     @Autowired
-    public DataConfigService(DataService dataService,
-                             PatternService patternService,
-                             LaunchService launchService,
-                             TradingService tradingService) {
-        this.dataService = dataService;
-        this.patternService = patternService;
+    public InitialiationService(CoreDataService coreDataService,
+                                PatternComputingService patternComputingService,
+                                LaunchService launchService,
+                                TradingService tradingService) {
+        this.coreDataService = coreDataService;
+        this.patternComputingService = patternComputingService;
         this.launchService = launchService;
         this.tradingService = tradingService;
     }
@@ -103,7 +103,7 @@ public class DataConfigService {
         //LOADING TRADING DATA IF APPLICABLE
         log.info("Loaded core data: {}",
                 Check.executeIfTrue(loadCoreDataAtStartup,
-                        dataService::loadCoreData,
+                        coreDataService::loadCoreData,
                         coreData));
         //RUNNING ANALYSIS IF APPLICABLE
         if (runAnalysisAtStartup) {
@@ -124,18 +124,18 @@ public class DataConfigService {
             }
 
             log.info("Saved core data overriden with newly generated core data: {}",
-                    Check.executeIfTrue(overrideSavedCoreData, dataService::saveCoreData, coreData));
+                    Check.executeIfTrue(overrideSavedCoreData, coreDataService::saveCoreData, coreData));
 
             //TODO: refactor and extract the field to a shared constant
             if (overrideSavedTestCoreData) {
                 log.info("Saved test core data overriden with newly generated core data: {}",
-                        dataService.saveCoreDataWithName(coreData, "datatest.ser"));
+                        coreDataService.saveCoreDataWithName(coreData, "datatest.ser"));
             }
 
             boolean result = false;
 
             if (createTimestampedCoreDataArchive) {
-                result = dataService.saveCoreDataWithName(coreData,
+                result = coreDataService.saveCoreDataWithName(coreData,
                         CORE_DATA_ARCHIVES_FOLDER_PATH +
                                 "_" +
                                 Format.toFileNameCompatibleDateTime(coreData.getPatternSettings().getComputationDate())
@@ -145,16 +145,16 @@ public class DataConfigService {
         }
         //GENERATING TRADING DATA
         if (generateTradingData) {
-            log.info("Generated trading data: {}", dataService.generateTradingData(coreData));
+            log.info("Generated trading data: {}", coreDataService.generateTradingData(coreData));
 
             log.info("Purged non-trading data: {}",
-                    dataService.purgeNonTradingData(coreData, purgeAfterTradingDataGeneration));
+                    coreDataService.purgeNonTradingData(coreData, purgeAfterTradingDataGeneration));
         } else if (purgeAfterTradingDataGeneration != PurgeOption.NO) {
             log.warn("Non-trading data will not be purged as no trading data has been generated.");
         }
         //PRINTING LAUNCHING AUTOMATION IF APPLICABLE
         if (launchAutomation) {
-            launchService.launchAutomation(coreData, dataService, patternService, tradingService);
+            launchService.launchAutomation(coreData, coreDataService, patternComputingService, tradingService);
         }
 
         return coreData;
@@ -177,7 +177,7 @@ public class DataConfigService {
 
         //LOADING GRAPHS
         log.debug("Loading graphs from folder {} with files {}...", dataFolderName, dataFilesNames);
-        if (dataService.loadGraphs(coreData, dataFolderName, dataFilesNames)) {
+        if (coreDataService.loadGraphs(coreData, dataFolderName, dataFilesNames)) {
             log.info("Created {} graph(s)", coreData.getGraphs().size());
         } else {
             log.error("Application could not initialize its data: no files of correct format could be read.");
@@ -185,7 +185,7 @@ public class DataConfigService {
         //CREATING GRAPHS FOR MISSING TIMEFRAMES
         log.debug("Creating graphs for missing timeframes...");
         log.info("Created graphs for missing timeframes: {}",
-                Check.executeIfTrue(createGraphsForMissingTimeframes, dataService::createGraphsForMissingTimeframes, coreData));
+                Check.executeIfTrue(createGraphsForMissingTimeframes, coreDataService::createGraphsForMissingTimeframes, coreData));
 
         //CREATING PREDICTIVE PATTERNS
         log.info("Creating pattern boxes...");
@@ -200,7 +200,7 @@ public class DataConfigService {
             patternSettingsInput = patternSettingsInput.atomizePartition();
         }
 
-        if (patternService.createPatternBoxes(coreData, patternSettingsInput)) {
+        if (patternComputingService.createPatternBoxes(coreData, patternSettingsInput)) {
             log.info("Created {} pattern box(es)", coreData.getPatternBoxes().size());
         } else {
             log.error("Application could not initialize its data: no pattern boxes could be created.");
@@ -211,7 +211,7 @@ public class DataConfigService {
                 .computationType(computationType)
                 .autoconfig(computationSettings);
 
-        if (patternService.computePatternBoxes(coreData, computationSettingsInput)) {
+        if (patternComputingService.computePatternBoxes(coreData, computationSettingsInput)) {
             log.info("Computed {} pattern box(es)", coreData.getPatternBoxes().size());
         } else {
             log.error("Application could not initialize its data: no pattern boxes format could be computed.");

@@ -1,10 +1,10 @@
 package co.syngleton.chartomancer.global.service;
 
-import co.syngleton.chartomancer.global.service.automation.Automation;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.DataService;
-import co.syngleton.chartomancer.analytics.service.PatternService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.analytics.service.PatternComputingService;
+import co.syngleton.chartomancer.global.service.automation.Automation;
 import co.syngleton.chartomancer.trading.service.TradingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -47,13 +47,13 @@ public class LaunchService {
     private boolean printTasksHistory;
 
     public void launchAutomation(CoreData coreData,
-                                 DataService dataService,
-                                 PatternService patternService,
+                                 CoreDataService coreDataService,
+                                 PatternComputingService patternComputingService,
                                  TradingService tradingService) {
         Thread automation = new Thread(new Automation(
                 coreData,
-                dataService,
-                patternService,
+                coreDataService,
+                patternComputingService,
                 tradingService,
                 printCoreData,
                 printPricePredictionSummary,

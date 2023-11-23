@@ -2,13 +2,13 @@ package co.syngleton.chartomancer.trading.service;
 
 import co.syngleton.chartomancer.analytics.computation.Analyzer;
 import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.analytics.factory.CandleFactory;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.model.TradingPattern;
+import co.syngleton.chartomancer.analytics.service.CandleConverter;
 import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.global.tools.Check;
 import co.syngleton.chartomancer.global.tools.Format;
@@ -37,16 +37,16 @@ public class TradingService {
 
     @Getter
     private final Analyzer analyzer;
-    private final CandleFactory candleFactory;
+    private final CandleConverter candleConverter;
     @Getter
     private final TradingSettings tradingSettings;
 
     @Autowired
     public TradingService(Analyzer tradingAnalyzer,
-                          CandleFactory candleFactory,
+                          CandleConverter candleConverter,
                           TradingSettings tradingSettings) {
         this.analyzer = tradingAnalyzer;
-        this.candleFactory = candleFactory;
+        this.candleConverter = candleConverter;
         this.tradingSettings = tradingSettings;
     }
 
@@ -281,7 +281,7 @@ public class TradingService {
 
             float divider = 1;
             List<FloatCandle> floatCandles = graph.getFloatCandles().subList(tradeOpenCandle - patterns.get(0).getLength(), tradeOpenCandle);
-            List<IntCandle> intCandles = candleFactory.streamlineToIntCandles(floatCandles, patterns.get(0).getGranularity());
+            List<IntCandle> intCandles = candleConverter.rescaleToIntCandles(floatCandles, patterns.get(0).getGranularity());
 
             for (Pattern pattern : patterns) {
 

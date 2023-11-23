@@ -4,8 +4,8 @@ import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.service.DataService;
-import co.syngleton.chartomancer.analytics.service.PatternService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.analytics.service.PatternComputingService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
 import lombok.extern.log4j.Log4j2;
@@ -32,19 +32,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class PatternServiceTests {
+class PatternComputingServiceTests {
 
     @Autowired
-    PatternService patternService;
+    PatternComputingService patternComputingService;
     @Autowired
     MockData mockData;
     @Autowired
     CoreData coreData;
     @Autowired
-    DataService dataService;
+    CoreDataService coreDataService;
     private List<Pattern> patterns;
     private PatternSettings.Builder testPatternSettingsBuilder;
-    private ComputationSettings.Builder testComputationSettingsBuilder;
 
     @BeforeAll
     void setUp() {
@@ -54,9 +53,6 @@ class PatternServiceTests {
 
         testPatternSettingsBuilder = new PatternSettings.Builder()
                 .autoconfig(PatternSettings.Autoconfig.TEST)
-                .graph(mockData.getMockGraphDay1());
-        testComputationSettingsBuilder = new ComputationSettings.Builder()
-                .autoconfig(ComputationSettings.Autoconfig.TEST)
                 .graph(mockData.getMockGraphDay1());
     }
 
@@ -71,7 +67,7 @@ class PatternServiceTests {
     @DisplayName("[UNIT] Create light basic patterns from mock graph")
     void createBasicPatternsTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.BASIC));
+        patterns = patternComputingService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.BASIC));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -81,7 +77,7 @@ class PatternServiceTests {
     @DisplayName("[UNIT] Create light predictive patterns from mock graph")
     void createPredictivePatternsTest() {
 
-        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.PREDICTIVE));
+        patterns = patternComputingService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.PREDICTIVE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -91,9 +87,9 @@ class PatternServiceTests {
     @DisplayName("[IT] Creates and computes pattern boxes from mock graphs")
     void createAndComputePatternBoxes() {
 
-        assertTrue(patternService.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
+        assertTrue(patternComputingService.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
-        assertTrue(patternService.computePatternBoxes(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
+        assertTrue(patternComputingService.computePatternBoxes(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
     }
 }

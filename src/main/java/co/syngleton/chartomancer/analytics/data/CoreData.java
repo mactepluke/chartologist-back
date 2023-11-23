@@ -49,12 +49,6 @@ public class CoreData implements Serializable {
         patternBoxes = new HashSet<>();
     }
 
-    public void purgeAll() {
-        graphs = new HashSet<>();
-        patternBoxes = new HashSet<>();
-        tradingPatternBoxes = new HashSet<>();
-    }
-
     public Graph getGraph(Symbol symbol, Timeframe timeframe) {
         for (Graph graph : this.getGraphs()) {
             if (graph.getTimeframe() == timeframe && graph.getSymbol() == symbol) {

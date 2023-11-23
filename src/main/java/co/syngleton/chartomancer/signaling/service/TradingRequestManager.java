@@ -5,13 +5,22 @@ import co.syngleton.chartomancer.analytics.model.ChartObject;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.DataService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.signaling.misc.ExternalDataSource;
+import co.syngleton.chartomancer.signaling.service.datasource.ExternalDataSourceService;
 import co.syngleton.chartomancer.trading.model.Trade;
 import co.syngleton.chartomancer.trading.model.TradeStatus;
 import co.syngleton.chartomancer.trading.model.TradingAccount;
 import co.syngleton.chartomancer.trading.model.TradingSettings;
 import co.syngleton.chartomancer.trading.service.TradingService;
+import jakarta.annotation.PostConstruct;
+import lombok.NonNull;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -20,28 +29,50 @@ import java.util.stream.Collectors;
 import static java.lang.Math.abs;
 
 @Service
-public class TradingRequestManager {
+@Log4j2
+public class TradingRequestManager implements ApplicationContextAware {
 
     private final TradingService tradingService;
-    private final DataService dataService;
+    private final CoreDataService coreDataService;
     private final CoreData coreData;
     private final TradingSettings defaultTradingSettings;
+    private final ExternalDataSource externalDataSource;
     //private final MailingList mailingList;
+    private ApplicationContext applicationContext;
+    private ExternalDataSourceService externalDataSourceService;
     private TradingSettings tradingSettings;
 
     @Autowired
     public TradingRequestManager(TradingService tradingService,
-                                 DataService dataService,
+                                 CoreDataService coreDataService,
                                  CoreData coreData,
-                                 TradingSettings tradingSettings
+                                 TradingSettings tradingSettings,
+                                 @Value("${external_data_source}") ExternalDataSource externalDataSource
             /*MailingList mailingList*/) {
         this.tradingService = tradingService;
-        this.dataService = dataService;
+        this.coreDataService = coreDataService;
         this.coreData = coreData;
         this.defaultTradingSettings = tradingSettings;
         this.tradingSettings = defaultTradingSettings;
+        this.externalDataSource = externalDataSource;
         //this.mailingList = mailingList;
     }
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    @PostConstruct
+    public void init() {
+        log.debug("Using external data source: {}", externalDataSource);
+        this.externalDataSourceService = getExternalDataSourceService(externalDataSource);
+    }
+
+    private ExternalDataSourceService getExternalDataSourceService(ExternalDataSource externalDataSource) {
+        return applicationContext.getBean(String.valueOf(externalDataSource), ExternalDataSourceService.class);
+    }
+
 
     public TradingSettings getTradingSettings() {
         return this.tradingSettings;
@@ -107,9 +138,7 @@ public class TradingRequestManager {
 
     public Trade getCurrentBestTrade(double accountBalance, Symbol symbol, Timeframe timeframe) {
 
-        ExternalDataSourceService dataSourceService = dataService.getExternalDataSourceService();
-
-        Graph graph = dataSourceService.getLatestPriceHistoryGraphWithCurrentPriceCandle(
+        Graph graph = externalDataSourceService.getLatestPriceHistoryGraphWithCurrentPriceCandle(
                 symbol,
                 timeframe,
                 coreData.getTradingPatternSettings().getPatternLength());

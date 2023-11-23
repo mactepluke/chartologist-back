@@ -2,7 +2,8 @@ package co.syngleton.chartomancer.global.configuration;
 
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.DataService;
+import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.global.tools.datatabletool.DataTableTool;
 import co.syngleton.chartomancer.signaling.service.EmailService;
 import co.syngleton.chartomancer.signaling.service.TradingRequestManager;
 import co.syngleton.chartomancer.trading.dto.TradeDTO;
@@ -31,7 +32,7 @@ public class MailingConfig {
     private static final String MAIL_FOUR_HOUR_BODY = "Chartomancer vous propose le trade BTC/USD suivant à l'échelle des 4 heures :" + NEW_LINE + NEW_LINE;
     private final TradingRequestManager tradingRequestManager;
     private final EmailService emailService;
-    private final DataService dataService;
+    private final CoreDataService coreDataService;
     private final TradingAccount signalsTradingAccount;
     @Value("${enable_email_scheduling:false}")
     private boolean enableEmailScheduling;
@@ -44,10 +45,10 @@ public class MailingConfig {
     @Autowired
     public MailingConfig(TradingRequestManager tradingRequestManager,
                          EmailService emailService,
-                         DataService dataService) {
+                         CoreDataService coreDataService) {
         this.tradingRequestManager = tradingRequestManager;
         this.emailService = emailService;
-        this.dataService = dataService;
+        this.coreDataService = coreDataService;
         this.signalsTradingAccount = new TradingAccount();
         this.signalsTradingAccount.credit(signalsAccountBalance);
     }
@@ -76,7 +77,7 @@ public class MailingConfig {
 
     private synchronized void updateSignalsHistory(Trade trade, Timeframe timeframe) {
         this.signalsTradingAccount.getTrades().add(trade);
-        dataService.writeCsvFile(SIGNALS_HISTORY_FOLDER + SIGNALS_FILE_NAME + "_" + timeframe, signalsTradingAccount);
+        DataTableTool.writeDataTableToFile(SIGNALS_HISTORY_FOLDER + SIGNALS_FILE_NAME + "_" + timeframe, signalsTradingAccount);
     }
 
 }

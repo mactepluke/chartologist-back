@@ -2,17 +2,17 @@ package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.PatternComputer;
-import co.syngleton.chartomancer.configuration.AnalyzerConfigTest;
-import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.analytics.factory.CandleFactory;
+import co.syngleton.chartomancer.analytics.model.BasicPattern;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Graph;
+import co.syngleton.chartomancer.analytics.model.IntCandle;
+import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.analytics.model.PredictivePattern;
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.model.BasicPattern;
-import co.syngleton.chartomancer.analytics.model.PredictivePattern;
+import co.syngleton.chartomancer.analytics.service.CandleConverter;
+import co.syngleton.chartomancer.configuration.AnalyzerConfigTest;
+import co.syngleton.chartomancer.configuration.DataConfigTest;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,7 +41,7 @@ class PatternComputerTests {
 
     private static final int GRANULARITY = 100;
     @Autowired
-    CandleFactory candleFactory;
+    CandleConverter candleConverter;
     @Autowired
     PatternComputer patternComputer;
     private LocalDateTime candleDate;
@@ -66,7 +66,7 @@ class PatternComputerTests {
         FloatCandle floatCandle = new FloatCandle(candleDate, 20, 100, 0, 80, 20);
         floatCandles = new ArrayList<>(List.of(floatCandle));
 
-        intCandles = candleFactory.streamlineToIntCandles(floatCandles, GRANULARITY);
+        intCandles = candleConverter.rescaleToIntCandles(floatCandles, GRANULARITY);
 
         assertEquals(1, intCandles.size());
         assertEquals(20, intCandles.get(0).open());
@@ -89,7 +89,7 @@ class PatternComputerTests {
         Graph graph = new Graph("Computer test graph", Symbol.UNDEFINED, Timeframe.HOUR, floatCandles);
 
 
-        intCandles = candleFactory.streamlineToIntCandles(new ArrayList<>(List.of(floatCandle1)), GRANULARITY);
+        intCandles = candleConverter.rescaleToIntCandles(new ArrayList<>(List.of(floatCandle1)), GRANULARITY);
 
         BasicPattern basicPattern = new BasicPattern(intCandles, GRANULARITY, 1, Symbol.UNDEFINED, Timeframe.HOUR, candleDate);
         PredictivePattern lightPredictivePattern = new PredictivePattern(basicPattern, 1);
