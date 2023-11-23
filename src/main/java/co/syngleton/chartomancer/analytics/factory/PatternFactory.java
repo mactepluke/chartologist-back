@@ -5,7 +5,7 @@ import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PredictivePattern;
-import co.syngleton.chartomancer.analytics.service.CandleConverter;
+import co.syngleton.chartomancer.analytics.service.CandleRescaler;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +38,7 @@ public final class PatternFactory {
     private static final int DEFAULT_SCOPE = 8;
     private static final int MIN_SCOPE = 1;
     private static final int MAX_SCOPE = 30;
-    private final CandleConverter candleConverter;
+    private final CandleRescaler candleRescaler;
     @Value("${min_granularity:0}")
     private int minGranularity;
     @Value("${max_granularity:0}")
@@ -69,8 +69,8 @@ public final class PatternFactory {
     private int maxScope;
 
     @Autowired
-    public PatternFactory(CandleConverter candleConverter) {
-        this.candleConverter = candleConverter;
+    public PatternFactory(CandleRescaler candleRescaler) {
+        this.candleRescaler = candleRescaler;
     }
 
 
@@ -195,7 +195,7 @@ public final class PatternFactory {
             for (List<FloatCandle> graphChunk : graphChunks) {
                 if (graphChunk.size() >= patternSettings.getLength()) {
 
-                    List<IntCandle> pixelatedChunk = candleConverter.rescaleToIntCandles(graphChunk, patternSettings.getGranularity());
+                    List<IntCandle> pixelatedChunk = candleRescaler.rescaleToIntCandles(graphChunk, patternSettings.getGranularity());
 
                     BasicPattern basicPattern = new BasicPattern(
                             pixelatedChunk,

@@ -1,41 +1,33 @@
-package co.syngleton.chartomancer.factory;
+package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.configuration.DataConfigTest;
+import co.syngleton.chartomancer.signaling.service.EmailService;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
 @Log4j2
+@AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class GraphFactoryTests {
+class EmailServiceTests {
 
-
-    @BeforeAll
-    void setUp() {
-        log.info("*** STARTING GRAPH FACTORY TESTS ***");
-    }
-
-    @AfterAll
-    void tearDown() {
-        log.info("*** ENDING GRAPH FACTORY TESTS ***");
-    }
+    @Autowired
+    private EmailService emailService;
 
     @Test
     @Disabled
-    @DisplayName("[UNIT]")
-    void graphFactoryTest() {
-        //TODO: implement test for all factories
+    @DisplayName("[UNIT] Sends basic email to admin email")
+    void sendBasicEmailTest() {
+        emailService.sendEmail("luc.metz@icloud.com", "Test email chartomancer", "Test is successful!");
     }
-
-
 }

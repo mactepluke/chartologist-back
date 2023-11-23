@@ -35,7 +35,7 @@ public class CoreDataService implements ApplicationContextAware {
 
     private static final String NEW_LINE = System.getProperty("line.separator");
 
-    private final ChartingService chartingService;
+    private final GraphGenerator graphGenerator;
     private final String dataSource;
     private ApplicationContext applicationContext;
     private CoreDataDAO coreDataDAO;
@@ -45,8 +45,8 @@ public class CoreDataService implements ApplicationContextAware {
 
     @Autowired
     public CoreDataService(@Value("${data_source}") String dataSource,
-                           ChartingService chartingService) {
-        this.chartingService = chartingService;
+                           GraphGenerator graphGenerator) {
+        this.graphGenerator = graphGenerator;
         this.dataSource = dataSource;
     }
 
@@ -72,7 +72,7 @@ public class CoreDataService implements ApplicationContextAware {
         if (coreData != null) {
             for (String dataFileName : dataFilesNames) {
 
-                Graph graph = chartingService.generateGraphFromFile("./" + dataFolderName + "/" + dataFileName);
+                Graph graph = graphGenerator.generateGraphFromFile("./" + dataFolderName + "/" + dataFileName);
 
                 if (graph != null && graph.doesNotMatchAnyChartObjectIn(coreData.getGraphs())) {
                     graphs.add(graph);
@@ -201,7 +201,7 @@ public class CoreDataService implements ApplicationContextAware {
 
             for (Timeframe timeframe : missingTimeframes) {
                 if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds) {
-                    lowestTimeframeGraph = chartingService.generateGraphForTimeFrame(lowestTimeframeGraph, timeframe);
+                    lowestTimeframeGraph = graphGenerator.upscaleTimeframe(lowestTimeframeGraph, timeframe);
                     lowestTimeframe = timeframe;
                     coreData.getGraphs().add(lowestTimeframeGraph);
                 }

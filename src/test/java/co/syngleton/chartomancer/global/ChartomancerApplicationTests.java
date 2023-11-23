@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer;
+package co.syngleton.chartomancer.global;
 
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import org.junit.jupiter.api.DisplayName;

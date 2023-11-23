@@ -34,38 +34,27 @@ import static java.lang.Math.round;
 @Log4j2
 @Service
 @AllArgsConstructor
-public class ChartingService implements CandleConverter {
+public class ChartingService implements GraphGenerator, CandleRescaler {
 
     private static final int READING_ATTEMPTS = 3;
 
+    @Override
     public Graph generateGraphFromFile(String path) {
 
-        Graph graph;
+        log.debug("Reading file... : " + path);
+        CSVFormat format = readFileFormat(path);
 
-        log.info("Reading file... : " + path);
-
-        CSVFormat currentFormat = readFileFormat(path);
-
-        if (currentFormat != null) {
-            graph = create(path, currentFormat);
-            log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
-            return graph;
-        } else {
-            log.error("File format header not found (parsed the first {} lines without success). List of supported headers:", READING_ATTEMPTS);
-
-            for (CSVFormat csvReader : CSVFormat.values()) {
-                log.info("Format: {}, header: \"{}\"", csvReader, csvReader.formatHeader);
-            }
+        if (format == null) {
+            log.error("Unrecognized header format (parsed the first {} lines). List of supported headers: {}", READING_ATTEMPTS, listSupportedCSVHeaders());
             return null;
         }
-    }
 
-    public Graph generateGraphForTimeFrame(Graph graph, Timeframe timeframe) {
-        return upscaleTimeframe(graph, timeframe);
+        Graph graph = create(path, format);
+        log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
+        return graph;
     }
 
     private CSVFormat readFileFormat(String path) {
-
         CSVFormat csvFormat = null;
         String line;
         int count = 0;
@@ -75,12 +64,7 @@ public class ChartingService implements CandleConverter {
                 line = reader.readLine();
                 if (line != null) {
                     count++;
-                    for (CSVFormat format : CSVFormat.values()) {
-
-                        if (line.matches(format.formatHeader)) {
-                            csvFormat = format;
-                        }
-                    }
+                    csvFormat = parseFileHeader(line);
                 }
             } while (line != null && count < READING_ATTEMPTS);
         } catch (IOException e) {
@@ -89,7 +73,24 @@ public class ChartingService implements CandleConverter {
         return csvFormat;
     }
 
-    public Graph create(String path, CSVFormat csvFormat) {
+    private CSVFormat parseFileHeader(String header) {
+        for (CSVFormat format : CSVFormat.values()) {
+            if (header.matches(format.formatHeader)) {
+                return format;
+            }
+        }
+        return null;
+    }
+
+    private String listSupportedCSVHeaders() {
+        StringBuilder sb = new StringBuilder();
+        for (CSVFormat csvReader : CSVFormat.values()) {
+            sb.append("Format: ").append(csvReader).append(", header: \"").append(csvReader.formatHeader).append("\"\n");
+        }
+        return sb.toString();
+    }
+
+    private Graph create(String path, CSVFormat csvFormat) {
         String line;
         List<FloatCandle> floatCandles = new ArrayList<>();
         Symbol symbol = Symbol.UNDEFINED;
@@ -97,7 +98,7 @@ public class ChartingService implements CandleConverter {
 
         try (
                 BufferedReader reader = new BufferedReader(new FileReader(path))) {
-
+//TODO: refactor to function with files that first lines are not the header
             do {
                 line = reader.readLine();
             } while (!line.matches(csvFormat.formatHeader));
@@ -123,8 +124,7 @@ public class ChartingService implements CandleConverter {
                     floatCandles.add(floatCandle);
                 }
             } while (line != null);
-        } catch (
-                IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         floatCandles.sort(Comparator.comparing(FloatCandle::dateTime));
@@ -146,7 +146,6 @@ public class ChartingService implements CandleConverter {
                 symbol = Symbol.ETH_USD;
             }
         }
-
         return symbol;
     }
 
@@ -202,6 +201,7 @@ public class ChartingService implements CandleConverter {
         return timeframe;
     }
 
+    @Override
     public Graph upscaleTimeframe(Graph graph, Timeframe timeframe) {
 
         Graph upscaleGraph = null;
@@ -234,19 +234,6 @@ public class ChartingService implements CandleConverter {
             upscaleGraph = new Graph("Upscale-" + graph.getName(), graph.getSymbol(), timeframe, newFloatCandles);
         }
         return upscaleGraph;
-    }
-
-    public void printGraph(Graph graph) {
-
-        if (graph != null) {
-            log.info("*** PRINTING GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
-            int i = 1;
-            for (FloatCandle floatCandle : graph.getFloatCandles()) {
-                log.info("{} -> {}", i++, floatCandle.toString());
-            }
-        } else {
-            log.info("Cannot print graph: no data have been loaded.");
-        }
     }
 
     @Override
@@ -314,7 +301,6 @@ public class ChartingService implements CandleConverter {
         public final int closePosition;
         public final int volumePosition;
 
-
         CSVFormat(String formatHeader,
                   String delimiter,
                   int unixPosition,
@@ -337,5 +323,6 @@ public class ChartingService implements CandleConverter {
         }
 
     }
+
 
 }

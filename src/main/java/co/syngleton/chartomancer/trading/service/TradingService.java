@@ -8,7 +8,7 @@ import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.model.TradingPattern;
-import co.syngleton.chartomancer.analytics.service.CandleConverter;
+import co.syngleton.chartomancer.analytics.service.CandleRescaler;
 import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.global.tools.Check;
 import co.syngleton.chartomancer.global.tools.Format;
@@ -37,16 +37,16 @@ public class TradingService {
 
     @Getter
     private final Analyzer analyzer;
-    private final CandleConverter candleConverter;
+    private final CandleRescaler candleRescaler;
     @Getter
     private final TradingSettings tradingSettings;
 
     @Autowired
     public TradingService(Analyzer tradingAnalyzer,
-                          CandleConverter candleConverter,
+                          CandleRescaler candleRescaler,
                           TradingSettings tradingSettings) {
         this.analyzer = tradingAnalyzer;
-        this.candleConverter = candleConverter;
+        this.candleRescaler = candleRescaler;
         this.tradingSettings = tradingSettings;
     }
 
@@ -281,7 +281,7 @@ public class TradingService {
 
             float divider = 1;
             List<FloatCandle> floatCandles = graph.getFloatCandles().subList(tradeOpenCandle - patterns.get(0).getLength(), tradeOpenCandle);
-            List<IntCandle> intCandles = candleConverter.rescaleToIntCandles(floatCandles, patterns.get(0).getGranularity());
+            List<IntCandle> intCandles = candleRescaler.rescaleToIntCandles(floatCandles, patterns.get(0).getGranularity());
 
             for (Pattern pattern : patterns) {
 

@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.misc;
+package co.syngleton.chartomancer.global;
 
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.global.tools.Calc;

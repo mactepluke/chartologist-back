@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.service;
+package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
