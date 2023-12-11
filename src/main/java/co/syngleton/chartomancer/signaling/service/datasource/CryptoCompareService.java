@@ -4,7 +4,7 @@ import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Symbol;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.GraphUpscaler;
+import co.syngleton.chartomancer.analytics.service.GraphUpscalor;
 import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.global.tools.Format;
 import co.syngleton.chartomancer.signaling.dto.api.cryptocompare.CryptoCompareOhlcvCandle;
@@ -29,7 +29,7 @@ public class CryptoCompareService implements ExternalDataSourceService {
     private static final String SOURCE_API_NAME = "CryptoCompare_";
     private static final int MAX_CANDLES_TO_FETCH = 250;
     private final CryptoCompareApiProxy cryptoCompareApiProxy;
-    private final GraphUpscaler graphUpscaler;
+    private final GraphUpscalor graphUpscalor;
     @Value("${api_key}")
     private String apiKey;
     @Value("${free_subscription:true}")
@@ -37,9 +37,9 @@ public class CryptoCompareService implements ExternalDataSourceService {
 
     @Autowired
     public CryptoCompareService(CryptoCompareApiProxy cryptoCompareApiProxy,
-                                GraphUpscaler graphUpscaler) {
+                                GraphUpscalor graphUpscalor) {
         this.cryptoCompareApiProxy = cryptoCompareApiProxy;
-        this.graphUpscaler = graphUpscaler;
+        this.graphUpscalor = graphUpscalor;
     }
 
     private Symbol adjustSymbol(Symbol symbol) {
@@ -152,7 +152,7 @@ public class CryptoCompareService implements ExternalDataSourceService {
                 Timeframe.HOUR,
                 convertOhlcvDtoToFloatCandles(dto));
 
-        return graphUpscaler.upscaleTimeframe(graph, Timeframe.FOUR_HOUR);
+        return graphUpscalor.upscaleToTimeFrame(graph, Timeframe.FOUR_HOUR);
     }
 
     private @NonNull Graph getLatestDayPriceHistoryGraph(@NonNull Symbol symbol, int size) {
@@ -182,7 +182,7 @@ public class CryptoCompareService implements ExternalDataSourceService {
                 Timeframe.DAY,
                 convertOhlcvDtoToFloatCandles(dto));
 
-        return graphUpscaler.upscaleTimeframe(graph, Timeframe.WEEK);
+        return graphUpscalor.upscaleToTimeFrame(graph, Timeframe.WEEK);
     }
 
     private @NonNull List<FloatCandle> convertOhlcvDtoToFloatCandles(CryptoCompareOhlcvDto cryptoCompareOhlcvDto) {

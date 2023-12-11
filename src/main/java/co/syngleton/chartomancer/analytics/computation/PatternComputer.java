@@ -4,7 +4,7 @@ import co.syngleton.chartomancer.analytics.model.ComputablePattern;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
 import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.service.CandleRescaler;
+import co.syngleton.chartomancer.analytics.service.CandleNormalizer;
 import co.syngleton.chartomancer.global.tools.Futures;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 @Component
 public class PatternComputer {
 
-    private final CandleRescaler candleRescaler;
+    private final CandleNormalizer candleNormalizer;
     @Getter
     @Setter
     private Analyzer analyzer;
@@ -32,8 +32,8 @@ public class PatternComputer {
     private ProgressBar pb;
 
     @Autowired
-    public PatternComputer(CandleRescaler candleRescaler, Analyzer analyzer) {
-        this.candleRescaler = candleRescaler;
+    public PatternComputer(CandleNormalizer candleNormalizer, Analyzer analyzer) {
+        this.candleNormalizer = candleNormalizer;
         this.analyzer = analyzer;
     }
 
@@ -112,7 +112,7 @@ public class PatternComputer {
 
                 if (priceVariation != 0) {
 
-                    List<IntCandle> intCandlesToMatch = candleRescaler.rescaleToIntCandles(getCandlesToMatch(pattern, i), pattern.getGranularity());
+                    List<IntCandle> intCandlesToMatch = candleNormalizer.normalizeCandles(getCandlesToMatch(pattern, i), pattern.getGranularity());
                     matchScore = analyzer.calculateMatchScore((Pattern) pattern, intCandlesToMatch);
                     pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f));
                     divider = incrementDivider(divider, matchScore);

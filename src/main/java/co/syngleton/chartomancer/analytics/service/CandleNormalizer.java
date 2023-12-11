@@ -5,6 +5,6 @@ import co.syngleton.chartomancer.analytics.model.IntCandle;
 
 import java.util.List;
 
-public interface CandleRescaler {
-    List<IntCandle> rescaleToIntCandles(List<FloatCandle> floatCandles, int granularity);
+public interface CandleNormalizer {
+    List<IntCandle> normalizeCandles(List<FloatCandle> floatCandles, int granularity);
 }

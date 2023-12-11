@@ -1,10 +1,8 @@
 package co.syngleton.chartomancer.analytics.service;
 
-import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.IntCandle;
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.analytics.exception.InvalidFileFormatException;
+import co.syngleton.chartomancer.analytics.exception.InvalidParametersException;
+import co.syngleton.chartomancer.analytics.model.*;
 import co.syngleton.chartomancer.global.tools.Check;
 import co.syngleton.chartomancer.global.tools.Format;
 import co.syngleton.chartomancer.global.tools.Pair;
@@ -26,16 +24,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import static co.syngleton.chartomancer.global.tools.Format.streamline;
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.lang.Math.round;
+import static java.lang.Math.*;
 
 @Log4j2
 @Service
 @AllArgsConstructor
-public class ChartingService implements GraphGenerator, CandleRescaler {
-
+public class ChartingService implements GraphGenerator, CandleNormalizer {
+    private static final String NEW_LINE = System.getProperty("line.separator");
     private static final int READING_ATTEMPTS = 3;
 
     @Override
@@ -45,11 +40,10 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
         CSVFormat format = readFileFormat(path);
 
         if (format == null) {
-            log.error("Unrecognized header format (parsed the first {} lines). List of supported headers: {}", READING_ATTEMPTS, listSupportedCSVHeaders());
-            return null;
+            throw new InvalidFileFormatException("Unrecognized header format (parsed the first " + READING_ATTEMPTS + " lines). List of supported headers:" + NEW_LINE + listSupportedCSVHeaders());
         }
 
-        Graph graph = create(path, format);
+        Graph graph = generateGraphFromFileOfFormat(path, format);
         log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
         return graph;
     }
@@ -66,7 +60,7 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
                     count++;
                     csvFormat = parseFileHeader(line);
                 }
-            } while (line != null && count < READING_ATTEMPTS);
+            } while (line != null && count < READING_ATTEMPTS && csvFormat == null);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -75,7 +69,8 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
 
     private CSVFormat parseFileHeader(String header) {
         for (CSVFormat format : CSVFormat.values()) {
-            if (header.matches(format.formatHeader)) {
+            log.debug(header + " vs " + format.formatHeader);
+            if (header.equals(format.formatHeader)) {
                 return format;
             }
         }
@@ -90,63 +85,56 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
         return sb.toString();
     }
 
-    private Graph create(String path, CSVFormat csvFormat) {
-        String line;
-        List<FloatCandle> floatCandles = new ArrayList<>();
-        Symbol symbol = Symbol.UNDEFINED;
+    private Graph generateGraphFromFileOfFormat(String path, CSVFormat csvFormat) {
+        List<FloatCandle> floatCandles;
+
+        floatCandles = readFloatCandlesFromFile(path, csvFormat);
+        floatCandles.sort(Comparator.comparing(FloatCandle::dateTime));
+        floatCandles = repairMissingCandles(floatCandles);
+
         Path filePath = Paths.get(path);
 
-        try (
-                BufferedReader reader = new BufferedReader(new FileReader(path))) {
-//TODO: refactor to function with files that first lines are not the header
-            do {
-                line = reader.readLine();
-            } while (!line.matches(csvFormat.formatHeader));
+        return new Graph(filePath.getFileName().toString(), csvFormat.symbol, getTimeframe(floatCandles), floatCandles);
+    }
 
-            do {
-                line = reader.readLine();
-                if (line != null && !line.equals("")) {
-                    String[] values = line.split(csvFormat.delimiter);
-                    FloatCandle floatCandle = new FloatCandle(
-                            LocalDateTime.ofEpochSecond(Long.parseLong(
-                                            Format.cutString(values[csvFormat.unixPosition], 10)),
-                                    0,
-                                    ZoneOffset.UTC),
-                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.openPosition])),
-                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.highPosition])),
-                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.lowPosition])),
-                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.closePosition])),
-                            Format.roundAccordingly(Float.parseFloat(values[csvFormat.volumePosition]))
-                    );
-                    if (symbol == Symbol.UNDEFINED) {
-                        symbol = readSymbol(values[csvFormat.symbolPosition]);
-                    }
-                    floatCandles.add(floatCandle);
+    private List<FloatCandle> readFloatCandlesFromFile(String path, CSVFormat csvFormat) {
+        String line;
+        List<FloatCandle> floatCandles = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+
+            boolean headerRead = false;
+
+            while ((line = reader.readLine()) != null) {
+
+                if (line.equals(csvFormat.formatHeader)) {
+                    headerRead = true;
+                    line = reader.readLine();
                 }
-            } while (line != null);
+
+                if (!line.isEmpty() && headerRead) {
+                    String[] values = line.split(csvFormat.delimiter);
+                    floatCandles.add(createFloatCandleFromValues(values, csvFormat));
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        floatCandles.sort(Comparator.comparing(FloatCandle::dateTime));
-
-        floatCandles = repairMissingCandles(floatCandles);
-
-        return new Graph(filePath.getFileName().toString(), symbol, getTimeframe(floatCandles), floatCandles);
+        return floatCandles;
     }
 
-    private Symbol readSymbol(String symbolValue) {
-
-        Symbol symbol = Symbol.UNDEFINED;
-
-        if ((symbolValue != null)
-                && (symbolValue.contains("USD") || symbolValue.contains("usd"))) {
-            if (symbolValue.contains("BTC") || symbolValue.contains("btc")) {
-                symbol = Symbol.BTC_USD;
-            } else if (symbolValue.contains("ETH") || symbolValue.contains("eth")) {
-                symbol = Symbol.ETH_USD;
-            }
-        }
-        return symbol;
+    private FloatCandle createFloatCandleFromValues(String[] values, CSVFormat csvFormat) {
+        return new FloatCandle(
+                LocalDateTime.ofEpochSecond(Long.parseLong(
+                                Format.cutString(values[csvFormat.unixPosition], 10)),
+                        0,
+                        ZoneOffset.UTC),
+                Format.roundAccordingly(Float.parseFloat(values[csvFormat.openPosition])),
+                Format.roundAccordingly(Float.parseFloat(values[csvFormat.highPosition])),
+                Format.roundAccordingly(Float.parseFloat(values[csvFormat.lowPosition])),
+                Format.roundAccordingly(Float.parseFloat(values[csvFormat.closePosition])),
+                Format.roundAccordingly(Float.parseFloat(values[csvFormat.volumePosition]))
+        );
     }
 
     private @NonNull List<FloatCandle> repairMissingCandles(@NonNull List<FloatCandle> floatCandles) {
@@ -202,42 +190,47 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
     }
 
     @Override
-    public Graph upscaleTimeframe(Graph graph, Timeframe timeframe) {
+    public Graph upscaleToTimeFrame(Graph graph, Timeframe timeframe) {
 
-        Graph upscaleGraph = null;
+        if (!parametersAreValid(graph, timeframe)) {
+            throw new InvalidParametersException("Upscaling parameters are invalid: graph: " + graph + ", timeframe: " + timeframe);
+        }
 
-        if (graph != null
+        List<FloatCandle> newFloatCandles = new ArrayList<>();
+        int span = (int) (timeframe.durationInSeconds / graph.getTimeframe().durationInSeconds);
+
+        for (int i = 0; i < graph.getFloatCandles().size() - span + 1; i = i + span) {
+            newFloatCandles.add(createUpscaleCandles(graph, span, i));
+        }
+        return new Graph("Upscale-" + graph.getName(), graph.getSymbol(), timeframe, newFloatCandles);
+    }
+
+    private boolean parametersAreValid(Graph graph, Timeframe timeframe) {
+        return graph != null
                 && timeframe != null
                 && timeframe != Timeframe.UNKNOWN
                 && Check.notNullNotEmpty(graph.getFloatCandles())
-                && timeframe.durationInSeconds > graph.getTimeframe().durationInSeconds) {
+                && timeframe.durationInSeconds > graph.getTimeframe().durationInSeconds;
+    }
 
-            List<FloatCandle> newFloatCandles = new ArrayList<>();
+    private FloatCandle createUpscaleCandles(Graph graph, int span, int step) {
+        LocalDateTime dateTime = graph.getFloatCandles().get(step).dateTime();
+        float open = graph.getFloatCandles().get(step).open();
+        float close = graph.getFloatCandles().get(step + span - 1).close();
+        float high = open;
+        float low = open;
+        float volume = 0;
 
-            int span = (int) (timeframe.durationInSeconds / graph.getTimeframe().durationInSeconds);
-
-            for (int i = 0; i < graph.getFloatCandles().size() - span + 1; i = i + span) {
-                LocalDateTime dateTime = graph.getFloatCandles().get(i).dateTime();
-                float open = graph.getFloatCandles().get(i).open();
-                float close = graph.getFloatCandles().get(i + span - 1).close();
-                float high = open;
-                float low = open;
-                float volume = 0;
-
-                for (int j = 0; j < span; j++) {
-                    volume = volume + graph.getFloatCandles().get(i + j).volume();
-                    high = max(high, graph.getFloatCandles().get(i + j).high());
-                    low = min(low, graph.getFloatCandles().get(i + j).low());
-                }
-                newFloatCandles.add(new FloatCandle(dateTime, open, high, low, close, volume));
-            }
-            upscaleGraph = new Graph("Upscale-" + graph.getName(), graph.getSymbol(), timeframe, newFloatCandles);
+        for (int i = 0; i < span; i++) {
+            volume = volume + graph.getFloatCandles().get(step + i).volume();
+            high = max(high, graph.getFloatCandles().get(step + i).high());
+            low = min(low, graph.getFloatCandles().get(step + i).low());
         }
-        return upscaleGraph;
+        return new FloatCandle(dateTime, open, high, low, close, volume);
     }
 
     @Override
-    public List<IntCandle> rescaleToIntCandles(List<FloatCandle> floatCandles, int granularity) {
+    public List<IntCandle> normalizeCandles(List<FloatCandle> floatCandles, int granularity) {
 
         Pair<Float, Float> extremes = getLowestAndHighest(floatCandles);
 
@@ -279,17 +272,10 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
     }
 
     public enum CSVFormat {
-        CRYPTO_DATA_DOWNLOAD(
-                "unix,date,symbol,open,high,low,close,Volume ...,Volume ...",
-                ",",
-                0,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-        );
+        CRYPTO_DATA_DOWNLOAD_USD_BTC("unix,date,symbol,open,high,low,close,Volume USD,Volume BTC", ",", 0, 2, 3, 4, 5, 6, 7, "USD_BTC"),
+        CRYPTO_DATA_DOWNLOAD_USD_ETH("unix,date,symbol,open,high,low,close,Volume USD,Volume ETH", ",", 0, 2, 3, 4, 5, 6, 7, "USD_ETH"),
+        CRYPTO_DATA_DOWNLOAD_BTC_USD("unix,date,symbol,open,high,low,close,Volume BTC,Volume USD", ",", 0, 2, 3, 4, 5, 6, 8, "BTC_USD"),
+        CRYPTO_DATA_DOWNLOAD_ETH_USD("unix,date,symbol,open,high,low,close,Volume ETH,Volume USD", ",", 0, 2, 3, 4, 5, 6, 8, "ETH_USD");
 
         public final String formatHeader;
         public final String delimiter;
@@ -300,6 +286,7 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
         public final int lowPosition;
         public final int closePosition;
         public final int volumePosition;
+        public final Symbol symbol;
 
         CSVFormat(String formatHeader,
                   String delimiter,
@@ -309,7 +296,8 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
                   int highPosition,
                   int lowPosition,
                   int closePosition,
-                  int volumePosition
+                  int volumePosition,
+                  String symbolValue
         ) {
             this.formatHeader = formatHeader;
             this.delimiter = delimiter;
@@ -320,8 +308,17 @@ public class ChartingService implements GraphGenerator, CandleRescaler {
             this.lowPosition = lowPosition;
             this.closePosition = closePosition;
             this.volumePosition = volumePosition;
+            this.symbol = readSymbol(symbolValue);
         }
 
+        private Symbol readSymbol(String symbolValue) {
+            return switch (symbolValue) {
+                case "BTC_USD" -> Symbol.BTC_USD;
+                case "ETH_USD" -> Symbol.ETH_USD;
+                default -> Symbol.UNDEFINED;
+            };
+
+        }
     }
 
 

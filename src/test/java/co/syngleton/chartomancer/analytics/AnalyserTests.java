@@ -4,14 +4,10 @@ import co.syngleton.chartomancer.analytics.computation.Analyzer;
 import co.syngleton.chartomancer.analytics.computation.Smoothing;
 import co.syngleton.chartomancer.analytics.model.FloatCandle;
 import co.syngleton.chartomancer.analytics.model.IntCandle;
-import co.syngleton.chartomancer.analytics.service.CandleRescaler;
+import co.syngleton.chartomancer.analytics.service.CandleNormalizer;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,7 +30,7 @@ class AnalyserTests {
 
     private static final int GRANULARITY = 100;
     @Autowired
-    CandleRescaler candleRescaler;
+    CandleNormalizer candleNormalizer;
     private Analyzer analyzer;
     private List<IntCandle> intCandles;
 
@@ -49,7 +45,7 @@ class AnalyserTests {
         FloatCandle floatCandle3 = new FloatCandle(candleDate, 40, 100, 40, 60, 20);
 
         floatCandles = new ArrayList<>(List.of(floatCandle1, floatCandle2, floatCandle3));
-        intCandles = candleRescaler.rescaleToIntCandles(floatCandles, GRANULARITY);
+        intCandles = candleNormalizer.normalizeCandles(floatCandles, GRANULARITY);
     }
 
     @AfterAll

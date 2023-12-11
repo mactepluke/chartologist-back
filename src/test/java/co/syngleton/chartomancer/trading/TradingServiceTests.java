@@ -13,11 +13,7 @@ import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTrad
 import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTradesSummaryTable;
 import co.syngleton.chartomancer.trading.service.TradingService;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -28,8 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Log4j2
@@ -106,7 +101,7 @@ class TradingServiceTests {
 
         PatternBox patternBox = optionalPatternBox.get();
 
-        assertTrue(patternBox.getPatterns().size() > 0);
+        assertFalse(patternBox.getPatterns().isEmpty());
         assertEquals(404, patternBox.getPatterns().get(1).size());
         assertEquals(855, patternBox.getPatterns().get(2).size());
         assertEquals(1302, patternBox.getPatterns().get(3).size());

@@ -3,12 +3,7 @@ package co.syngleton.chartomancer.analytics.service;
 import co.syngleton.chartomancer.analytics.dao.CoreDataDAO;
 import co.syngleton.chartomancer.analytics.data.CoreData;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.analytics.model.PatternBox;
-import co.syngleton.chartomancer.analytics.model.PredictivePattern;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.model.TradingPattern;
+import co.syngleton.chartomancer.analytics.model.*;
 import co.syngleton.chartomancer.global.tools.Check;
 import co.syngleton.chartomancer.global.tools.Format;
 import jakarta.annotation.PostConstruct;
@@ -21,13 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 @Log4j2
 @Service
@@ -111,7 +100,7 @@ public class CoreDataService implements ApplicationContextAware {
 
     public boolean saveCoreDataWithName(CoreData coreData, String dataFileName) {
 
-        log.info("> Saving core data to: {}", dataSource);
+        log.info("> Saving core data to: {}", dataSource + "/" + dataFileName);
         return coreDataDAO.saveCoreDataTo(coreData, dataFileName);
     }
 
@@ -201,7 +190,7 @@ public class CoreDataService implements ApplicationContextAware {
 
             for (Timeframe timeframe : missingTimeframes) {
                 if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds) {
-                    lowestTimeframeGraph = graphGenerator.upscaleTimeframe(lowestTimeframeGraph, timeframe);
+                    lowestTimeframeGraph = graphGenerator.upscaleToTimeFrame(lowestTimeframeGraph, timeframe);
                     lowestTimeframe = timeframe;
                     coreData.getGraphs().add(lowestTimeframeGraph);
                 }

@@ -1,7 +1,6 @@
 package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.analytics.misc.PurgeOption;
 import co.syngleton.chartomancer.analytics.model.BasicPattern;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
@@ -10,11 +9,7 @@ import co.syngleton.chartomancer.analytics.service.CoreDataService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -52,7 +47,7 @@ class CoreDataServiceTests {
 
     @BeforeAll
     void setUp() {
-        log.info("*** STARTING DATA SERVICE TESTS ***");
+        log.info("*** STARTING CORE DATA SERVICE TESTS ***");
 
         coreData.setGraphs(mockData.getTestGraphs());
         coreData.setPatternBoxes(new HashSet<>());
@@ -98,7 +93,7 @@ class CoreDataServiceTests {
     @Test
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
-        assertTrue(coreDataService.saveCoreData(coreData));
+        assertTrue(coreDataService.saveCoreDataWithName(coreData, "trashdata.ser"));
     }
 
     @Test
@@ -106,12 +101,6 @@ class CoreDataServiceTests {
     void generateTradingDataTest() {
         assertTrue(coreDataService.generateTradingData(coreData));
         assertEquals(coreData.getPatternBoxes().size(), coreData.getTradingPatternBoxes().size());
-    }
-
-    @Test
-    @DisplayName("[UNIT] Purges non-trading data")
-    void purgeNonTradingDataTest() {
-        assertTrue(coreDataService.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS));
     }
 
     @Test

@@ -1,10 +1,10 @@
-package co.syngleton.chartomancer.analytics.computation;
+package co.syngleton.chartomancer.analytics;
 
-import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.IntCandle;
-import co.syngleton.chartomancer.analytics.model.Pattern;
-import co.syngleton.chartomancer.global.tools.Calc;
-import co.syngleton.chartomancer.global.tools.Format;
+import co.syngleton.chartomancer.model.charting.candles.FloatCandle;
+import co.syngleton.chartomancer.model.charting.candles.IntCandle;
+import co.syngleton.chartomancer.model.charting.patterns.IntPattern;
+import co.syngleton.chartomancer.util.Calc;
+import co.syngleton.chartomancer.util.Format;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
@@ -59,16 +59,18 @@ public class Analyzer {
             return 0;
         }
         if (extrapolatePriceVariation) {
-            priceVariation = extrapolate(priceVariation, -100, 100);
+            priceVariation = extrapolatePriceVariation(priceVariation);
         }
         return priceVariation;
     }
 
-    private float extrapolate(float value, float min, float max) {
-        return Format.streamline(value + value * abs(value) / 100, min, max);
+    private float extrapolatePriceVariation(float priceVariation) {
+
+        return Format.streamline(priceVariation + priceVariation * abs(priceVariation) / 100, -100, 100);
     }
 
-    public int calculateMatchScore(Pattern pattern, List<IntCandle> intCandlesToMatch) {
+    public int calculateMatchScore(IntPattern pattern, List<IntCandle> intCandlesToMatch) {
+
         return calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
     }
 
@@ -101,6 +103,10 @@ public class Analyzer {
         return filterMatchScore(Calc.positivePercentage(matchScore, patternCandlesSurface));
     }
 
+    private float extrapolateMatchScore(float matchScore) {
+        return Format.streamline(matchScore + matchScore * (matchScore / 100f), 0, 100);
+    }
+
     private int filterMatchScore(int matchScore) {
 
         if (matchScore < matchScoreThreshold) {
@@ -108,7 +114,7 @@ public class Analyzer {
         }
 
         if (extrapolateMatchScore) {
-            matchScore = (int) extrapolate(matchScore, 0, 100);
+            matchScore = (int) extrapolateMatchScore(matchScore);
         }
         return matchScore;
     }

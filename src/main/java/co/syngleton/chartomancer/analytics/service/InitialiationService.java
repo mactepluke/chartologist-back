@@ -126,7 +126,7 @@ public class InitialiationService {
             log.info("Saved core data overriden with newly generated core data: {}",
                     Check.executeIfTrue(overrideSavedCoreData, coreDataService::saveCoreData, coreData));
 
-            //TODO: refactor and extract the field to a shared constant
+            //TODO: refactor and extract the field to a shared constant and DEBUG (the file is not aways created properly)
             if (overrideSavedTestCoreData) {
                 log.info("Saved test core data overriden with newly generated core data: {}",
                         coreDataService.saveCoreDataWithName(coreData, "datatest.ser"));
