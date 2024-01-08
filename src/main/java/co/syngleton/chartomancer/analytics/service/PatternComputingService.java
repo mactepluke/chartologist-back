@@ -1,15 +1,15 @@
-package co.syngleton.chartomancer.analytics.service;
+package co.syngleton.chartomancer.interactors;
 
 import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.PatternComputer;
-import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.analytics.data.DataSettings;
 import co.syngleton.chartomancer.analytics.factory.PatternFactory;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.model.Graph;
 import co.syngleton.chartomancer.analytics.model.Pattern;
 import co.syngleton.chartomancer.analytics.model.PatternBox;
 import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.contracts.CoreData;
+import co.syngleton.chartomancer.data.DataSettings;
 import co.syngleton.chartomancer.global.tools.Check;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -25,7 +25,7 @@ import java.util.Set;
 
 @Log4j2
 @Service
-public class PatternComputingService {
+public class PatternComputingInteractor {
 
     private final PatternFactory patternFactory;
     private final PatternComputer patternComputer;
@@ -33,8 +33,8 @@ public class PatternComputingService {
     private Set<Timeframe> patternBoxesTimeframes;
 
     @Autowired
-    public PatternComputingService(PatternFactory patternFactory,
-                                   PatternComputer patternComputer) {
+    public PatternComputingInteractor(PatternFactory patternFactory,
+                                      PatternComputer patternComputer) {
         this.patternFactory = patternFactory;
         this.patternComputer = patternComputer;
     }
