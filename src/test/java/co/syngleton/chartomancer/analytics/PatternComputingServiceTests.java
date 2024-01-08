@@ -5,8 +5,8 @@ import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.service.PatternComputingService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.data.DataProcessor;
+import co.syngleton.chartomancer.domain.CoreData;
 import co.syngleton.chartomancer.domain.Pattern;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -35,7 +35,7 @@ class PatternComputingServiceTests {
     @Autowired
     CoreData coreData;
     @Autowired
-    DataService dataService;
+    DataProcessor dataProcessor;
     private List<Pattern> patterns;
     private PatternSettings.Builder testPatternSettingsBuilder;
 

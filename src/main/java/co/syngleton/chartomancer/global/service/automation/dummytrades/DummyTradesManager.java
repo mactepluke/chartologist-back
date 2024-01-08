@@ -1,12 +1,8 @@
 package co.syngleton.chartomancer.global.service.automation.dummytrades;
 
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.DataService;
-import co.syngleton.chartomancer.data.DataSettings;
-import co.syngleton.chartomancer.domain.Graph;
-import co.syngleton.chartomancer.domain.PatternBox;
-import co.syngleton.chartomancer.domain.Symbol;
-import co.syngleton.chartomancer.domain.Timeframe;
+import co.syngleton.chartomancer.data.CommonCoreDataSettingNames;
+import co.syngleton.chartomancer.data.DataProcessor;
+import co.syngleton.chartomancer.domain.*;
 import co.syngleton.chartomancer.global.tools.Calc;
 import co.syngleton.chartomancer.global.tools.Format;
 import co.syngleton.chartomancer.global.tools.datatabletool.DataTableTool;
@@ -38,7 +34,7 @@ public class DummyTradesManager {
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private final boolean writeReports;
     private final String dummyTradesFolderPath;
-    private final DataService dataService;
+    private final DataProcessor dataProcessor;
 
     public DummyTradesManager(double initialBalance,
                               double minimumBalance,
@@ -49,7 +45,7 @@ public class DummyTradesManager {
                               boolean writeReports,
                               DummyTradesSummaryTable dummyTradesSummaryTable,
                               String dummyTradesFolderPath,
-                              DataService dataService) {
+                              DataProcessor dataProcessor) {
         this.initialBalance = initialBalance;
         this.minimumBalance = minimumBalance;
         this.expectedBalanceX = expectedBalanceX;
@@ -59,7 +55,7 @@ public class DummyTradesManager {
         this.writeReports = writeReports;
         this.dummyTradesSummaryTable = dummyTradesSummaryTable;
         this.dummyTradesFolderPath = dummyTradesFolderPath;
-        this.dataService = dataService;
+        this.dataProcessor = dataProcessor;
     }
 
     public String launchDummyTrades(@NonNull Graph graph, @NonNull CoreData coreData, boolean randomized, String reportLog) {
@@ -103,12 +99,10 @@ public class DummyTradesManager {
                     totalDuration,
                     annualizedReturnPercentage);
 
-            DataSettings settings = coreData.getTradingPatternSettings();
-
             String fileName = Format.toFileNameCompatibleDateTime(LocalDateTime.now()) + "_" + account.getName() + "_" + graph.getName() + "_" + "_" + result;
 
             addDummyTradeEntry(getNewTradesSummaryEntry(
-                    settings,
+                    coreData,
                     account,
                     fileName,
                     optionalPatternBox.get().getSymbol(),
@@ -212,7 +206,7 @@ public class DummyTradesManager {
     }
 
     @Contract("_, _, _, _, _, _, _, _, _, _, _, _, _, _ -> new")
-    private @NonNull DummyTradesSummaryEntry getNewTradesSummaryEntry(@NonNull DataSettings settings,
+    private @NonNull DummyTradesSummaryEntry getNewTradesSummaryEntry(@NonNull CoreData coreData,
                                                                       @NonNull TradingAccount account,
                                                                       String fileName,
                                                                       Symbol symbol,
@@ -228,25 +222,25 @@ public class DummyTradesManager {
                                                                       double annualizedReturnPercentage) {
         return new DummyTradesSummaryEntry(
                 Format.toFrenchDateTime(LocalDateTime.now()),
-                Format.toFrenchDateTime(settings.getComputationDate()),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.COMPUTATION_DATE),
                 fileName,
                 dummyTradesSummaryTable.getFileName(),
-                symbol,
-                timeframe,
-                settings.getMatchScoreSmoothing(),
-                settings.getMatchScoreThreshold(),
-                settings.getPriceVariationThreshold(),
-                settings.isExtrapolatePriceVariation(),
-                settings.isExtrapolateMatchScore(),
-                settings.getPatternAutoconfig(),
-                settings.getComputationAutoconfig(),
-                settings.getComputationType(),
-                settings.getComputationPatternType(),
-                settings.isAtomicPartition(),
-                maxScope,
-                settings.isFullScope(),
-                patternLength,
-                settings.getPatternGranularity(),
+                symbol.toString(),
+                timeframe.toString(),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.MATCH_SCORE_SMOOTHING),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.MATCH_SCORE_THRESHOLD),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.PRICE_VARIATION_THRESHOLD),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.PATTERN_AUTOCONFIG),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.COMPUTATION_AUTOCONFIG),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.COMPUTATION_TYPE),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.COMPUTATION_PATTERN_TYPE),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.ATOMIC_PARTITION),
+                Integer.toString(maxScope),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.FULL_SCOPE),
+                Integer.toString(patternLength),
+                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.PATTERN_GRANULARITY),
                 tradingService.getAnalyzer().getMatchScoreSmoothing(),
                 tradingService.getAnalyzer().getMatchScoreThreshold(),
                 tradingService.getTradingSettings().getPriceVariationThreshold(),

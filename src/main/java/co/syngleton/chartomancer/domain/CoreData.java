@@ -1,12 +1,9 @@
-package co.syngleton.chartomancer.data;
+package co.syngleton.chartomancer.domain;
 
-import co.syngleton.chartomancer.domain.Graph;
-import co.syngleton.chartomancer.domain.PatternBox;
-import co.syngleton.chartomancer.domain.Symbol;
-import co.syngleton.chartomancer.domain.Timeframe;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,15 +28,19 @@ public interface CoreData extends Serializable {
 
     void setPatternBoxes(Set<PatternBox> patternBoxes);
 
-    DataSettings getPatternSettings();
+    Map<String, String> getPatternSettings();
 
-    void setPatternSettings(DataSettings patternSettings);
+    void setPatternSettings(Map<String, String> patternSettings);
+
+    void setPatternSetting(String key, String value);
 
     Set<PatternBox> getTradingPatternBoxes();
 
     void setTradingPatternBoxes(Set<PatternBox> tradingPatternBoxes);
 
-    DataSettings getTradingPatternSettings();
+    Map<String, String> getTradingPatternSettings();
 
-    void setTradingPatternSettings(DataSettings tradingPatternSettings);
+    void setTradingPatternSettings(Map<String, String> tradingPatternSettings);
+
+    void setTradingPatternSetting(String key, String value);
 }

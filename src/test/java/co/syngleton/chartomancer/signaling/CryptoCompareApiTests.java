@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.domain.Graph;
 import co.syngleton.chartomancer.domain.Symbol;
 import co.syngleton.chartomancer.domain.Timeframe;
@@ -33,7 +33,7 @@ class CryptoCompareApiTests {
     @Autowired
     ExternalDataSourceService cryptoCompareService;
     @Autowired
-    DataService dataService;
+    DataProcessor dataProcessor;
 
     /*https://min-api.cryptocompare.com/data/v2/histohour?fsym=BTC&tsym=USD&limit=30&api_key=d65dc84a06302c8e5c992a22f9bcba743964c9d02e776270fe4251b564d47c25*/
     @Test

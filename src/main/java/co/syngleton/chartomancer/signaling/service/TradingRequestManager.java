@@ -1,11 +1,8 @@
 package co.syngleton.chartomancer.signaling.service;
 
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.DataService;
-import co.syngleton.chartomancer.domain.ChartObject;
-import co.syngleton.chartomancer.domain.Graph;
-import co.syngleton.chartomancer.domain.Symbol;
-import co.syngleton.chartomancer.domain.Timeframe;
+import co.syngleton.chartomancer.data.CommonCoreDataSettingNames;
+import co.syngleton.chartomancer.data.DataProcessor;
+import co.syngleton.chartomancer.domain.*;
 import co.syngleton.chartomancer.signaling.misc.ExternalDataSource;
 import co.syngleton.chartomancer.signaling.service.datasource.ExternalDataSourceService;
 import co.syngleton.chartomancer.trading.model.Trade;
@@ -33,7 +30,7 @@ import static java.lang.Math.abs;
 public class TradingRequestManager implements ApplicationContextAware {
 
     private final TradingService tradingService;
-    private final DataService dataService;
+    private final DataProcessor dataProcessor;
     private final CoreData coreData;
     private final TradingSettings defaultTradingSettings;
     private final ExternalDataSource externalDataSource;
@@ -44,13 +41,13 @@ public class TradingRequestManager implements ApplicationContextAware {
 
     @Autowired
     public TradingRequestManager(TradingService tradingService,
-                                 DataService dataService,
+                                 DataProcessor dataProcessor,
                                  CoreData coreData,
                                  TradingSettings tradingSettings,
                                  @Value("${external_data_source}") ExternalDataSource externalDataSource
             /*MailingList mailingList*/) {
         this.tradingService = tradingService;
-        this.dataService = dataService;
+        this.dataProcessor = dataProcessor;
         this.coreData = coreData;
         this.defaultTradingSettings = tradingSettings;
         this.tradingSettings = defaultTradingSettings;
@@ -141,7 +138,7 @@ public class TradingRequestManager implements ApplicationContextAware {
         Graph graph = externalDataSourceService.getLatestPriceHistoryGraphWithCurrentPriceCandle(
                 symbol,
                 timeframe,
-                coreData.getTradingPatternSettings().getPatternLength());
+                Integer.parseInt(coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.PATTERN_LENGTH)));
 
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.credit(accountBalance);

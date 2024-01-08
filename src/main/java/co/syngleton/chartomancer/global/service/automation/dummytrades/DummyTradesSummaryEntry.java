@@ -1,12 +1,7 @@
 package co.syngleton.chartomancer.global.service.automation.dummytrades;
 
-import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
-import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.computation.Smoothing;
-import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.global.tools.datatabletool.PrintableData;
-import co.syngleton.chartomancer.domain.Symbol;
-import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.trading.model.ProfitFactor;
 import co.syngleton.chartomancer.trading.model.TradingSettings;
 import lombok.NonNull;
@@ -20,22 +15,22 @@ public record DummyTradesSummaryEntry(String dummyTradesDateTime,
                                       String computationDateTime,
                                       String csvTradesHistoryFileName,
                                       String dummyTradesSummaryCsvFileName,
-                                      Symbol symbol,
-                                      Timeframe timeframe,
-                                      Smoothing matchScoreSmoothing,
-                                      int matchScoreThreshold,
-                                      float priceVariationThreshold,
-                                      boolean extrapolatePriceVariation,
-                                      boolean extrapolateMatchScore,
-                                      PatternSettings.Autoconfig patternAutoconfig,
-                                      ComputationSettings.Autoconfig computationAutoconfig,
-                                      ComputationType computationType,
-                                      PatternSettings.PatternType computationPatternType,
-                                      boolean atomicPartition,
-                                      int scope,
-                                      boolean fullScope,
-                                      int patternLength,
-                                      int patternGranularity,
+                                      String symbol,
+                                      String timeframe,
+                                      String matchScoreSmoothing,
+                                      String matchScoreThreshold,
+                                      String priceVariationThreshold,
+                                      String extrapolatePriceVariation,
+                                      String extrapolateMatchScore,
+                                      String patternAutoconfig,
+                                      String computationAutoconfig,
+                                      String computationType,
+                                      String computationPatternType,
+                                      String atomicPartition,
+                                      String scope,
+                                      String fullScope,
+                                      String patternLength,
+                                      String patternGranularity,
                                       Smoothing tradingMatchScoreSmoothing,
                                       int tradingMatchScoreThreshold,
                                       float tradingPriceVariationThreshold,

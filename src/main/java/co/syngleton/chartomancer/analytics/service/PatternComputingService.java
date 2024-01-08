@@ -4,13 +4,10 @@ import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.PatternComputer;
 import co.syngleton.chartomancer.analytics.factory.PatternFactory;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.DataSettings;
-import co.syngleton.chartomancer.domain.Graph;
-import co.syngleton.chartomancer.domain.Pattern;
-import co.syngleton.chartomancer.domain.PatternBox;
-import co.syngleton.chartomancer.domain.Timeframe;
+import co.syngleton.chartomancer.data.CommonCoreDataSettingNames;
+import co.syngleton.chartomancer.domain.*;
 import co.syngleton.chartomancer.global.tools.Check;
+import co.syngleton.chartomancer.global.tools.Format;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,16 +69,13 @@ public class PatternComputingService {
     }
 
     private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
-
-        DataSettings settings = coreData.getPatternSettings();
-
-        settings.setPatternGranularity(patternSettings.getGranularity());
-        settings.setPatternLength(patternSettings.getLength());
-        settings.setScope(patternSettings.getScope());
-        settings.setFullScope(patternSettings.isFullScope());
-        settings.setAtomicPartition(patternSettings.isAtomicPartition());
-        settings.setPatternAutoconfig(patternSettings.getAutoconfig());
-        settings.setComputationPatternType(patternSettings.getPatternType());
+        coreData.setPatternSetting(CommonCoreDataSettingNames.PATTERN_GRANULARITY, Integer.toString(patternSettings.getGranularity()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.PATTERN_LENGTH, Integer.toString(patternSettings.getLength()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.SCOPE, Integer.toString(patternSettings.getScope()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.FULL_SCOPE, Boolean.toString(patternSettings.isFullScope()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.ATOMIC_PARTITION, Boolean.toString(patternSettings.isAtomicPartition()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.PATTERN_AUTOCONFIG, patternSettings.getAutoconfig().toString());
+        coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_PATTERN_TYPE, patternSettings.getPatternType().toString());
     }
 
     public boolean computePatternBoxes(CoreData coreData, ComputationSettings.Builder settingsInput) {
@@ -133,15 +127,13 @@ public class PatternComputingService {
     }
 
     private void updateCoreDataComputationSettings(@NonNull CoreData coreData, @NonNull ComputationSettings computationSettings) {
-        DataSettings settings = coreData.getPatternSettings();
-
-        settings.setComputationType(computationSettings.getComputationType());
-        settings.setComputationAutoconfig(computationSettings.getAutoconfig());
-        settings.setExtrapolateMatchScore(patternComputer.getAnalyzer().isExtrapolateMatchScore());
-        settings.setExtrapolatePriceVariation(patternComputer.getAnalyzer().isExtrapolatePriceVariation());
-        settings.setPriceVariationThreshold(patternComputer.getAnalyzer().getPriceVariationThreshold());
-        settings.setMatchScoreThreshold(patternComputer.getAnalyzer().getMatchScoreThreshold());
-        settings.setMatchScoreSmoothing(patternComputer.getAnalyzer().getMatchScoreSmoothing());
-        settings.setComputationDate(LocalDateTime.now());
+        coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_TYPE, computationSettings.getComputationType().toString());
+        coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_AUTOCONFIG, computationSettings.getAutoconfig().toString());
+        coreData.setPatternSetting(CommonCoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE, Boolean.toString(patternComputer.getAnalyzer().isExtrapolateMatchScore()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION, Boolean.toString(patternComputer.getAnalyzer().isExtrapolatePriceVariation()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.MATCH_SCORE_THRESHOLD, Double.toString(patternComputer.getAnalyzer().getMatchScoreThreshold()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.PRICE_VARIATION_THRESHOLD, Double.toString(patternComputer.getAnalyzer().getPriceVariationThreshold()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.MATCH_SCORE_SMOOTHING, patternComputer.getAnalyzer().getMatchScoreSmoothing().toString());
+        coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_DATE, Format.toFileNameCompatibleDateTime(LocalDateTime.now()));
     }
 }

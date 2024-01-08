@@ -1,5 +1,7 @@
 package co.syngleton.chartomancer.data;
 
+import co.syngleton.chartomancer.domain.CoreData;
+import co.syngleton.chartomancer.domain.DefaultCoreData;
 import co.syngleton.chartomancer.domain.Graph;
 import co.syngleton.chartomancer.domain.PatternBox;
 import lombok.AllArgsConstructor;
@@ -9,6 +11,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 @Component("mongodb")
@@ -104,11 +108,11 @@ class MongoCoreDataDAO implements CoreDataDAO {
         }
     }
 
-    private DataSettings retrievePatternSettings(PatternBoxesMongoDTO patternBoxesMongoDTO) {
+    private Map<String, String> retrievePatternSettings(PatternBoxesMongoDTO patternBoxesMongoDTO) {
 
         if (patternBoxesMongoDTO == null || patternBoxesMongoDTO.getPatternSettings() == null) {
             log.warn("No pattern settings found.");
-            return new DataSettings();
+            return new HashMap<>();
         } else {
             return patternBoxesMongoDTO.getPatternSettings();
         }

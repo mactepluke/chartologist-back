@@ -2,7 +2,6 @@ package co.syngleton.chartomancer.trading.service;
 
 import co.syngleton.chartomancer.analytics.computation.Analyzer;
 import co.syngleton.chartomancer.charting.CandleNormalizer;
-import co.syngleton.chartomancer.data.CoreData;
 import co.syngleton.chartomancer.domain.*;
 import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.global.tools.Check;

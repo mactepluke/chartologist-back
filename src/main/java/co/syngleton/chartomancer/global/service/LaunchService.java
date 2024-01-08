@@ -1,8 +1,8 @@
 package co.syngleton.chartomancer.global.service;
 
 import co.syngleton.chartomancer.analytics.service.PatternComputingService;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.data.DataProcessor;
+import co.syngleton.chartomancer.domain.CoreData;
 import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.global.service.automation.Automation;
 import co.syngleton.chartomancer.trading.service.TradingService;
@@ -47,12 +47,12 @@ public class LaunchService {
     private boolean printTasksHistory;
 
     public void launchAutomation(CoreData coreData,
-                                 DataService dataService,
+                                 DataProcessor dataProcessor,
                                  PatternComputingService patternComputingService,
                                  TradingService tradingService) {
         Thread automation = new Thread(new Automation(
                 coreData,
-                dataService,
+                dataProcessor,
                 patternComputingService,
                 tradingService,
                 printCoreData,

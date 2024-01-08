@@ -2,13 +2,8 @@ package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.DataService;
-import co.syngleton.chartomancer.data.DefaultCoreData;
-import co.syngleton.chartomancer.domain.BasicPattern;
-import co.syngleton.chartomancer.domain.Pattern;
-import co.syngleton.chartomancer.domain.PatternBox;
-import co.syngleton.chartomancer.domain.PredictivePattern;
+import co.syngleton.chartomancer.data.DataProcessor;
+import co.syngleton.chartomancer.domain.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class DataServiceTests {
+class DataProcessorTests {
 
     @Autowired
-    DataService dataService;
+    DataProcessor dataProcessor;
     @Autowired
     MockData mockData;
     @Autowired
@@ -81,33 +76,33 @@ class DataServiceTests {
     void loadGraphsTest() {
         CoreData testCoreData = new DefaultCoreData();
 
-        assertTrue(dataService.loadGraphs(testCoreData, getTestDataFolderPath, testDataFilesNames));
+        assertTrue(dataProcessor.loadGraphs(testCoreData, getTestDataFolderPath, testDataFilesNames));
         assertEquals(testDataFilesNames.size(), testCoreData.getGraphs().size());
     }
 
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
-        assertTrue(dataService.loadCoreData(coreData));
+        assertTrue(dataProcessor.loadCoreData(coreData));
     }
 
     @Test
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
-        assertTrue(dataService.saveCoreDataWithName(coreData, "trashdata.ser"));
+        assertTrue(dataProcessor.saveCoreDataWithName(coreData, "trashdata.ser"));
     }
 
     @Test
     @DisplayName("[UNIT] Generates trading data")
     void generateTradingDataTest() {
-        assertTrue(dataService.generateTradingData(coreData));
+        assertTrue(dataProcessor.generateTradingData(coreData));
         assertEquals(coreData.getPatternBoxes().size(), coreData.getTradingPatternBoxes().size());
     }
 
     @Test
     @DisplayName("[UNIT] Creates graphs for missing timeframes")
     void createGraphsForMissingTimeframesTest() {
-        assertTrue(dataService.createGraphsForMissingTimeframes(coreData));
+        assertTrue(dataProcessor.createGraphsForMissingTimeframes(coreData));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes() + 2, coreData.getGraphs().size());
     }
 }
