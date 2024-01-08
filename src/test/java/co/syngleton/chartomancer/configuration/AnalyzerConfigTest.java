@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.configuration;
 
-import co.syngleton.chartomancer.analytics.computation.Analyzer;
-import co.syngleton.chartomancer.analytics.computation.Smoothing;
+import co.syngleton.chartomancer.analytics.Analyzer;
+import co.syngleton.chartomancer.analytics.Smoothing;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 

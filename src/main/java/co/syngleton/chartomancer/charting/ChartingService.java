@@ -1,11 +1,11 @@
 package co.syngleton.chartomancer.charting;
 
-import co.syngleton.chartomancer.analytics.exception.InvalidFileFormatException;
-import co.syngleton.chartomancer.analytics.exception.InvalidParametersException;
 import co.syngleton.chartomancer.domain.*;
-import co.syngleton.chartomancer.global.tools.Check;
-import co.syngleton.chartomancer.global.tools.Format;
-import co.syngleton.chartomancer.global.tools.Pair;
+import co.syngleton.chartomancer.exception.InvalidFileFormatException;
+import co.syngleton.chartomancer.exception.InvalidParametersException;
+import co.syngleton.chartomancer.util.Check;
+import co.syngleton.chartomancer.util.Format;
+import co.syngleton.chartomancer.util.Pair;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static co.syngleton.chartomancer.global.tools.Format.streamline;
+import static co.syngleton.chartomancer.util.Format.streamline;
 import static java.lang.Math.*;
 
 @Log4j2

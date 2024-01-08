@@ -5,7 +5,6 @@ import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.domain.Graph;
 import co.syngleton.chartomancer.domain.Symbol;
 import co.syngleton.chartomancer.domain.Timeframe;
-import co.syngleton.chartomancer.signaling.service.datasource.ExternalDataSourceService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;

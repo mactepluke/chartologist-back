@@ -1,7 +1,5 @@
 package co.syngleton.chartomancer.analytics;
 
-import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
-import co.syngleton.chartomancer.analytics.computation.PatternComputer;
 import co.syngleton.chartomancer.charting.CandleNormalizer;
 import co.syngleton.chartomancer.configuration.AnalyzerConfigTest;
 import co.syngleton.chartomancer.configuration.DataConfigTest;

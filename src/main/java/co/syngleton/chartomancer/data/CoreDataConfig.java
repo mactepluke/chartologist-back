@@ -1,9 +1,8 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
-import co.syngleton.chartomancer.analytics.computation.ComputationType;
-import co.syngleton.chartomancer.analytics.factory.PatternSettings;
-import co.syngleton.chartomancer.analytics.misc.PurgeOption;
+import co.syngleton.chartomancer.analytics.ComputationSettings;
+import co.syngleton.chartomancer.analytics.ComputationType;
+import co.syngleton.chartomancer.analytics.PatternSettings;
 import co.syngleton.chartomancer.domain.CoreData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

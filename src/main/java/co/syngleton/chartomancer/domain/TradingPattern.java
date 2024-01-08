@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.domain;
 
-import co.syngleton.chartomancer.global.tools.Format;
+import co.syngleton.chartomancer.util.Format;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;

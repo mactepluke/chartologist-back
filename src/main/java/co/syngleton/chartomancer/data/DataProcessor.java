@@ -1,6 +1,5 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.analytics.misc.PurgeOption;
 import co.syngleton.chartomancer.domain.CoreData;
 
 import java.util.List;

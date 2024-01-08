@@ -1,8 +1,5 @@
 package co.syngleton.chartomancer.analytics;
 
-import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
-import co.syngleton.chartomancer.analytics.factory.PatternSettings;
-import co.syngleton.chartomancer.analytics.service.PatternComputingService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
 import co.syngleton.chartomancer.data.DataProcessor;

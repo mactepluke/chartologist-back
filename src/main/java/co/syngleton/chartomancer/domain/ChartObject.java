@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.domain;
 
-import co.syngleton.chartomancer.global.tools.Check;
+import co.syngleton.chartomancer.util.Check;
 import lombok.Getter;
 import lombok.ToString;
 

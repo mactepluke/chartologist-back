@@ -1,7 +1,5 @@
 package co.syngleton.chartomancer.analytics;
 
-import co.syngleton.chartomancer.analytics.computation.Analyzer;
-import co.syngleton.chartomancer.analytics.computation.Smoothing;
 import co.syngleton.chartomancer.charting.CandleNormalizer;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.domain.FloatCandle;

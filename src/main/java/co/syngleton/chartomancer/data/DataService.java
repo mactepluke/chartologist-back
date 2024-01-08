@@ -1,16 +1,15 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
-import co.syngleton.chartomancer.analytics.computation.ComputationType;
-import co.syngleton.chartomancer.analytics.factory.PatternSettings;
-import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.service.PatternComputingService;
+import co.syngleton.chartomancer.analytics.ComputationSettings;
+import co.syngleton.chartomancer.analytics.ComputationType;
+import co.syngleton.chartomancer.analytics.PatternComputingService;
+import co.syngleton.chartomancer.analytics.PatternSettings;
+import co.syngleton.chartomancer.automation.AutomationLauncher;
 import co.syngleton.chartomancer.charting.GraphGenerator;
 import co.syngleton.chartomancer.domain.*;
-import co.syngleton.chartomancer.global.service.LaunchService;
-import co.syngleton.chartomancer.global.tools.Check;
-import co.syngleton.chartomancer.global.tools.Format;
-import co.syngleton.chartomancer.trading.service.TradingService;
+import co.syngleton.chartomancer.trading.TradingService;
+import co.syngleton.chartomancer.util.Check;
+import co.syngleton.chartomancer.util.Format;
 import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -31,7 +30,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive_";
     private final GraphGenerator graphGenerator;
-    private final LaunchService launchService;
+    private final AutomationLauncher automationLauncher;
     private final PatternComputingService patternComputingService;
     private final TradingService tradingService;
     private final String dataSource;
@@ -44,12 +43,12 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
     public DataService(@Value("${data_source:serialized}") String dataSource,
                        GraphGenerator graphGenerator,
                        PatternComputingService patternComputingService,
-                       LaunchService launchService,
+                       AutomationLauncher automationLauncher,
                        TradingService tradingService) {
         this.graphGenerator = graphGenerator;
         this.dataSource = dataSource;
         this.patternComputingService = patternComputingService;
-        this.launchService = launchService;
+        this.automationLauncher = automationLauncher;
         this.tradingService = tradingService;
     }
 
@@ -392,7 +391,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
         }
         //PRINTING LAUNCHING AUTOMATION IF APPLICABLE
         if (launchAutomation) {
-            launchService.launchAutomation(coreData, this, patternComputingService, tradingService);
+            automationLauncher.launchAutomation(coreData, this, patternComputingService, tradingService);
         }
 
         return coreData;

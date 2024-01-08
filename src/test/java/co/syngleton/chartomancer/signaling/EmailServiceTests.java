@@ -1,7 +1,6 @@
 package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.signaling.service.EmailService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
