@@ -1,12 +1,12 @@
 package co.syngleton.chartomancer.global.service.automation.dummytrades;
 
-import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.analytics.data.DataSettings;
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.PatternBox;
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.data.CoreData;
+import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.data.DataSettings;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.PatternBox;
+import co.syngleton.chartomancer.domain.Symbol;
+import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.global.tools.Calc;
 import co.syngleton.chartomancer.global.tools.Format;
 import co.syngleton.chartomancer.global.tools.datatabletool.DataTableTool;
@@ -38,7 +38,7 @@ public class DummyTradesManager {
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private final boolean writeReports;
     private final String dummyTradesFolderPath;
-    private final CoreDataService coreDataService;
+    private final DataService dataService;
 
     public DummyTradesManager(double initialBalance,
                               double minimumBalance,
@@ -49,7 +49,7 @@ public class DummyTradesManager {
                               boolean writeReports,
                               DummyTradesSummaryTable dummyTradesSummaryTable,
                               String dummyTradesFolderPath,
-                              CoreDataService coreDataService) {
+                              DataService dataService) {
         this.initialBalance = initialBalance;
         this.minimumBalance = minimumBalance;
         this.expectedBalanceX = expectedBalanceX;
@@ -59,7 +59,7 @@ public class DummyTradesManager {
         this.writeReports = writeReports;
         this.dummyTradesSummaryTable = dummyTradesSummaryTable;
         this.dummyTradesFolderPath = dummyTradesFolderPath;
-        this.coreDataService = coreDataService;
+        this.dataService = dataService;
     }
 
     public String launchDummyTrades(@NonNull Graph graph, @NonNull CoreData coreData, boolean randomized, String reportLog) {

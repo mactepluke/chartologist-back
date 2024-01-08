@@ -2,12 +2,12 @@ package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
-import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.analytics.service.PatternComputingService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
-import co.syngleton.chartomancer.contracts.CoreData;
-import co.syngleton.chartomancer.interactors.CoreDataInteractor;
-import co.syngleton.chartomancer.interactors.PatternComputingInteractor;
+import co.syngleton.chartomancer.data.CoreData;
+import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.domain.Pattern;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +26,16 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class PatternComputingInteractorTests {
+class PatternComputingServiceTests {
 
     @Autowired
-    PatternComputingInteractor patternComputingInteractor;
+    PatternComputingService patternComputingService;
     @Autowired
     MockData mockData;
     @Autowired
     CoreData coreData;
     @Autowired
-    CoreDataInteractor coreDataInteractor;
+    DataService dataService;
     private List<Pattern> patterns;
     private PatternSettings.Builder testPatternSettingsBuilder;
 
@@ -62,7 +62,7 @@ class PatternComputingInteractorTests {
     @DisplayName("[UNIT] Create light basic patterns from mock graph")
     void createBasicPatternsTest() {
 
-        patterns = patternComputingInteractor.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.BASIC));
+        patterns = patternComputingService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.BASIC));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -72,7 +72,7 @@ class PatternComputingInteractorTests {
     @DisplayName("[UNIT] Create light predictive patterns from mock graph")
     void createPredictivePatternsTest() {
 
-        patterns = patternComputingInteractor.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.PREDICTIVE));
+        patterns = patternComputingService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.PREDICTIVE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -82,9 +82,9 @@ class PatternComputingInteractorTests {
     @DisplayName("[IT] Creates and computes pattern boxes from mock graphs")
     void createAndComputePatternBoxes() {
 
-        assertTrue(patternComputingInteractor.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
+        assertTrue(patternComputingService.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
-        assertTrue(patternComputingInteractor.computePatternBoxes(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
+        assertTrue(patternComputingService.computePatternBoxes(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
     }
 }

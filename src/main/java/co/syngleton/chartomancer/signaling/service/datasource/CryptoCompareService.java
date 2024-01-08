@@ -1,10 +1,10 @@
 package co.syngleton.chartomancer.signaling.service.datasource;
 
-import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.GraphUpscalor;
+import co.syngleton.chartomancer.charting.GraphUpscalor;
+import co.syngleton.chartomancer.domain.FloatCandle;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.Symbol;
+import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.global.tools.Format;
 import co.syngleton.chartomancer.signaling.dto.api.cryptocompare.CryptoCompareOhlcvCandle;

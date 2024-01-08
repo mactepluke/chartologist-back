@@ -1,8 +1,6 @@
-package co.syngleton.chartomancer.data.dao;
+package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.data.CoreData;
-
-public interface CoreDataDAO {
+interface CoreDataDAO {
 
     CoreData loadCoreDataFrom(String dataSourceName);
 

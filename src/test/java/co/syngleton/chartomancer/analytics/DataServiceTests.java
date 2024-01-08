@@ -3,8 +3,8 @@ package co.syngleton.chartomancer.analytics;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
 import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.CoreDataInteractor;
-import co.syngleton.chartomancer.data.DefaultCoreDataImpl;
+import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.data.DefaultCoreData;
 import co.syngleton.chartomancer.domain.BasicPattern;
 import co.syngleton.chartomancer.domain.Pattern;
 import co.syngleton.chartomancer.domain.PatternBox;
@@ -32,10 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class CoreDataInteractorTests {
+class DataServiceTests {
 
     @Autowired
-    CoreDataInteractor coreDataInteractor;
+    DataService dataService;
     @Autowired
     MockData mockData;
     @Autowired
@@ -79,35 +79,35 @@ class CoreDataInteractorTests {
     @Test
     @DisplayName("[UNIT] Loads all test files and creates their graphs")
     void loadGraphsTest() {
-        CoreData testCoreData = new DefaultCoreDataImpl();
+        CoreData testCoreData = new DefaultCoreData();
 
-        assertTrue(coreDataInteractor.loadGraphs(testCoreData, getTestDataFolderPath, testDataFilesNames));
+        assertTrue(dataService.loadGraphs(testCoreData, getTestDataFolderPath, testDataFilesNames));
         assertEquals(testDataFilesNames.size(), testCoreData.getGraphs().size());
     }
 
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
-        assertTrue(coreDataInteractor.loadCoreData(coreData));
+        assertTrue(dataService.loadCoreData(coreData));
     }
 
     @Test
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
-        assertTrue(coreDataInteractor.saveCoreDataWithName(coreData, "trashdata.ser"));
+        assertTrue(dataService.saveCoreDataWithName(coreData, "trashdata.ser"));
     }
 
     @Test
     @DisplayName("[UNIT] Generates trading data")
     void generateTradingDataTest() {
-        assertTrue(coreDataInteractor.generateTradingData(coreData));
+        assertTrue(dataService.generateTradingData(coreData));
         assertEquals(coreData.getPatternBoxes().size(), coreData.getTradingPatternBoxes().size());
     }
 
     @Test
     @DisplayName("[UNIT] Creates graphs for missing timeframes")
     void createGraphsForMissingTimeframesTest() {
-        assertTrue(coreDataInteractor.createGraphsForMissingTimeframes(coreData));
+        assertTrue(dataService.createGraphsForMissingTimeframes(coreData));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes() + 2, coreData.getGraphs().size());
     }
 }

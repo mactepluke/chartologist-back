@@ -1,8 +1,8 @@
-package co.syngleton.chartomancer.global.configuration;
+package co.syngleton.chartomancer.signaling.configuration;
 
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.domain.Symbol;
+import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.global.tools.datatabletool.DataTableTool;
 import co.syngleton.chartomancer.signaling.service.EmailService;
 import co.syngleton.chartomancer.signaling.service.TradingRequestManager;
@@ -32,7 +32,7 @@ public class MailingConfig {
     private static final String MAIL_FOUR_HOUR_BODY = "Chartomancer vous propose le trade BTC/USD suivant à l'échelle des 4 heures :" + NEW_LINE + NEW_LINE;
     private final TradingRequestManager tradingRequestManager;
     private final EmailService emailService;
-    private final CoreDataService coreDataService;
+    private final DataService dataService;
     private final TradingAccount signalsTradingAccount;
     @Value("${enable_email_scheduling:false}")
     private boolean enableEmailScheduling;
@@ -45,10 +45,10 @@ public class MailingConfig {
     @Autowired
     public MailingConfig(TradingRequestManager tradingRequestManager,
                          EmailService emailService,
-                         CoreDataService coreDataService) {
+                         DataService dataService) {
         this.tradingRequestManager = tradingRequestManager;
         this.emailService = emailService;
-        this.coreDataService = coreDataService;
+        this.dataService = dataService;
         this.signalsTradingAccount = new TradingAccount();
         this.signalsTradingAccount.credit(signalsAccountBalance);
     }

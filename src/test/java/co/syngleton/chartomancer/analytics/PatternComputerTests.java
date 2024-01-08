@@ -2,10 +2,10 @@ package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.PatternComputer;
-import co.syngleton.chartomancer.analytics.model.*;
-import co.syngleton.chartomancer.analytics.service.CandleNormalizer;
+import co.syngleton.chartomancer.charting.CandleNormalizer;
 import co.syngleton.chartomancer.configuration.AnalyzerConfigTest;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
+import co.syngleton.chartomancer.domain.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

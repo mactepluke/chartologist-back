@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.model;
+package co.syngleton.chartomancer.domain;
 
 public enum Timeframe {
     UNKNOWN(-1, 0),

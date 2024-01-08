@@ -1,7 +1,7 @@
-package co.syngleton.chartomancer.contracts;
+package co.syngleton.chartomancer.charting;
 
-import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.IntCandle;
+import co.syngleton.chartomancer.domain.FloatCandle;
+import co.syngleton.chartomancer.domain.IntCandle;
 
 import java.util.List;
 

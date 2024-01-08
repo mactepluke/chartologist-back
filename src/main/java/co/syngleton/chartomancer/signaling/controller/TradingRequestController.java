@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.signaling.controller;
 
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.domain.Symbol;
+import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.global.exceptions.InvalidParametersException;
 import co.syngleton.chartomancer.signaling.service.TradingRequestManager;
 import co.syngleton.chartomancer.trading.dto.TradeDTO;

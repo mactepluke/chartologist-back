@@ -14,7 +14,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-public class DefaultCoreDataImpl implements CoreData {
+public class DefaultCoreData implements CoreData {
     private Set<Graph> graphs;
     private Set<PatternBox> patternBoxes;
     private DataSettings patternSettings;
@@ -22,7 +22,7 @@ public class DefaultCoreDataImpl implements CoreData {
     private DataSettings tradingPatternSettings;
 
 
-    public DefaultCoreDataImpl() {
+    public DefaultCoreData() {
         this.graphs = new HashSet<>();
         this.patternBoxes = new HashSet<>();
         this.tradingPatternBoxes = new HashSet<>();

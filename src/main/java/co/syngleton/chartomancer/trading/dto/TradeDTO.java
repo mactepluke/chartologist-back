@@ -1,9 +1,9 @@
 package co.syngleton.chartomancer.trading.dto;
 
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.trading.model.Trade;
 import co.syngleton.chartomancer.trading.model.TradeStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.LocalDateTime;

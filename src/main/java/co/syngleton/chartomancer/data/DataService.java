@@ -19,7 +19,7 @@ import java.util.*;
 
 @Log4j2
 @Service
-public class CoreDataInteractor implements ApplicationContextAware {
+public class DataService implements ApplicationContextAware {
     //TODO: split methods in interfaces
     private static final String NEW_LINE = System.getProperty("line.separator");
 
@@ -32,8 +32,8 @@ public class CoreDataInteractor implements ApplicationContextAware {
     private String dataSourceName;
 
     @Autowired
-    public CoreDataInteractor(@Value("${data_source:serialized}") String dataSource,
-                              GraphGenerator graphGenerator) {
+    public DataService(@Value("${data_source:serialized}") String dataSource,
+                       GraphGenerator graphGenerator) {
         this.graphGenerator = graphGenerator;
         this.dataSource = dataSource;
     }

@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.analytics.factory;
 
-import co.syngleton.chartomancer.analytics.model.*;
-import co.syngleton.chartomancer.analytics.service.CandleNormalizer;
+import co.syngleton.chartomancer.charting.CandleNormalizer;
+import co.syngleton.chartomancer.domain.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

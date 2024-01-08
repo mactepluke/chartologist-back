@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.analytics.data;
+package co.syngleton.chartomancer.data;
 
 import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.ComputationType;

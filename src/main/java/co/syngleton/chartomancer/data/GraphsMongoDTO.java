@@ -1,6 +1,6 @@
-package co.syngleton.chartomancer.data.mongo_dto;
+package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.model.Graph;
+import co.syngleton.chartomancer.domain.Graph;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +13,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @Document(collection = "core_data")
-public class GraphsMongoDTO {
+class GraphsMongoDTO {
     @Id
     private String id;
     private Set<Graph> graphs;

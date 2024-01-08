@@ -4,7 +4,7 @@ import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.service.InitialiationService;
+import co.syngleton.chartomancer.analytics.service.InitializationService;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.data.CoreData;
 import lombok.extern.log4j.Log4j2;
@@ -26,13 +26,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class CoreInitialiationServiceTests {
+class CoreInitializationServiceTests {
 
     private final static int NUMBER_OF_DIFFERENT_MOCK_TIMEFRAMES = 2;
     @Autowired
     CoreData coreData;
     @Autowired
-    InitialiationService dataConfigService;
+    InitializationService initializationService;
     @Value("${test_data_folder_name}")
     private String testDataFolderName;
     @Value("#{'${test_data_files_names}'.split(',')}")
@@ -55,7 +55,7 @@ class CoreInitialiationServiceTests {
     @DisplayName("[IT] Generate app data")
     void initializeCoreDataTest() {
 
-        coreData = dataConfigService.initializeCoreData(
+        coreData = initializationService.initializeCoreData(
                 testDataFolderName,
                 testDataFilesNames,
                 true,

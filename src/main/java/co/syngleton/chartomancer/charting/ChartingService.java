@@ -29,7 +29,7 @@ import static java.lang.Math.*;
 @Log4j2
 @Service
 @AllArgsConstructor
-final class ChartingInteractor implements GraphGenerator, CandleNormalizer {
+final class ChartingService implements GraphGenerator, CandleNormalizer {
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final int READING_ATTEMPTS = 3;
 

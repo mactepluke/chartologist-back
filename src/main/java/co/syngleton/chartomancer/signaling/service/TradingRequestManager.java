@@ -1,11 +1,11 @@
 package co.syngleton.chartomancer.signaling.service;
 
-import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.analytics.model.ChartObject;
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.CoreDataService;
+import co.syngleton.chartomancer.data.CoreData;
+import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.domain.ChartObject;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.Symbol;
+import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.signaling.misc.ExternalDataSource;
 import co.syngleton.chartomancer.signaling.service.datasource.ExternalDataSourceService;
 import co.syngleton.chartomancer.trading.model.Trade;
@@ -33,7 +33,7 @@ import static java.lang.Math.abs;
 public class TradingRequestManager implements ApplicationContextAware {
 
     private final TradingService tradingService;
-    private final CoreDataService coreDataService;
+    private final DataService dataService;
     private final CoreData coreData;
     private final TradingSettings defaultTradingSettings;
     private final ExternalDataSource externalDataSource;
@@ -44,13 +44,13 @@ public class TradingRequestManager implements ApplicationContextAware {
 
     @Autowired
     public TradingRequestManager(TradingService tradingService,
-                                 CoreDataService coreDataService,
+                                 DataService dataService,
                                  CoreData coreData,
                                  TradingSettings tradingSettings,
                                  @Value("${external_data_source}") ExternalDataSource externalDataSource
             /*MailingList mailingList*/) {
         this.tradingService = tradingService;
-        this.coreDataService = coreDataService;
+        this.dataService = dataService;
         this.coreData = coreData;
         this.defaultTradingSettings = tradingSettings;
         this.tradingSettings = defaultTradingSettings;

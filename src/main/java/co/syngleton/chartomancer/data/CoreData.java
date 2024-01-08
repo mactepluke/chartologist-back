@@ -1,10 +1,9 @@
-package co.syngleton.chartomancer.contracts;
+package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.PatternBox;
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.data.DataSettings;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.PatternBox;
+import co.syngleton.chartomancer.domain.Symbol;
+import co.syngleton.chartomancer.domain.Timeframe;
 import lombok.NonNull;
 
 import java.io.Serializable;

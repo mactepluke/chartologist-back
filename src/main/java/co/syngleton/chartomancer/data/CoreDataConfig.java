@@ -1,11 +1,10 @@
-package co.syngleton.chartomancer.analytics.configuration;
+package co.syngleton.chartomancer.data;
 
 import co.syngleton.chartomancer.analytics.computation.ComputationSettings;
 import co.syngleton.chartomancer.analytics.computation.ComputationType;
 import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
-import co.syngleton.chartomancer.analytics.service.InitialiationService;
-import co.syngleton.chartomancer.data.CoreData;
+import co.syngleton.chartomancer.analytics.service.InitializationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +14,7 @@ import java.util.List;
 
 @Configuration
 public class CoreDataConfig {
-    private final InitialiationService dataConfigService;
+    private final InitializationService initializationService;
     @Value("${data_folder_name:data}")
     private String dataFolderName;
     @Value("#{'${data_files_names}'.split(',')}")
@@ -52,13 +51,13 @@ public class CoreDataConfig {
     private boolean launchAutomation;
 
     @Autowired
-    public CoreDataConfig(InitialiationService dataConfigService) {
-        this.dataConfigService = dataConfigService;
+    public CoreDataConfig(InitializationService initializationService) {
+        this.initializationService = initializationService;
     }
 
     @Bean
     CoreData coreData() {
-        return dataConfigService.initializeCoreData(
+        return initializationService.initializeCoreData(
                 dataFolderName,
                 dataFilesNames,
                 runAnalysisAtStartup,

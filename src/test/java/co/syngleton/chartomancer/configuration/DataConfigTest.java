@@ -1,6 +1,7 @@
 package co.syngleton.chartomancer.configuration;
 
-import co.syngleton.chartomancer.analytics.data.CoreData;
+import co.syngleton.chartomancer.data.CoreData;
+import co.syngleton.chartomancer.data.DefaultCoreData;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -9,7 +10,7 @@ public class DataConfigTest {
 
     @Bean
     CoreData coreData() {
-        return new CoreData();
+        return new DefaultCoreData();
     }
 
     @Bean

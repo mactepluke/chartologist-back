@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.model;
+package co.syngleton.chartomancer.domain;
 
 import co.syngleton.chartomancer.global.tools.Format;
 import lombok.EqualsAndHashCode;

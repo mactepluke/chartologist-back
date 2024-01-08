@@ -6,7 +6,7 @@ import co.syngleton.chartomancer.analytics.factory.PatternSettings;
 import co.syngleton.chartomancer.analytics.misc.PurgeOption;
 import co.syngleton.chartomancer.data.CoreData;
 import co.syngleton.chartomancer.data.DataService;
-import co.syngleton.chartomancer.data.DefaultCoreDataImpl;
+import co.syngleton.chartomancer.data.DefaultCoreData;
 import co.syngleton.chartomancer.global.service.LaunchService;
 import co.syngleton.chartomancer.global.tools.Check;
 import co.syngleton.chartomancer.global.tools.Format;
@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Service
-public class InitialiationService {
+public class InitializationService {
 
     private static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive_";
     private static final String NEW_LINE = System.getProperty("line.separator");
@@ -31,10 +31,10 @@ public class InitialiationService {
     private final TradingService tradingService;
 
     @Autowired
-    public InitialiationService(DataService dataService,
-                                PatternComputingService patternComputingService,
-                                LaunchService launchService,
-                                TradingService tradingService) {
+    public InitializationService(DataService dataService,
+                                 PatternComputingService patternComputingService,
+                                 LaunchService launchService,
+                                 TradingService tradingService) {
         this.dataService = dataService;
         this.patternComputingService = patternComputingService;
         this.launchService = launchService;
@@ -60,7 +60,7 @@ public class InitialiationService {
                                        boolean launchAutomation
     ) {
 
-        CoreData coreData = new DefaultCoreDataImpl();
+        CoreData coreData = new DefaultCoreData();
 
         log.info(NEW_LINE +
                         "INITIALIZING CORE DATA (pattern settings={}, , pattern type={}, computation={}, computation settings={})",

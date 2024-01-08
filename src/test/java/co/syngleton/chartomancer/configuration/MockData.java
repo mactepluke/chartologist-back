@@ -1,9 +1,9 @@
 package co.syngleton.chartomancer.configuration;
 
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.model.FloatCandle;
+import co.syngleton.chartomancer.domain.FloatCandle;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.Symbol;
+import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.global.tools.Format;
 import lombok.Getter;
 
@@ -28,9 +28,9 @@ public class MockData {
     private final int testGraphLength;
     private final int numberOfDifferentMockTimeframes;
     private Graph mockGraphDay1;
-    private  Graph mockGraphDay2;
-    private  Graph mockGraphHour;
-    private  Set<Graph> testGraphs;
+    private Graph mockGraphDay2;
+    private Graph mockGraphHour;
+    private Set<Graph> testGraphs;
 
     public MockData() {
 

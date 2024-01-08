@@ -1,12 +1,13 @@
 package co.syngleton.chartomancer.global.service.automation;
 
-import co.syngleton.chartomancer.analytics.data.CoreData;
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.PatternBox;
-import co.syngleton.chartomancer.analytics.model.ScopedPattern;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
-import co.syngleton.chartomancer.analytics.service.CoreDataService;
 import co.syngleton.chartomancer.analytics.service.PatternComputingService;
+import co.syngleton.chartomancer.data.CoreData;
+import co.syngleton.chartomancer.data.DataService;
+import co.syngleton.chartomancer.data.DefaultCoreData;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.PatternBox;
+import co.syngleton.chartomancer.domain.ScopedPattern;
+import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTradesManager;
 import co.syngleton.chartomancer.global.service.automation.dummytrades.DummyTradesSummaryTable;
 import co.syngleton.chartomancer.global.tools.Check;
@@ -17,11 +18,7 @@ import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
 import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -43,14 +40,14 @@ public class Automation implements Runnable {
     private final boolean printTasksHistory;
     private final List<String> tasksHistory;
     private final CoreData coreData;
-    private final CoreDataService coreDataService;
+    private final DataService dataService;
     private final PatternComputingService patternComputingService;
     private final DummyTradesManager dtm;
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private String reportLog;
 
     public Automation(CoreData coreData,
-                      CoreDataService coreDataService,
+                      DataService dataService,
                       PatternComputingService patternComputingService,
                       TradingService tradingService,
                       boolean printCoreData,
@@ -69,7 +66,7 @@ public class Automation implements Runnable {
                       List<String> dummyGraphsDataFilesNames,
                       boolean printTasksHistory) {
         this.coreData = coreData;
-        this.coreDataService = coreDataService;
+        this.dataService = dataService;
         this.patternComputingService = patternComputingService;
         this.printCoreData = printCoreData;
         this.printPricePredictionSummary = printPricePredictionSummary;
@@ -108,7 +105,7 @@ public class Automation implements Runnable {
                 writeDummyTradeReports,
                 dummyTradesSummaryTable,
                 DUMMY_TRADES_FOLDER_PATH,
-                coreDataService);
+                dataService);
         tasksHistory = new ArrayList<>();
     }
 
@@ -187,7 +184,7 @@ public class Automation implements Runnable {
     }
 
     private void printCoreData() {
-        coreDataService.printCoreData(coreData);
+        dataService.printCoreData(coreData);
     }
 
     private void printPricePredictionSummary() {
@@ -332,12 +329,12 @@ public class Automation implements Runnable {
     }
 
     private @NonNull CoreData cloneCoreDataWithDummyGraphs() {
-        CoreData dummyGraphsData = new CoreData();
+        CoreData dummyGraphsData = new DefaultCoreData();
 
         dummyGraphsData.copy(coreData);
         dummyGraphsData.purgeNonTrading();
-        coreDataService.loadGraphs(dummyGraphsData, dummyGraphsDataFolderName, dummyGraphsDataFilesNames);
-        coreDataService.createGraphsForMissingTimeframes(dummyGraphsData);
+        dataService.loadGraphs(dummyGraphsData, dummyGraphsDataFolderName, dummyGraphsDataFilesNames);
+        dataService.createGraphsForMissingTimeframes(dummyGraphsData);
 
         return dummyGraphsData;
     }

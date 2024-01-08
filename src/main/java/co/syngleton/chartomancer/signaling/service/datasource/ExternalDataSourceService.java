@@ -1,8 +1,8 @@
 package co.syngleton.chartomancer.signaling.service.datasource;
 
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.Symbol;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.Symbol;
+import co.syngleton.chartomancer.domain.Timeframe;
 
 public interface ExternalDataSourceService {
 

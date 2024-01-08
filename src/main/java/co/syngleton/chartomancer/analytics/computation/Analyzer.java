@@ -1,8 +1,7 @@
 package co.syngleton.chartomancer.analytics.computation;
 
-import co.syngleton.chartomancer.analytics.model.FloatCandle;
-import co.syngleton.chartomancer.analytics.model.IntCandle;
-import co.syngleton.chartomancer.analytics.model.Pattern;
+import co.syngleton.chartomancer.domain.FloatCandle;
+import co.syngleton.chartomancer.domain.IntCandle;
 import co.syngleton.chartomancer.global.tools.Calc;
 import co.syngleton.chartomancer.global.tools.Format;
 import lombok.Getter;
@@ -11,15 +10,13 @@ import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 
 @Log4j2
 @ToString
 @Getter
 public class Analyzer {
-
+    // TODO Clarifier les intentions avant de créer des interfaces cohérentes
     private final Smoothing matchScoreSmoothing;
     private final int matchScoreThreshold;
     private final int priceVariationThreshold;
@@ -50,7 +47,7 @@ public class Analyzer {
         FloatCandle firstCandle = floatFollowingCandles.get(0);
         FloatCandle predictionCandle = floatFollowingCandles.get(scope - 1);
 
-        return filterPricePrediction(Calc.variationPercentage(firstCandle.open(), predictionCandle.close()));
+        return Calc.variationPercentage(firstCandle.open(), predictionCandle.close());
     }
 
     public float filterPricePrediction(float priceVariation) {
@@ -66,10 +63,6 @@ public class Analyzer {
 
     private float extrapolate(float value, float min, float max) {
         return Format.streamline(value + value * abs(value) / 100, min, max);
-    }
-
-    public int calculateMatchScore(Pattern pattern, List<IntCandle> intCandlesToMatch) {
-        return calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
     }
 
     public int calculateMatchScore(List<IntCandle> intCandles, List<IntCandle> intCandlesToMatch) {

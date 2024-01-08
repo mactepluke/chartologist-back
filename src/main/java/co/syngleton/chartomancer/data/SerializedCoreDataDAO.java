@@ -1,14 +1,11 @@
-package co.syngleton.chartomancer.data.dao;
+package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.CoreDataDAO;
-import co.syngleton.chartomancer.data.DefaultCoreData;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 
 @Component("serialized")
-public class SerializedCoreDataDAO implements CoreDataDAO {
+class SerializedCoreDataDAO implements CoreDataDAO {
 
     public static final String DATA_SOURCE_PATH = "./core_data/";
 

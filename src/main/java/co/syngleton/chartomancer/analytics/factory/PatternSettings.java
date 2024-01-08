@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.analytics.factory;
 
-import co.syngleton.chartomancer.analytics.model.Graph;
+import co.syngleton.chartomancer.domain.Graph;
 import lombok.Getter;
 import lombok.ToString;
 

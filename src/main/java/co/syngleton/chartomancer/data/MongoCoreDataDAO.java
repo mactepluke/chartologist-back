@@ -1,15 +1,7 @@
-package co.syngleton.chartomancer.data.dao;
+package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.PatternBox;
-import co.syngleton.chartomancer.analytics.repository.GraphsDataMongoRepository;
-import co.syngleton.chartomancer.analytics.repository.PatternsDataMongoRepository;
-import co.syngleton.chartomancer.data.CoreData;
-import co.syngleton.chartomancer.data.CoreDataDAO;
-import co.syngleton.chartomancer.data.DataSettings;
-import co.syngleton.chartomancer.data.DefaultCoreData;
-import co.syngleton.chartomancer.data.mongo_dto.GraphsMongoDTO;
-import co.syngleton.chartomancer.data.mongo_dto.PatternBoxesMongoDTO;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.PatternBox;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -22,7 +14,7 @@ import java.util.Set;
 @Component("mongodb")
 @AllArgsConstructor
 @Log4j2
-public class MongoCoreDataDAO implements CoreDataDAO {
+class MongoCoreDataDAO implements CoreDataDAO {
     private static final String GRAPHS_DATA_SUFFIX = ".GRAPHS";
     private static final String PATTERNS_DATA_SUFFIX = ".PATTERNS";
     private static final String TRADING_PATTERNS_DATA_SUFFIX = ".TRADING_PATTERNS";

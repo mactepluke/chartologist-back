@@ -1,7 +1,6 @@
-package co.syngleton.chartomancer.data.mongo_dto;
+package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.data.DataSettings;
-import co.syngleton.chartomancer.model.PatternBox;
+import co.syngleton.chartomancer.domain.PatternBox;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +13,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @Document(collection = "core_data")
-public class PatternBoxesMongoDTO {
+class PatternBoxesMongoDTO {
     @Id
     private String id;
     private Set<PatternBox> patternBoxes;

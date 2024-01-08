@@ -1,7 +1,7 @@
-package co.syngleton.chartomancer.contracts;
+package co.syngleton.chartomancer.charting;
 
-import co.syngleton.chartomancer.analytics.model.Graph;
-import co.syngleton.chartomancer.analytics.model.Timeframe;
+import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.domain.Timeframe;
 
 public interface GraphUpscalor {
     Graph upscaleToTimeFrame(Graph graph, Timeframe timeframe);
