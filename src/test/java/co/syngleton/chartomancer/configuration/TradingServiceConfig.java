@@ -1,6 +1,7 @@
 package co.syngleton.chartomancer.configuration;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
+import co.syngleton.chartomancer.analytics.DefaultAnalyzer;
 import co.syngleton.chartomancer.analytics.Smoothing;
 import co.syngleton.chartomancer.trading.TradingSettings;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -35,7 +36,7 @@ public class TradingServiceConfig {
 
     @Bean
     Analyzer tradingAnalyzer() {
-        return new Analyzer(TRADING_MATCH_SCORE_SMOOTHING,
+        return new DefaultAnalyzer(TRADING_MATCH_SCORE_SMOOTHING,
                 TRADING_MATCH_SCORE_THRESHOLD,
                 TRADING_PRICE_VARIATION_THRESHOLD,
                 TRADING_EXTRAPOLATE_PRICE_VARIATION,

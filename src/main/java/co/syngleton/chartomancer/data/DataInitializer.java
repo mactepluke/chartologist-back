@@ -1,9 +1,9 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.analytics.ComputationSettings;
-import co.syngleton.chartomancer.analytics.ComputationType;
-import co.syngleton.chartomancer.analytics.PatternSettings;
 import co.syngleton.chartomancer.domain.CoreData;
+import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
+import co.syngleton.chartomancer.pattern_recognition.ComputationType;
+import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
 
 import java.util.List;
 

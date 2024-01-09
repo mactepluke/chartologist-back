@@ -1,9 +1,9 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.analytics.ComputationSettings;
-import co.syngleton.chartomancer.analytics.ComputationType;
-import co.syngleton.chartomancer.analytics.PatternSettings;
 import co.syngleton.chartomancer.domain.CoreData;
+import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
+import co.syngleton.chartomancer.pattern_recognition.ComputationType;
+import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -50,7 +50,7 @@ public class CoreDataConfig {
     private boolean launchAutomation;
 
     @Autowired
-    public CoreDataConfig(DataInitializer initializationService) {
+    CoreDataConfig(DataInitializer initializationService) {
         this.initializationService = initializationService;
     }
 

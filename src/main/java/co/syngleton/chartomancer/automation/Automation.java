@@ -1,8 +1,8 @@
 package co.syngleton.chartomancer.automation;
 
-import co.syngleton.chartomancer.analytics.PatternComputingService;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.domain.*;
+import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
 import co.syngleton.chartomancer.trading.TradingService;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
@@ -34,14 +34,14 @@ final class Automation implements Runnable {
     private final List<String> tasksHistory;
     private final CoreData coreData;
     private final DataProcessor dataProcessor;
-    private final PatternComputingService patternComputingService;
+    private final PatternComputer patternComputer;
     private final DummyTradesManager dtm;
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private String reportLog;
 
     Automation(CoreData coreData,
                DataProcessor dataProcessor,
-               PatternComputingService patternComputingService,
+               PatternComputer patternComputer,
                TradingService tradingService,
                boolean printCoreData,
                boolean printPricePredictionSummary,
@@ -60,7 +60,7 @@ final class Automation implements Runnable {
                boolean printTasksHistory) {
         this.coreData = coreData;
         this.dataProcessor = dataProcessor;
-        this.patternComputingService = patternComputingService;
+        this.patternComputer = patternComputer;
         this.printCoreData = printCoreData;
         this.printPricePredictionSummary = printPricePredictionSummary;
         this.runBasicDummyTrades = runBasicDummyTrades;

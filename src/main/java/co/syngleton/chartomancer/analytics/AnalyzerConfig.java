@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class AnalyzerConfig {
+class AnalyzerConfig {
 
     @Value("${match_score_smoothing:NONE}")
     private Smoothing matchScoreSmoothing;
@@ -20,7 +20,7 @@ public class AnalyzerConfig {
 
     @Bean
     Analyzer analyzer() {
-        return new Analyzer(matchScoreSmoothing,
+        return new DefaultAnalyzer(matchScoreSmoothing,
                 matchScoreThreshold,
                 priceVariationThreshold,
                 extrapolatePriceVariation,

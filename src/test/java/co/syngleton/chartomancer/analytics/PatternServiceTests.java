@@ -5,6 +5,10 @@ import co.syngleton.chartomancer.configuration.MockData;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.domain.CoreData;
 import co.syngleton.chartomancer.domain.Pattern;
+import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
+import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
+import co.syngleton.chartomancer.pattern_recognition.PatternGenerator;
+import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +27,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class PatternComputingServiceTests {
+class PatternServiceTests {
 
     @Autowired
-    PatternComputingService patternComputingService;
+    PatternComputer patternComputer;
+    @Autowired
+    PatternGenerator patternGenerator;
     @Autowired
     MockData mockData;
     @Autowired
@@ -59,7 +65,7 @@ class PatternComputingServiceTests {
     @DisplayName("[UNIT] Create light basic patterns from mock graph")
     void createBasicPatternsTest() {
 
-        patterns = patternComputingService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.BASIC));
+        patterns = patternGenerator.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.BASIC));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -69,7 +75,7 @@ class PatternComputingServiceTests {
     @DisplayName("[UNIT] Create light predictive patterns from mock graph")
     void createPredictivePatternsTest() {
 
-        patterns = patternComputingService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.PREDICTIVE));
+        patterns = patternGenerator.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.PREDICTIVE));
 
         assertFalse(patterns.isEmpty());
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
@@ -79,9 +85,9 @@ class PatternComputingServiceTests {
     @DisplayName("[IT] Creates and computes pattern boxes from mock graphs")
     void createAndComputePatternBoxes() {
 
-        assertTrue(patternComputingService.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
+        assertTrue(patternGenerator.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
-        assertTrue(patternComputingService.computePatternBoxes(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
+        assertTrue(patternComputer.computePatternBoxes(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
     }
 }

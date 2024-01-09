@@ -1,9 +1,9 @@
 package co.syngleton.chartomancer.automation;
 
-import co.syngleton.chartomancer.analytics.PatternComputingService;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.domain.CoreData;
 import co.syngleton.chartomancer.domain.Timeframe;
+import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
 import co.syngleton.chartomancer.trading.TradingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,12 +48,12 @@ final class AutomationService implements AutomationLauncher {
     @Override
     public void launchAutomation(CoreData coreData,
                                  DataProcessor dataProcessor,
-                                 PatternComputingService patternComputingService,
+                                 PatternComputer patternComputer,
                                  TradingService tradingService) {
         Thread automation = new Thread(new Automation(
                 coreData,
                 dataProcessor,
-                patternComputingService,
+                patternComputer,
                 tradingService,
                 printCoreData,
                 printPricePredictionSummary,

@@ -1,6 +1,7 @@
 package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
+import co.syngleton.chartomancer.analytics.DefaultAnalyzer;
 import co.syngleton.chartomancer.analytics.Smoothing;
 import co.syngleton.chartomancer.util.Format;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import static java.lang.Math.abs;
 
 @Configuration
-public class TradingConfig {
+class TradingConfig {
 
     private static final int DEFAULT_REWARD_TO_RISK_RATIO = 3;
     private static final int DEFAULT_RISK_PERCENTAGE = 2;
@@ -65,7 +66,7 @@ public class TradingConfig {
 
     @Bean
     Analyzer tradingAnalyzer() {
-        return new Analyzer(tradingMatchScoreSmoothing,
+        return new DefaultAnalyzer(tradingMatchScoreSmoothing,
                 tradingMatchScoreThreshold,
                 tradingPriceVariationThreshold,
                 tradingExtrapolatePriceVariation,

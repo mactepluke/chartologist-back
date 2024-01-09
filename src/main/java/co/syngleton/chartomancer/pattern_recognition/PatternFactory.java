@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.analytics;
+package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.charting.CandleNormalizer;
 import co.syngleton.chartomancer.domain.*;
@@ -18,7 +18,7 @@ import static org.apache.commons.collections4.ListUtils.partition;
 
 @Log4j2
 @Component
-public final class PatternFactory {
+final class PatternFactory {
 
     private static final int MIN_GRANULARITY = 30;
     private static final int MAX_GRANULARITY = 500;

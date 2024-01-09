@@ -1,12 +1,9 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.analytics.ComputationSettings;
-import co.syngleton.chartomancer.analytics.ComputationType;
-import co.syngleton.chartomancer.analytics.PatternComputingService;
-import co.syngleton.chartomancer.analytics.PatternSettings;
 import co.syngleton.chartomancer.automation.AutomationLauncher;
 import co.syngleton.chartomancer.charting.GraphGenerator;
 import co.syngleton.chartomancer.domain.*;
+import co.syngleton.chartomancer.pattern_recognition.*;
 import co.syngleton.chartomancer.trading.TradingService;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
@@ -31,7 +28,8 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
     private static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive_";
     private final GraphGenerator graphGenerator;
     private final AutomationLauncher automationLauncher;
-    private final PatternComputingService patternComputingService;
+    private final PatternComputer patternComputer;
+    private final PatternGenerator patternGenerator;
     private final TradingService tradingService;
     private final String dataSource;
     private CoreDataDAO coreDataDAO;
@@ -42,12 +40,14 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
     @Autowired
     public DataService(@Value("${data_source:serialized}") String dataSource,
                        GraphGenerator graphGenerator,
-                       PatternComputingService patternComputingService,
+                       PatternComputer patternComputer,
+                       PatternGenerator patternGenerator,
                        AutomationLauncher automationLauncher,
                        TradingService tradingService) {
         this.graphGenerator = graphGenerator;
         this.dataSource = dataSource;
-        this.patternComputingService = patternComputingService;
+        this.patternComputer = patternComputer;
+        this.patternGenerator = patternGenerator;
         this.automationLauncher = automationLauncher;
         this.tradingService = tradingService;
     }
@@ -391,7 +391,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
         }
         //PRINTING LAUNCHING AUTOMATION IF APPLICABLE
         if (launchAutomation) {
-            automationLauncher.launchAutomation(coreData, this, patternComputingService, tradingService);
+            automationLauncher.launchAutomation(coreData, this, patternComputer, tradingService);
         }
 
         return coreData;
@@ -438,7 +438,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
             patternSettingsInput = patternSettingsInput.atomizePartition();
         }
 
-        if (patternComputingService.createPatternBoxes(coreData, patternSettingsInput)) {
+        if (patternGenerator.createPatternBoxes(coreData, patternSettingsInput)) {
             log.info("Created {} pattern box(es)", coreData.getPatternBoxes().size());
         } else {
             log.error("Application could not initialize its data: no pattern boxes could be created.");
@@ -449,7 +449,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
                 .computationType(computationType)
                 .autoconfig(computationSettings);
 
-        if (patternComputingService.computePatternBoxes(coreData, computationSettingsInput)) {
+        if (patternComputer.computePatternBoxes(coreData, computationSettingsInput)) {
             log.info("Computed {} pattern box(es)", coreData.getPatternBoxes().size());
         } else {
             log.error("Application could not initialize its data: no pattern boxes format could be computed.");

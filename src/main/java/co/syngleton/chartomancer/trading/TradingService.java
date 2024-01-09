@@ -276,7 +276,7 @@ public class TradingService {
 
                 float patternPricePrediction = ((TradingPattern) pattern).getPriceVariationPrediction();
 
-                float price = analyzer.filterPricePrediction(patternPricePrediction);
+                float price = analyzer.filterPriceVariation(patternPricePrediction);
 
                 if (price != 0) {
                     int matchScore = analyzer.calculateMatchScore(pattern.getIntCandles(), intCandles);

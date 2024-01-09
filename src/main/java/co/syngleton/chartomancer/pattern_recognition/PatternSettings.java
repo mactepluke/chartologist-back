@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.analytics;
+package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.domain.Graph;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.analytics;
+package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.domain.Graph;
 import co.syngleton.chartomancer.domain.Pattern;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @ToString
 @Getter
-public class ComputationSettings {
+public final class ComputationSettings {
 
     private final Autoconfig autoconfig;
     private final ComputationType computationType;
