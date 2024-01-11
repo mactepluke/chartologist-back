@@ -72,6 +72,7 @@ public class Trade extends ChartObject implements PrintableData {
     private boolean maker;
 
     private Trade() {
+        super(null);
         platform = "Blank trade";
         accountBalanceAtOpen = 0;
         size = 0;

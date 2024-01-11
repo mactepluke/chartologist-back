@@ -12,36 +12,34 @@ public final class PatternBox extends ChartObject {
 
     private final Map<Integer, List<Pattern>> patterns;
 
-    public PatternBox() {
-        super();
-        this.patterns = new TreeMap<>();
+    public PatternBox(List<Pattern> patterns) {
+        super(patterns == null || patterns.isEmpty() ? null : patterns.get(0));
+        this.patterns = initializePatterns(patterns);
     }
 
     public PatternBox(ChartObject chartObject, List<Pattern> patterns) {
-
         super(chartObject);
+        this.patterns = initializePatterns(patterns);
+    }
 
-        this.patterns = new TreeMap<>();
+    private static Map<Integer, List<Pattern>> initializePatterns(List<Pattern> patterns) {
 
-        if (Check.notNullNotEmpty(patterns)) {
+        Map<Integer, List<Pattern>> patternsMap = new TreeMap<>();
+
+        if (Check.isNotEmpty(patterns)) {
             for (Pattern pattern : patterns) {
                 if (pattern != null) {
-                    int key;
-                    if (pattern instanceof PredictivePattern) {
-                        key = ((ComputablePattern) pattern).getScope();
-                    } else {
-                        key = ((pattern).getLength());
-                    }
-                    this.patterns.computeIfAbsent(key, k -> new ArrayList<>());
-                    this.patterns.get(key).add(pattern);
+                    int key = getPatternKey(pattern);
+                    patternsMap.computeIfAbsent(key, k -> new ArrayList<>());
+                    patternsMap.get(key).add(pattern);
                 }
             }
         }
+        return patternsMap;
     }
 
-    public PatternBox(ChartObject chartObject, Map<Integer, List<Pattern>> patterns) {
-        super(chartObject);
-        this.patterns = patterns;
+    private static int getPatternKey(Pattern pattern) {
+        return pattern instanceof PredictivePattern ? ((ScopedPattern) pattern).getScope() : pattern.getLength();
     }
 
     public List<Pattern> getListOfAllPatterns() {
@@ -60,7 +58,7 @@ public final class PatternBox extends ChartObject {
         int maxScope = 0;
         List<Pattern> listOfAllPatterns = this.getListOfAllPatterns();
 
-        if (Check.notNullNotEmpty(listOfAllPatterns)) {
+        if (Check.isNotEmpty(listOfAllPatterns)) {
 
             for (Pattern pattern : listOfAllPatterns) {
                 maxScope = Math.max(maxScope, ((ScopedPattern) pattern).getScope());
@@ -74,7 +72,7 @@ public final class PatternBox extends ChartObject {
         int length = 0;
         List<Pattern> listOfAllPatterns = this.getListOfAllPatterns();
 
-        if (Check.notNullNotEmpty(listOfAllPatterns)) {
+        if (Check.isNotEmpty(listOfAllPatterns)) {
             length = listOfAllPatterns.get(0).getLength();
         }
 

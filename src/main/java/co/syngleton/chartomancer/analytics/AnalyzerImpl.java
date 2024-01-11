@@ -4,8 +4,6 @@ import co.syngleton.chartomancer.domain.FloatCandle;
 import co.syngleton.chartomancer.domain.IntCandle;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
-import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
@@ -13,26 +11,11 @@ import java.util.List;
 import static java.lang.Math.*;
 
 @Log4j2
-@ToString
-@Getter
-public final class DefaultAnalyzer implements Analyzer {
-    private final Smoothing matchScoreSmoothing;
-    private final int matchScoreThreshold;
-    private final int priceVariationThreshold;
-    private final boolean extrapolatePriceVariation;
-    private final boolean extrapolateMatchScore;
-
-    public DefaultAnalyzer(Smoothing matchScoreSmoothing,
-                           int matchScoreThreshold,
-                           int priceVariationThreshold,
-                           boolean extrapolatePriceVariation,
-                           boolean extrapolateMatchScore) {
-        this.matchScoreSmoothing = matchScoreSmoothing;
-        this.matchScoreThreshold = matchScoreThreshold;
-        this.priceVariationThreshold = priceVariationThreshold;
-        this.extrapolatePriceVariation = extrapolatePriceVariation;
-        this.extrapolateMatchScore = extrapolateMatchScore;
-    }
+record AnalyzerImpl(Smoothing matchScoreSmoothing,
+                    int matchScoreThreshold,
+                    int priceVariationThreshold,
+                    boolean extrapolatePriceVariation,
+                    boolean extrapolateMatchScore) implements Analyzer {
 
     @Override
     public float calculatePriceVariation(List<FloatCandle> floatFollowingCandles, int scope) {

@@ -1,11 +1,13 @@
-package co.syngleton.chartomancer.analytics;
+package co.syngleton.chartomancer.pattern_recognition;
 
+import co.syngleton.chartomancer.analytics.Analyzer;
+import co.syngleton.chartomancer.analytics.Smoothing;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-class AnalyzerConfig {
+class PatternRecognitionConfig {
 
     @Value("${match_score_smoothing:NONE}")
     private Smoothing matchScoreSmoothing;
@@ -20,7 +22,7 @@ class AnalyzerConfig {
 
     @Bean
     Analyzer analyzer() {
-        return new DefaultAnalyzer(matchScoreSmoothing,
+        return Analyzer.getNewInstance(matchScoreSmoothing,
                 matchScoreThreshold,
                 priceVariationThreshold,
                 extrapolatePriceVariation,

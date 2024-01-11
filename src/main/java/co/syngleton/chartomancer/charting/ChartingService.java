@@ -209,7 +209,7 @@ final class ChartingService implements GraphGenerator, CandleNormalizer {
         return graph != null
                 && timeframe != null
                 && timeframe != Timeframe.UNKNOWN
-                && Check.notNullNotEmpty(graph.getFloatCandles())
+                && Check.isNotEmpty(graph.getFloatCandles())
                 && timeframe.durationInSeconds > graph.getTimeframe().durationInSeconds;
     }
 

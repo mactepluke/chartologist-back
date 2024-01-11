@@ -57,7 +57,7 @@ public class TradingAccount implements PrintableDataTable, Account {
     @Override
     public List<String> getHeader() {
 
-        if (Check.notNullNotEmpty(trades)) {
+        if (Check.isNotEmpty(trades)) {
             return trades.get(0).extractCsvHeader();
         }
         return Collections.emptyList();

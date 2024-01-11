@@ -11,12 +11,20 @@ public final class Check {
         throw new IllegalAccessException();
     }
 
-    public static <T> boolean notNullNotEmpty(Collection<T> collection) {
-        return collection != null && !collection.isEmpty();
+    public static <T> boolean isNotEmpty(Collection<T> collection) {
+        return !isEmpty(collection);
     }
 
-    public static <K, V> boolean notNullNotEmpty(Map<K, V> collection) {
-        return collection != null && !collection.isEmpty();
+    public static <T> boolean isEmpty(Collection<T> collection) {
+        return collection == null || collection.isEmpty();
+    }
+
+    public static <K, V> boolean isEmpty(Map<K, V> map) {
+        return map == null || map.isEmpty();
+    }
+
+    public static <K, V> boolean isNotEmpty(Map<K, V> map) {
+        return !isEmpty(map);
     }
 
     public static <T> boolean executeIfTrue(boolean condition, Predicate<T> function, T param) {

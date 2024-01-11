@@ -13,19 +13,14 @@ public abstract class ChartObject implements Serializable {
     private final Symbol symbol;
     private final Timeframe timeframe;
 
-    protected ChartObject() {
-        this.symbol = null;
-        this.timeframe = null;
-    }
-
     protected ChartObject(Symbol symbol, Timeframe timeframe) {
-        this.symbol = symbol;
-        this.timeframe = timeframe;
+        this.symbol = symbol == null ? Symbol.UNDEFINED : symbol;
+        this.timeframe = timeframe == null ? Timeframe.UNKNOWN : timeframe;
     }
 
     protected ChartObject(ChartObject chartObject) {
-        this.symbol = chartObject == null ? null : chartObject.getSymbol();
-        this.timeframe = chartObject == null ? null : chartObject.getTimeframe();
+        this.symbol = chartObject == null ? Symbol.UNDEFINED : chartObject.getSymbol();
+        this.timeframe = chartObject == null ? Timeframe.UNKNOWN : chartObject.getTimeframe();
     }
 
     public boolean matches(ChartObject chartObject) {
@@ -37,7 +32,7 @@ public abstract class ChartObject implements Serializable {
     }
 
     public <T> boolean doesNotMatchAnyChartObjectIn(Collection<T> chartObjectCollection) {
-        if (Check.notNullNotEmpty(chartObjectCollection)) {
+        if (Check.isNotEmpty(chartObjectCollection)) {
             for (T collectionObject : chartObjectCollection) {
                 if ((this.matches((ChartObject) collectionObject))) {
                     return false;
@@ -48,7 +43,7 @@ public abstract class ChartObject implements Serializable {
     }
 
     public <T> T getFirstMatchingChartObjectIn(Collection<T> chartObjectCollection) {
-        if (Check.notNullNotEmpty(chartObjectCollection)) {
+        if (Check.isNotEmpty(chartObjectCollection)) {
             for (T collectionObject : chartObjectCollection) {
                 if ((this.matches((ChartObject) collectionObject))) {
                     return collectionObject;

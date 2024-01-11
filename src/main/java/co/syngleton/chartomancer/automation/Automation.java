@@ -252,8 +252,8 @@ final class Automation implements Runnable {
 
     private void runBasicDummyTrades() {
         if (coreData == null
-                || !Check.notNullNotEmpty(coreData.getGraphs())
-                || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
+                || !Check.isNotEmpty(coreData.getGraphs())
+                || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
             log.error(DATA_MISSING_ERROR);
         } else {
 
@@ -269,8 +269,8 @@ final class Automation implements Runnable {
 
     private void runRandomizedDummyTrades(CoreData coreData) {
         if (coreData == null
-                || !Check.notNullNotEmpty(coreData.getGraphs())
-                || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
+                || !Check.isNotEmpty(coreData.getGraphs())
+                || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
             log.error(DATA_MISSING_ERROR);
         } else {
 
@@ -300,8 +300,8 @@ final class Automation implements Runnable {
 
     private void runDeterministicDummyTrades(CoreData coreData) {
         if (coreData == null
-                || !Check.notNullNotEmpty(coreData.getGraphs())
-                || !Check.notNullNotEmpty(coreData.getTradingPatternBoxes())) {
+                || !Check.isNotEmpty(coreData.getGraphs())
+                || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
             log.error(DATA_MISSING_ERROR);
         } else {
 

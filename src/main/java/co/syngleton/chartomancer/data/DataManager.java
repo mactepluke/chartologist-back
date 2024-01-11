@@ -3,6 +3,7 @@ package co.syngleton.chartomancer.data;
 import co.syngleton.chartomancer.automation.AutomationLauncher;
 import co.syngleton.chartomancer.charting.GraphGenerator;
 import co.syngleton.chartomancer.domain.*;
+import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.pattern_recognition.*;
 import co.syngleton.chartomancer.trading.TradingService;
 import co.syngleton.chartomancer.util.Check;
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Service
-public class DataService implements ApplicationContextAware, DataProcessor, DataInitializer {
+public class DataManager implements ApplicationContextAware, DataProcessor, DataInitializer {
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive_";
     private final GraphGenerator graphGenerator;
@@ -38,7 +39,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
     private String dataSourceName;
 
     @Autowired
-    public DataService(@Value("${data_source:serialized}") String dataSource,
+    public DataManager(@Value("${data_source:serialized}") String dataSource,
                        GraphGenerator graphGenerator,
                        PatternComputer patternComputer,
                        PatternGenerator patternGenerator,
@@ -75,17 +76,17 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
         if (coreData != null) {
             for (String dataFileName : dataFilesNames) {
 
-                Graph graph = graphGenerator.generateGraphFromFile("./" + dataFolderName + "/" + dataFileName);
+                String dataFilePath = "./" + dataFolderName + "/" + dataFileName;
+
+                log.info("Loading graph from: {}", dataFilePath);
+
+                Graph graph = graphGenerator.generateGraphFromFile(dataFilePath);
 
                 if (graph != null && graph.doesNotMatchAnyChartObjectIn(coreData.getGraphs())) {
                     graphs.add(graph);
                 }
             }
-            if (!Check.notNullNotEmpty(coreData.getGraphs())) {
-                coreData.setGraphs(graphs);
-            } else {
-                coreData.getGraphs().addAll(graphs);
-            }
+            coreData.getGraphs().addAll(graphs);
         }
         return !graphs.isEmpty();
     }
@@ -98,15 +99,16 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
     @Override
     public boolean loadCoreDataWithName(CoreData coreData, String dataSourceName) {
 
-        log.info("> Loading core data from: {}", dataSource);
+        log.info("Loading core data from: {}", dataSource);
 
         CoreData readData = coreDataDAO.loadCoreDataFrom(dataSourceName);
 
         if (readData != null) {
             coreData.copy(readData);
-            log.info("> Loaded core data successfully.");
+            log.info("Loaded core data successfully.");
             return true;
         }
+        log.error("Could not load core data.");
         return false;
     }
 
@@ -118,7 +120,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
     @Override
     public boolean saveCoreDataWithName(CoreData coreData, String dataFileName) {
 
-        log.info("> Saving core data to: {}", dataSource + "/" + dataFileName);
+        log.info("Saving core data to: {}", dataSource + "/" + dataFileName);
         return coreDataDAO.saveCoreDataTo(coreData, dataFileName);
     }
 
@@ -127,50 +129,46 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
 
         Set<PatternBox> tradingData = new HashSet<>();
 
-        if ((coreData != null) && Check.notNullNotEmpty(coreData.getPatternBoxes())) {
-
-            for (PatternBox patternBox : coreData.getPatternBoxes()) {
-
-                Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
-
-                List<Pattern> anyPatternList = null;
-
-                if (Check.notNullNotEmpty(patternBox.getPatterns())) {
-                    tradingPatterns = convertPatternsToTrading(patternBox.getPatterns());
-                    anyPatternList = tradingPatterns.entrySet().iterator().next().getValue();
-                }
-
-                if (Check.notNullNotEmpty(anyPatternList) && !tradingPatterns.isEmpty() && !anyPatternList.isEmpty()) {
-                    tradingData.add(new PatternBox(anyPatternList.get(0), tradingPatterns));
-                }
-            }
-            coreData.pushTradingPatternData(tradingData);
+        if (coreData == null || Check.isEmpty(coreData.getPatternBoxes())) {
+            return false;
         }
+
+        for (PatternBox patternBox : coreData.getPatternBoxes()) {
+
+            List<Pattern> tradingPatterns = new ArrayList<>();
+
+            if (Check.isNotEmpty(patternBox.getPatterns())) {
+                tradingPatterns = convertPatternsToTrading(patternBox.getPatterns());
+            }
+
+            if (Check.isNotEmpty(tradingPatterns)) {
+                tradingData.add(new PatternBox(tradingPatterns));
+            }
+        }
+
+        coreData.pushTradingPatternData(tradingData);
+
         return !tradingData.isEmpty();
     }
 
-    private Map<Integer, List<Pattern>> convertPatternsToTrading(Map<Integer, List<Pattern>> patterns) {
+    private List<Pattern> convertPatternsToTrading(Map<Integer, List<Pattern>> patterns) {
 
-        Map<Integer, List<Pattern>> tradingPatterns = new TreeMap<>();
+        if (Check.isEmpty(patterns)) {
+            throw new InvalidParametersException("Cannot convert empty patterns.");
+        }
 
-        if (Check.notNullNotEmpty(patterns)) {
+        List<Pattern> tradingPatternsList = new ArrayList<>();
 
-            for (Map.Entry<Integer, List<Pattern>> entry : patterns.entrySet()) {
+        for (Map.Entry<Integer, List<Pattern>> entry : patterns.entrySet()) {
 
-                List<Pattern> tradingPatternsList = new ArrayList<>();
+            for (Pattern pattern : entry.getValue()) {
 
-                for (Pattern pattern : entry.getValue()) {
-
-                    if (pattern instanceof PredictivePattern) {
-                        tradingPatternsList.add(new TradingPattern((PredictivePattern) pattern));
-                    } else {
-                        return patterns;
-                    }
+                if (pattern instanceof PredictivePattern predictivePattern) {
+                    tradingPatternsList.add(new TradingPattern(predictivePattern));
                 }
-                tradingPatterns.put(entry.getKey(), tradingPatternsList);
             }
         }
-        return tradingPatterns;
+        return tradingPatternsList;
     }
 
     @Override
@@ -193,33 +191,41 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
 
     @Override
     public boolean createGraphsForMissingTimeframes(CoreData coreData) {
+        //TODO Check and rerfactor this method
 
-        if (coreData != null && Check.notNullNotEmpty(coreData.getGraphs())) {
-
-            Timeframe lowestTimeframe = Timeframe.UNKNOWN;
-            Graph lowestTimeframeGraph = null;
-
-            Set<Timeframe> missingTimeframes = new TreeSet<>(List.of(Timeframe.SECOND, Timeframe.MINUTE, Timeframe.HALF_HOUR, Timeframe.HOUR, Timeframe.FOUR_HOUR, Timeframe.DAY, Timeframe.WEEK));
-
-            for (Graph graph : coreData.getGraphs()) {
-                if (lowestTimeframe == Timeframe.UNKNOWN || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds) {
-                    lowestTimeframe = graph.getTimeframe();
-                    lowestTimeframeGraph = graph;
-                }
-                missingTimeframes.remove(graph.getTimeframe());
-            }
-
-            for (Timeframe timeframe : missingTimeframes) {
-                if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds) {
-                    lowestTimeframeGraph = graphGenerator.upscaleToTimeFrame(lowestTimeframeGraph, timeframe);
-                    lowestTimeframe = timeframe;
-                    coreData.getGraphs().add(lowestTimeframeGraph);
-                }
-            }
-            return true;
+        if (coreData == null || Check.isEmpty(coreData.getGraphs())) {
+            return false;
         }
-        return false;
+
+        Timeframe lowestTimeframe = Timeframe.UNKNOWN;
+        Graph lowestTimeframeGraph = null;
+
+        Set<Timeframe> missingTimeframes = new TreeSet<>(List.of(Timeframe.SECOND,
+                Timeframe.MINUTE,
+                Timeframe.HALF_HOUR,
+                Timeframe.HOUR,
+                Timeframe.FOUR_HOUR,
+                Timeframe.DAY,
+                Timeframe.WEEK));
+
+        for (Graph graph : coreData.getGraphs()) {
+            if (lowestTimeframe == Timeframe.UNKNOWN || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds) {
+                lowestTimeframe = graph.getTimeframe();
+                lowestTimeframeGraph = graph;
+            }
+            missingTimeframes.remove(graph.getTimeframe());
+        }
+
+        for (Timeframe timeframe : missingTimeframes) {
+            if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds) {
+                lowestTimeframeGraph = graphGenerator.upscaleToTimeFrame(lowestTimeframeGraph, timeframe);
+                lowestTimeframe = timeframe;
+                coreData.getGraphs().add(lowestTimeframeGraph);
+            }
+        }
+        return true;
     }
+
 
     @Override
     public void printCoreData(CoreData coreData) {
@@ -238,7 +244,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
 
         StringBuilder graphsBuilder = new StringBuilder();
 
-        if (Check.notNullNotEmpty(graphs)) {
+        if (Check.isNotEmpty(graphs)) {
             graphsBuilder.append(NEW_LINE).append(graphs.size()).append(" GRAPH(S)").append(NEW_LINE);
             for (Graph graph : graphs) {
                 graphsBuilder.append("-> ").append(graph.getName()).append(", ").append(graph.getSymbol()).append(", ").append(graph.getTimeframe()).append(", ").append(graph.getFloatCandles().size()).append(" candles").append(NEW_LINE);
@@ -253,7 +259,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
 
         StringBuilder patternBoxesBuilder = new StringBuilder();
 
-        if (Check.notNullNotEmpty(patternBoxes)) {
+        if (Check.isNotEmpty(patternBoxes)) {
             patternBoxesBuilder.append(NEW_LINE).append(patternBoxes.size()).append(" ").append(nameOfContent).append(" BOX(ES)").append(NEW_LINE);
             for (PatternBox patternBox : patternBoxes) {
 
@@ -459,7 +465,7 @@ public class DataService implements ApplicationContextAware, DataProcessor, Data
 
         log.info("Analysis time: {} seconds.", TimeUnit.MILLISECONDS.toSeconds(stopWatch.getLastTaskTimeMillis()));
 
-        return Check.notNullNotEmpty(coreData.getPatternBoxes());
+        return Check.isNotEmpty(coreData.getPatternBoxes());
     }
 }
 

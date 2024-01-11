@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 //TODO Refactor and extract interface
 @Log4j2
 @Service
-final class PatternService implements PatternGenerator, PatternComputer {
+final class PatternManager implements PatternGenerator, PatternComputer {
     private final PatternFactory patternFactory;
     private final CandleNormalizer candleNormalizer;
     @Value("#{'${patternboxes_timeframes}'.split(',')}")
@@ -36,7 +36,7 @@ final class PatternService implements PatternGenerator, PatternComputer {
     private ProgressBar pb;
 
     @Autowired
-    public PatternService(PatternFactory patternFactory,
+    public PatternManager(PatternFactory patternFactory,
                           CandleNormalizer candleNormalizer,
                           Analyzer analyzer) {
         this.patternFactory = patternFactory;
@@ -50,9 +50,9 @@ final class PatternService implements PatternGenerator, PatternComputer {
         Set<PatternBox> patternBoxes = new HashSet<>();
 
         if (coreData != null
-                && Check.notNullNotEmpty(coreData.getGraphs())
+                && Check.isNotEmpty(coreData.getGraphs())
         ) {
-            if (Check.notNullNotEmpty(coreData.getPatternBoxes())) {
+            if (Check.isNotEmpty(coreData.getPatternBoxes())) {
                 patternBoxes = coreData.getPatternBoxes();
             }
             for (Graph graph : coreData.getGraphs()) {
@@ -62,8 +62,8 @@ final class PatternService implements PatternGenerator, PatternComputer {
                     log.debug(">>> Creating patterns for graph: " + graph.getTimeframe() + " " + graph.getSymbol());
                     List<Pattern> patterns = createPatterns(settingsInput.graph(graph));
 
-                    if (Check.notNullNotEmpty(patterns)) {
-                        patternBoxes.add(new PatternBox(patterns.get(0), patterns));
+                    if (Check.isNotEmpty(patterns)) {
+                        patternBoxes.add(new PatternBox(patterns));
                     }
                 }
             }
@@ -96,12 +96,12 @@ final class PatternService implements PatternGenerator, PatternComputer {
         Set<PatternBox> computedPatternBoxes = new HashSet<>();
 
         if (coreData != null
-                && Check.notNullNotEmpty(coreData.getGraphs())
-                && Check.notNullNotEmpty(coreData.getPatternBoxes())
+                && Check.isNotEmpty(coreData.getGraphs())
+                && Check.isNotEmpty(coreData.getPatternBoxes())
         ) {
             for (PatternBox patternBox : coreData.getPatternBoxes()) {
 
-                if ((patternBox != null) && Check.notNullNotEmpty(patternBox.getPatterns())) {
+                if ((patternBox != null) && Check.isNotEmpty(patternBox.getPatterns())) {
 
                     Graph matchingGraph = patternBox.getFirstMatchingChartObjectIn(coreData.getGraphs());
 
@@ -113,7 +113,7 @@ final class PatternService implements PatternGenerator, PatternComputer {
                                         .graph(matchingGraph)
                         );
 
-                        if (Check.notNullNotEmpty(computedPatterns)) {
+                        if (Check.isNotEmpty(computedPatterns)) {
                             computedPatternBoxes.add(
                                     new PatternBox(
                                             matchingGraph,
@@ -124,7 +124,7 @@ final class PatternService implements PatternGenerator, PatternComputer {
                     }
                 }
             }
-            if (Check.notNullNotEmpty(computedPatternBoxes)) {
+            if (Check.isNotEmpty(computedPatternBoxes)) {
                 coreData.setPatternBoxes(computedPatternBoxes);
                 updateCoreDataComputationSettings(coreData, settingsInput.build());
             }
@@ -246,11 +246,11 @@ final class PatternService implements PatternGenerator, PatternComputer {
     private void updateCoreDataComputationSettings(@NonNull CoreData coreData, @NonNull ComputationSettings computationSettings) {
         coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_TYPE, computationSettings.getComputationType().toString());
         coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_AUTOCONFIG, computationSettings.getAutoconfig().toString());
-        coreData.setPatternSetting(CommonCoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE, Boolean.toString(analyzer.isExtrapolateMatchScore()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION, Boolean.toString(analyzer.isExtrapolatePriceVariation()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.MATCH_SCORE_THRESHOLD, Double.toString(analyzer.getMatchScoreThreshold()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.PRICE_VARIATION_THRESHOLD, Double.toString(analyzer.getPriceVariationThreshold()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.MATCH_SCORE_SMOOTHING, analyzer.getMatchScoreSmoothing().toString());
+        coreData.setPatternSetting(CommonCoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE, Boolean.toString(analyzer.extrapolateMatchScore()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION, Boolean.toString(analyzer.extrapolatePriceVariation()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.MATCH_SCORE_THRESHOLD, Double.toString(analyzer.matchScoreThreshold()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.PRICE_VARIATION_THRESHOLD, Double.toString(analyzer.priceVariationThreshold()));
+        coreData.setPatternSetting(CommonCoreDataSettingNames.MATCH_SCORE_SMOOTHING, analyzer.matchScoreSmoothing().toString());
         coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_DATE, Format.toFileNameCompatibleDateTime(LocalDateTime.now()));
     }
 }

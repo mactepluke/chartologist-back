@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class PatternServiceTests {
+class PatternManagerTests {
 
     @Autowired
     PatternComputer patternComputer;

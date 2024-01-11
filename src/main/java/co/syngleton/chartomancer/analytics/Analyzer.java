@@ -6,19 +6,28 @@ import co.syngleton.chartomancer.domain.IntCandle;
 import java.util.List;
 
 public interface Analyzer {
+
+    static Analyzer getNewInstance(Smoothing matchScoreSmoothing,
+                                   int matchScoreThreshold,
+                                   int priceVariationThreshold,
+                                   boolean extrapolatePriceVariation,
+                                   boolean extrapolateMatchScore) {
+        return new AnalyzerImpl(matchScoreSmoothing, matchScoreThreshold, priceVariationThreshold, extrapolatePriceVariation, extrapolateMatchScore);
+    }
+
     float calculatePriceVariation(List<FloatCandle> floatFollowingCandles, int scope);
 
     float filterPriceVariation(float priceVariation);
 
     int calculateMatchScore(List<IntCandle> intCandles, List<IntCandle> intCandlesToMatch);
 
-    Smoothing getMatchScoreSmoothing();
+    Smoothing matchScoreSmoothing();
 
-    int getMatchScoreThreshold();
+    int matchScoreThreshold();
 
-    int getPriceVariationThreshold();
+    int priceVariationThreshold();
 
-    boolean isExtrapolatePriceVariation();
+    boolean extrapolatePriceVariation();
 
-    boolean isExtrapolateMatchScore();
+    boolean extrapolateMatchScore();
 }

@@ -58,7 +58,7 @@ class AnalyserTests {
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2)));
 
-        analyzer = new DefaultAnalyzer(Smoothing.LINEAR, 0, 0, false, false);
+        analyzer = new AnalyzerImpl(Smoothing.LINEAR, 0, 0, false, false);
 
         assertEquals(38, analyzer.calculateMatchScore(intCandlesToMatch1, intCandlesToMatch2));
     }
@@ -70,7 +70,7 @@ class AnalyserTests {
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2)));
 
-        analyzer = new DefaultAnalyzer(Smoothing.LINEAR, 0, 0, false, true);
+        analyzer = new AnalyzerImpl(Smoothing.LINEAR, 0, 0, false, true);
 
         assertEquals(52, analyzer.calculateMatchScore(intCandlesToMatch1, intCandlesToMatch2));
     }

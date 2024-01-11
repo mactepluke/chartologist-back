@@ -21,12 +21,12 @@ import org.springframework.test.context.ContextConfiguration;
 class EmailServiceTests {
 
     @Autowired
-    private EmailService emailService;
+    private EmailingService emailingService;
 
     @Test
     @Disabled
     @DisplayName("[UNIT] Sends basic email to admin email")
     void sendBasicEmailTest() {
-        emailService.sendEmail("luc.metz@icloud.com", "Test email chartomancer", "Test is successful!");
+        emailingService.sendEmail("luc.metz@icloud.com", "Test email chartomancer", "Test is successful!");
     }
 }

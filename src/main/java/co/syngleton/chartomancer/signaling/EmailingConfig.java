@@ -21,7 +21,7 @@ import java.util.Set;
 @Log4j2
 @Configuration
 @EnableScheduling
-public class MailingConfig {
+public class EmailingConfig {
     private static final int FOUR_HOUR_RATE = 14400000;
     private static final String SIGNALS_HISTORY_FOLDER = "./signals_history/";
     private static final String SIGNALS_FILE_NAME = "signals";
@@ -29,7 +29,7 @@ public class MailingConfig {
     private static final String MAIL_SUBJECT = "[CHARTOMANCER] Nouveau trade signalé !";
     private static final String MAIL_FOUR_HOUR_BODY = "Chartomancer vous propose le trade BTC/USD suivant à l'échelle des 4 heures :" + NEW_LINE + NEW_LINE;
     private final TradingRequestManager tradingRequestManager;
-    private final EmailService emailService;
+    private final EmailingService emailingService;
     private final DataProcessor dataProcessor;
     private final TradingAccount signalsTradingAccount;
     @Value("${enable_email_scheduling:false}")
@@ -41,11 +41,11 @@ public class MailingConfig {
 
 
     @Autowired
-    public MailingConfig(TradingRequestManager tradingRequestManager,
-                         EmailService emailService,
-                         DataProcessor dataProcessor) {
+    public EmailingConfig(TradingRequestManager tradingRequestManager,
+                          EmailingService emailingService,
+                          DataProcessor dataProcessor) {
         this.tradingRequestManager = tradingRequestManager;
-        this.emailService = emailService;
+        this.emailingService = emailingService;
         this.dataProcessor = dataProcessor;
         this.signalsTradingAccount = new TradingAccount();
         this.signalsTradingAccount.credit(signalsAccountBalance);
@@ -67,7 +67,7 @@ public class MailingConfig {
                 TradeDTO tradeDTO = new TradeDTO(trade);
 
                 defaultTradingSignalSubscribers.forEach(email ->
-                        emailService.sendEmail(email, MAIL_SUBJECT, MAIL_FOUR_HOUR_BODY + tradeDTO));
+                        emailingService.sendEmail(email, MAIL_SUBJECT, MAIL_FOUR_HOUR_BODY + tradeDTO));
 
             }
         }

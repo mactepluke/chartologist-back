@@ -127,7 +127,7 @@ public class TradingService {
     private boolean tradingInputDataAreLegit(Account tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
         return graph != null
                 && coreData != null
-                && Check.notNullNotEmpty(coreData.getTradingPatternBoxes())
+                && Check.isNotEmpty(coreData.getTradingPatternBoxes())
                 && tradeOpenCandle >= 0
                 && graph.getFloatCandles().size() > tradeOpenCandle
                 && graph.getFloatCandles().get(tradeOpenCandle) != null
@@ -148,7 +148,7 @@ public class TradingService {
 
         PatternBox patternBox = graph.getFirstMatchingChartObjectIn(coreData.getTradingPatternBoxes());
 
-        if (patternBox != null && Check.notNullNotEmpty(patternBox.getPatterns())) {
+        if (patternBox != null && Check.isNotEmpty(patternBox.getPatterns())) {
 
             for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
 
@@ -265,7 +265,7 @@ public class TradingService {
         List<Pattern> patterns = patternBox.getPatterns().get(scope);
         float pricePrediction = 0;
 
-        if (Check.notNullNotEmpty(patterns)
+        if (Check.isNotEmpty(patterns)
                 && patterns.get(0).getLength() < tradeOpenCandle) {
 
             float divider = 1;
@@ -295,7 +295,7 @@ public class TradingService {
 
         if (trade != null
                 && account != null
-                && Check.notNullNotEmpty(candles)
+                && Check.isNotEmpty(candles)
                 && trade.getStatus() == TradeStatus.OPENED
         ) {
             trade.setExpiry(candles.get(candles.size() - 1).dateTime());

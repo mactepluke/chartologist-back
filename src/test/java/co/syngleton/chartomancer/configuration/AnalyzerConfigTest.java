@@ -1,7 +1,6 @@
 package co.syngleton.chartomancer.configuration;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
-import co.syngleton.chartomancer.analytics.DefaultAnalyzer;
 import co.syngleton.chartomancer.analytics.Smoothing;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +16,7 @@ public class AnalyzerConfigTest {
 
     @Bean
     Analyzer analyzer() {
-        return new DefaultAnalyzer(MATCH_SCORE_SMOOTHING,
+        return Analyzer.getNewInstance(MATCH_SCORE_SMOOTHING,
                 MATCH_SCORE_THRESHOLD,
                 PRICE_VARIATION_THRESHOLD,
                 EXTRAPOLATE_PRICE_VARIATION,

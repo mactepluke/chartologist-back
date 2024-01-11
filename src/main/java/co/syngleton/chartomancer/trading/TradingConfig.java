@@ -1,7 +1,6 @@
 package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
-import co.syngleton.chartomancer.analytics.DefaultAnalyzer;
 import co.syngleton.chartomancer.analytics.Smoothing;
 import co.syngleton.chartomancer.util.Format;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,7 +65,7 @@ class TradingConfig {
 
     @Bean
     Analyzer tradingAnalyzer() {
-        return new DefaultAnalyzer(tradingMatchScoreSmoothing,
+        return Analyzer.getNewInstance(tradingMatchScoreSmoothing,
                 tradingMatchScoreThreshold,
                 tradingPriceVariationThreshold,
                 tradingExtrapolatePriceVariation,
