@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.domain;
+package co.syngleton.chartomancer.charting_types;
 
 public enum Symbol {
     UNDEFINED("VOID", "VOID"),

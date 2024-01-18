@@ -1,6 +1,6 @@
-package co.syngleton.chartomancer.data;
+package co.syngleton.chartomancer.shared_constants;
 
-public class CommonCoreDataSettingNames {
+public class CoreDataSettingNames {
     public static final String MATCH_SCORE_SMOOTHING = "match_score_smoothing";
     public static final String MATCH_SCORE_THRESHOLD = "match_score_threshold";
     public static final String PRICE_VARIATION_THRESHOLD = "price_variation_threshold";
@@ -17,6 +17,7 @@ public class CommonCoreDataSettingNames {
     public static final String PATTERN_GRANULARITY = "pattern_granularity";
     public static final String COMPUTATION_DATE = "computation_date";
 
-    private CommonCoreDataSettingNames() {
+    private CoreDataSettingNames() throws IllegalAccessException {
+        throw new IllegalAccessException();
     }
 }

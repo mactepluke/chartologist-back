@@ -1,8 +1,12 @@
 package co.syngleton.chartomancer.charting;
 
-import co.syngleton.chartomancer.domain.*;
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidFileFormatException;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
+import co.syngleton.chartomancer.shared_domain.FloatCandle;
+import co.syngleton.chartomancer.shared_domain.Graph;
+import co.syngleton.chartomancer.shared_domain.IntCandle;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.Pair;
@@ -271,11 +275,11 @@ final class ChartingService implements GraphGenerator, CandleNormalizer {
         return streamline(round((value - lowest) / divider), 0, granularity);
     }
 
-    public enum CSVFormat {
-        CRYPTO_DATA_DOWNLOAD_USD_BTC("unix,date,symbol,open,high,low,close,Volume USD,Volume BTC", ",", 0, 2, 3, 4, 5, 6, 7, "USD_BTC"),
-        CRYPTO_DATA_DOWNLOAD_USD_ETH("unix,date,symbol,open,high,low,close,Volume USD,Volume ETH", ",", 0, 2, 3, 4, 5, 6, 7, "USD_ETH"),
-        CRYPTO_DATA_DOWNLOAD_BTC_USD("unix,date,symbol,open,high,low,close,Volume BTC,Volume USD", ",", 0, 2, 3, 4, 5, 6, 8, "BTC_USD"),
-        CRYPTO_DATA_DOWNLOAD_ETH_USD("unix,date,symbol,open,high,low,close,Volume ETH,Volume USD", ",", 0, 2, 3, 4, 5, 6, 8, "ETH_USD");
+    private enum CSVFormat {
+        CRYPTO_DATA_DOWNLOAD_USD_BTC("unix,date,symbol,open,high,low,close,Volume USD,Volume BTC", ",", 0, 2, 3, 4, 5, 6, 7, Symbol.BTC_USD),
+        CRYPTO_DATA_DOWNLOAD_USD_ETH("unix,date,symbol,open,high,low,close,Volume USD,Volume ETH", ",", 0, 2, 3, 4, 5, 6, 7, Symbol.ETH_USD),
+        CRYPTO_DATA_DOWNLOAD_BTC_USD("unix,date,symbol,open,high,low,close,Volume BTC,Volume USD", ",", 0, 2, 3, 4, 5, 6, 8, Symbol.BTC_USD),
+        CRYPTO_DATA_DOWNLOAD_ETH_USD("unix,date,symbol,open,high,low,close,Volume ETH,Volume USD", ",", 0, 2, 3, 4, 5, 6, 8, Symbol.ETH_USD);
 
         public final String formatHeader;
         public final String delimiter;
@@ -297,7 +301,7 @@ final class ChartingService implements GraphGenerator, CandleNormalizer {
                   int lowPosition,
                   int closePosition,
                   int volumePosition,
-                  String symbolValue
+                  Symbol symbol
         ) {
             this.formatHeader = formatHeader;
             this.delimiter = delimiter;
@@ -308,17 +312,9 @@ final class ChartingService implements GraphGenerator, CandleNormalizer {
             this.lowPosition = lowPosition;
             this.closePosition = closePosition;
             this.volumePosition = volumePosition;
-            this.symbol = readSymbol(symbolValue);
+            this.symbol = symbol;
         }
 
-        private Symbol readSymbol(String symbolValue) {
-            return switch (symbolValue) {
-                case "BTC_USD" -> Symbol.BTC_USD;
-                case "ETH_USD" -> Symbol.ETH_USD;
-                default -> Symbol.UNDEFINED;
-            };
-
-        }
     }
 
 

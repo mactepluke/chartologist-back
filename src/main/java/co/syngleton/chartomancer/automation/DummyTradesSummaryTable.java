@@ -2,11 +2,12 @@ package co.syngleton.chartomancer.automation;
 
 import co.syngleton.chartomancer.util.datatabletool.PrintableData;
 import co.syngleton.chartomancer.util.datatabletool.PrintableDataTable;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DummyTradesSummaryTable implements PrintableDataTable {
+public final class DummyTradesSummaryTable implements PrintableDataTable {
     private static final String DUMMY_TRADES_DATE_TIME = "Dummy Trades Date Time";
     private static final String DATA_SER_VERSION_DATE = "Data.ser version date";
     private static final String CSV_TRADES_HISTORY_FILE_NAME = "CSV Trades History file name";
@@ -66,6 +67,7 @@ public class DummyTradesSummaryTable implements PrintableDataTable {
 
     private final List<PrintableData> dummyTradesSummary;
 
+    @Getter
     private final String fileName;
 
     public DummyTradesSummaryTable(String fileName) {
@@ -138,10 +140,6 @@ public class DummyTradesSummaryTable implements PrintableDataTable {
     @Override
     public List<PrintableData> getPrintableData() {
         return dummyTradesSummary;
-    }
-
-    public String getFileName() {
-        return fileName;
     }
 
 }

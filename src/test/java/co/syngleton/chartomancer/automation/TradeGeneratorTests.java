@@ -1,11 +1,16 @@
 package co.syngleton.chartomancer.automation;
 
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.TradingServiceConfig;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.data.PurgeOption;
-import co.syngleton.chartomancer.domain.*;
-import co.syngleton.chartomancer.trading.TradingService;
+import co.syngleton.chartomancer.shared_domain.CoreData;
+import co.syngleton.chartomancer.shared_domain.Graph;
+import co.syngleton.chartomancer.shared_domain.PatternBox;
+import co.syngleton.chartomancer.trading.TradeGenerator;
+import co.syngleton.chartomancer.trading.TradeSimulator;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
 import java.util.List;
 import java.util.Optional;
 
+import static co.syngleton.chartomancer.shared_constants.Misc.TEST_CORE_DATA_FILENAME;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -26,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = {DataConfigTest.class, TradingServiceConfig.class})
 @ActiveProfiles("test")
-class TradingServiceTests {
+class TradeGeneratorTests {
 
     private static final String TEST_PATH = "./src/test/resources/";
     private static final double INITIAL_BALANCE = 10000;
@@ -57,7 +63,9 @@ class TradingServiceTests {
             "Average PnL                $ 47.71 | $ 63.36 | $ -30.57\n" +
             "** Profit factor: 1.66, qualification: GOOD";
     @Autowired
-    TradingService tradingService;
+    TradeGenerator tradeGenerator;
+    @Autowired
+    TradeSimulator tradeSimulator;
     @Autowired
     CoreData coreData;
     @Autowired
@@ -72,7 +80,7 @@ class TradingServiceTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
-        dataProcessor.loadCoreData(coreData);
+        dataProcessor.loadCoreDataWithName(coreData, TEST_CORE_DATA_FILENAME);
         dataProcessor.generateTradingData(coreData);
         dataProcessor.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS);
         dataProcessor.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);
@@ -119,7 +127,8 @@ class TradingServiceTests {
                 MINIMUM_BALANCE,
                 EXPECTED_BALANCE_X,
                 MAX_TRADES,
-                tradingService,
+                tradeGenerator,
+                tradeSimulator,
                 coreData,
                 WRITE_REPORTS,
                 new DummyTradesSummaryTable("testTable"),

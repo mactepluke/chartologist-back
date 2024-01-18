@@ -3,12 +3,12 @@ package co.syngleton.chartomancer.analytics;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.domain.CoreData;
-import co.syngleton.chartomancer.domain.Pattern;
 import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
 import co.syngleton.chartomancer.pattern_recognition.PatternGenerator;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
+import co.syngleton.chartomancer.shared_domain.CoreData;
+import co.syngleton.chartomancer.shared_domain.Pattern;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class PatternManagerTests {
+class PatternServiceTests {
 
     @Autowired
     PatternComputer patternComputer;

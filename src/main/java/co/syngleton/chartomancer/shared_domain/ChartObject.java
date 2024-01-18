@@ -1,5 +1,7 @@
-package co.syngleton.chartomancer.domain;
+package co.syngleton.chartomancer.shared_domain;
 
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.util.Check;
 import lombok.Getter;
 import lombok.ToString;

@@ -2,8 +2,9 @@ package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleNormalizer;
-import co.syngleton.chartomancer.data.CommonCoreDataSettingNames;
-import co.syngleton.chartomancer.domain.*;
+import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
+import co.syngleton.chartomancer.shared_domain.*;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.Futures;
@@ -21,10 +22,9 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-//TODO Refactor and extract interface
 @Log4j2
 @Service
-final class PatternManager implements PatternGenerator, PatternComputer {
+final class PatternService implements PatternGenerator, PatternComputer {
     private final PatternFactory patternFactory;
     private final CandleNormalizer candleNormalizer;
     @Value("#{'${patternboxes_timeframes}'.split(',')}")
@@ -36,7 +36,7 @@ final class PatternManager implements PatternGenerator, PatternComputer {
     private ProgressBar pb;
 
     @Autowired
-    public PatternManager(PatternFactory patternFactory,
+    public PatternService(PatternFactory patternFactory,
                           CandleNormalizer candleNormalizer,
                           Analyzer analyzer) {
         this.patternFactory = patternFactory;
@@ -79,13 +79,13 @@ final class PatternManager implements PatternGenerator, PatternComputer {
     }
 
     private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
-        coreData.setPatternSetting(CommonCoreDataSettingNames.PATTERN_GRANULARITY, Integer.toString(patternSettings.getGranularity()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.PATTERN_LENGTH, Integer.toString(patternSettings.getLength()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.SCOPE, Integer.toString(patternSettings.getScope()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.FULL_SCOPE, Boolean.toString(patternSettings.isFullScope()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.ATOMIC_PARTITION, Boolean.toString(patternSettings.isAtomicPartition()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.PATTERN_AUTOCONFIG, patternSettings.getAutoconfig().toString());
-        coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_PATTERN_TYPE, patternSettings.getPatternType().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY, Integer.toString(patternSettings.getGranularity()));
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_LENGTH, Integer.toString(patternSettings.getLength()));
+        coreData.setPatternSetting(CoreDataSettingNames.SCOPE, Integer.toString(patternSettings.getScope()));
+        coreData.setPatternSetting(CoreDataSettingNames.FULL_SCOPE, Boolean.toString(patternSettings.isFullScope()));
+        coreData.setPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION, Boolean.toString(patternSettings.isAtomicPartition()));
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG, patternSettings.getAutoconfig().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE, patternSettings.getPatternType().toString());
     }
 
     @Override
@@ -133,7 +133,6 @@ final class PatternManager implements PatternGenerator, PatternComputer {
         return result;
     }
 
-    //TODO rentre la méthode private en faisant autrement pour la tester?
     @Override
     public List<Pattern> computePatterns(ComputationSettings.Builder settingsInput) {
 
@@ -244,13 +243,13 @@ final class PatternManager implements PatternGenerator, PatternComputer {
     }
 
     private void updateCoreDataComputationSettings(@NonNull CoreData coreData, @NonNull ComputationSettings computationSettings) {
-        coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_TYPE, computationSettings.getComputationType().toString());
-        coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_AUTOCONFIG, computationSettings.getAutoconfig().toString());
-        coreData.setPatternSetting(CommonCoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE, Boolean.toString(analyzer.extrapolateMatchScore()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION, Boolean.toString(analyzer.extrapolatePriceVariation()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.MATCH_SCORE_THRESHOLD, Double.toString(analyzer.matchScoreThreshold()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.PRICE_VARIATION_THRESHOLD, Double.toString(analyzer.priceVariationThreshold()));
-        coreData.setPatternSetting(CommonCoreDataSettingNames.MATCH_SCORE_SMOOTHING, analyzer.matchScoreSmoothing().toString());
-        coreData.setPatternSetting(CommonCoreDataSettingNames.COMPUTATION_DATE, Format.toFileNameCompatibleDateTime(LocalDateTime.now()));
+        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_TYPE, computationSettings.getComputationType().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_AUTOCONFIG, computationSettings.getAutoconfig().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE, Boolean.toString(analyzer.extrapolateMatchScore()));
+        coreData.setPatternSetting(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION, Boolean.toString(analyzer.extrapolatePriceVariation()));
+        coreData.setPatternSetting(CoreDataSettingNames.MATCH_SCORE_THRESHOLD, Double.toString(analyzer.matchScoreThreshold()));
+        coreData.setPatternSetting(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD, Double.toString(analyzer.priceVariationThreshold()));
+        coreData.setPatternSetting(CoreDataSettingNames.MATCH_SCORE_SMOOTHING, analyzer.matchScoreSmoothing().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_DATE, Format.toFileNameCompatibleDateTime(LocalDateTime.now()));
     }
 }

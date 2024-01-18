@@ -1,8 +1,9 @@
 package co.syngleton.chartomancer.trading;
 
-import co.syngleton.chartomancer.domain.ChartObject;
-import co.syngleton.chartomancer.domain.Symbol;
-import co.syngleton.chartomancer.domain.Timeframe;
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.shared_domain.Accountable;
+import co.syngleton.chartomancer.shared_domain.ChartObject;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.datatabletool.PrintableData;

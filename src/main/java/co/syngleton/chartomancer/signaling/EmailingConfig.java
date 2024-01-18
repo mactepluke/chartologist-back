@@ -1,10 +1,9 @@
 package co.syngleton.chartomancer.signaling;
 
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.domain.Symbol;
-import co.syngleton.chartomancer.domain.Timeframe;
 import co.syngleton.chartomancer.trading.Trade;
-import co.syngleton.chartomancer.trading.TradeDTO;
 import co.syngleton.chartomancer.trading.TradeStatus;
 import co.syngleton.chartomancer.trading.TradingAccount;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;

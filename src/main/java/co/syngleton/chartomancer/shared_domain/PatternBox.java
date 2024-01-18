@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.domain;
+package co.syngleton.chartomancer.shared_domain;
 
 import co.syngleton.chartomancer.util.Check;
 import lombok.Getter;
@@ -24,7 +24,7 @@ public final class PatternBox extends ChartObject {
 
     private static Map<Integer, List<Pattern>> initializePatterns(List<Pattern> patterns) {
 
-        Map<Integer, List<Pattern>> patternsMap = new TreeMap<>();
+        Map<Integer, List<Pattern>> patternsMap = new HashMap<>();
 
         if (Check.isNotEmpty(patterns)) {
             for (Pattern pattern : patterns) {
@@ -39,7 +39,7 @@ public final class PatternBox extends ChartObject {
     }
 
     private static int getPatternKey(Pattern pattern) {
-        return pattern instanceof PredictivePattern ? ((ScopedPattern) pattern).getScope() : pattern.getLength();
+        return pattern instanceof ScopedPattern ? ((ScopedPattern) pattern).getScope() : pattern.getLength();
     }
 
     public List<Pattern> getListOfAllPatterns() {

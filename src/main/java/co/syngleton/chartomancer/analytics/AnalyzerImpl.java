@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.analytics;
 
-import co.syngleton.chartomancer.domain.FloatCandle;
-import co.syngleton.chartomancer.domain.IntCandle;
+import co.syngleton.chartomancer.shared_domain.FloatCandle;
+import co.syngleton.chartomancer.shared_domain.IntCandle;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import lombok.extern.log4j.Log4j2;

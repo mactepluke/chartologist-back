@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.data;
 
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.configuration.MockData;
-import co.syngleton.chartomancer.domain.*;
+import co.syngleton.chartomancer.shared_domain.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class CoreDataManagerTests {
+class CoreDataServiceTests {
 
 
     @Autowired

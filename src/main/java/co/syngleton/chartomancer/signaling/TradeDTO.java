@@ -1,13 +1,15 @@
-package co.syngleton.chartomancer.trading;
+package co.syngleton.chartomancer.signaling;
 
-import co.syngleton.chartomancer.domain.Timeframe;
+import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.trading.Trade;
+import co.syngleton.chartomancer.trading.TradeStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class TradeDTO {
+class TradeDTO {
     @JsonProperty
     private boolean blank;
     @JsonProperty

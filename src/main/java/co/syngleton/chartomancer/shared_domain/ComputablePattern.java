@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.domain;
+package co.syngleton.chartomancer.shared_domain;
 
 import java.util.List;
 

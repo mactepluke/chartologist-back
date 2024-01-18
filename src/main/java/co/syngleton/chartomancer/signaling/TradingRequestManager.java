@@ -1,15 +1,13 @@
 package co.syngleton.chartomancer.signaling;
 
-import co.syngleton.chartomancer.data.CommonCoreDataSettingNames;
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.domain.*;
-import co.syngleton.chartomancer.signaling.ExternalDataSource;
-import co.syngleton.chartomancer.signaling.ExternalDataSourceService;
-import co.syngleton.chartomancer.trading.Trade;
-import co.syngleton.chartomancer.trading.TradeStatus;
-import co.syngleton.chartomancer.trading.TradingAccount;
-import co.syngleton.chartomancer.trading.TradingSettings;
-import co.syngleton.chartomancer.trading.TradingService;
+import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
+import co.syngleton.chartomancer.shared_domain.ChartObject;
+import co.syngleton.chartomancer.shared_domain.CoreData;
+import co.syngleton.chartomancer.shared_domain.Graph;
+import co.syngleton.chartomancer.trading.*;
 import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -29,7 +27,7 @@ import static java.lang.Math.abs;
 @Log4j2
 public class TradingRequestManager implements ApplicationContextAware {
 
-    private final TradingService tradingService;
+    private final TradeGenerator tradeGenerator;
     private final DataProcessor dataProcessor;
     private final CoreData coreData;
     private final TradingSettings defaultTradingSettings;
@@ -40,13 +38,13 @@ public class TradingRequestManager implements ApplicationContextAware {
     private TradingSettings tradingSettings;
 
     @Autowired
-    public TradingRequestManager(TradingService tradingService,
+    public TradingRequestManager(TradeGenerator tradeGenerator,
                                  DataProcessor dataProcessor,
                                  CoreData coreData,
                                  TradingSettings tradingSettings,
                                  @Value("${external_data_source}") ExternalDataSource externalDataSource
             /*MailingList mailingList*/) {
-        this.tradingService = tradingService;
+        this.tradeGenerator = tradeGenerator;
         this.dataProcessor = dataProcessor;
         this.coreData = coreData;
         this.defaultTradingSettings = tradingSettings;
@@ -138,12 +136,12 @@ public class TradingRequestManager implements ApplicationContextAware {
         Graph graph = externalDataSourceService.getLatestPriceHistoryGraphWithCurrentPriceCandle(
                 symbol,
                 timeframe,
-                Integer.parseInt(coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.PATTERN_LENGTH)));
+                Integer.parseInt(coreData.getTradingPatternSettings().get(CoreDataSettingNames.PATTERN_LENGTH)));
 
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.credit(accountBalance);
 
-        return tradingService.generateParameterizedTrade(tradingAccount,
+        return tradeGenerator.generateOptimalTrade(tradingAccount,
                 graph,
                 coreData,
                 graph.getFloatCandles().size() - 1,

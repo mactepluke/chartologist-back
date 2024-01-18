@@ -1,5 +1,7 @@
-package co.syngleton.chartomancer.domain;
+package co.syngleton.chartomancer.shared_domain;
 
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import lombok.NonNull;
 
 import java.io.Serializable;

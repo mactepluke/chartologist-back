@@ -1,10 +1,9 @@
 package co.syngleton.chartomancer.signaling;
 
-import co.syngleton.chartomancer.domain.Symbol;
-import co.syngleton.chartomancer.domain.Timeframe;
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.trading.Trade;
-import co.syngleton.chartomancer.trading.TradeDTO;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;

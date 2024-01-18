@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
-import co.syngleton.chartomancer.domain.CoreData;
-import co.syngleton.chartomancer.domain.Pattern;
+import co.syngleton.chartomancer.shared_domain.CoreData;
+import co.syngleton.chartomancer.shared_domain.Pattern;
 
 import java.util.List;
 

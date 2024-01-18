@@ -2,8 +2,8 @@ package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleNormalizer;
-import co.syngleton.chartomancer.domain.*;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
+import co.syngleton.chartomancer.shared_domain.*;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.Triad;
@@ -22,7 +22,7 @@ import static java.lang.Math.abs;
 
 @Log4j2
 @Service
-public class TradingService {
+class TradingService implements TradeGenerator, TradeSimulator {
 
     @Getter
     private final Analyzer analyzer;
@@ -39,10 +39,6 @@ public class TradingService {
         this.tradingSettings = tradingSettings;
     }
 
-    public String printTradingSettings() {
-        return tradingSettings.toString();
-    }
-
     /**
      * This method finds the best price variation percentages and uses it to set the take profit;
      * then it sets the stop loss as being under or above the price by a percentage that equals that of the
@@ -55,19 +51,20 @@ public class TradingService {
      * @param tradeOpenCandle
      * @return
      */
-
-    public Trade generateParameterizedTrade(Account tradingAccount,
-                                            Graph graph,
-                                            CoreData coreData,
-                                            int tradeOpenCandle) {
-        return generateParameterizedTrade(tradingAccount, graph, coreData, tradeOpenCandle, tradingSettings);
+    @Override
+    public Trade generateOptimalTradeWithDefaultSettings(Account tradingAccount,
+                                                         Graph graph,
+                                                         CoreData coreData,
+                                                         int tradeOpenCandle) {
+        return generateOptimalTrade(tradingAccount, graph, coreData, tradeOpenCandle, tradingSettings);
     }
 
-    public Trade generateParameterizedTrade(Account tradingAccount,
-                                            Graph graph,
-                                            CoreData coreData,
-                                            int tradeOpenCandle,
-                                            TradingSettings settings) {
+    @Override
+    public Trade generateOptimalTrade(Account tradingAccount,
+                                      Graph graph,
+                                      CoreData coreData,
+                                      int tradeOpenCandle,
+                                      TradingSettings settings) {
 
         Trade trade = null;
 
@@ -290,7 +287,7 @@ public class TradingService {
         return pricePrediction;
     }
 
-
+    @Override
     public void processTradeOnCompletedCandles(Trade trade, TradingAccount account, List<FloatCandle> candles) {
 
         if (trade != null
@@ -349,5 +346,4 @@ public class TradingService {
             account.debit(trade.getPnL());
         }
     }
-
 }

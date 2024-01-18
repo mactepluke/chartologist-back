@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
-import co.syngleton.chartomancer.domain.Graph;
+import co.syngleton.chartomancer.shared_domain.Graph;
 import lombok.Getter;
 import lombok.ToString;
 

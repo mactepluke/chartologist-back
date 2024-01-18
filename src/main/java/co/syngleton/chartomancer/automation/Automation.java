@@ -1,9 +1,11 @@
 package co.syngleton.chartomancer.automation;
 
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.domain.*;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
-import co.syngleton.chartomancer.trading.TradingService;
+import co.syngleton.chartomancer.shared_domain.*;
+import co.syngleton.chartomancer.trading.TradeGenerator;
+import co.syngleton.chartomancer.trading.TradeSimulator;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
 import lombok.NonNull;
@@ -14,11 +16,12 @@ import org.springframework.util.StopWatch;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static co.syngleton.chartomancer.shared_constants.Misc.NEW_LINE;
+
 @Log4j2
 final class Automation implements Runnable {
     private static final String DUMMY_TRADES_FOLDER_PATH = "./trades_history/";
     private static final String DUMMY_TRADES_SUMMARY_FILE_NAME = "dummy_trades_summary";
-    private static final String NEW_LINE = System.getProperty("line.separator");
     private static final String DATA_MISSING_ERROR = "Could not run dummy trades: core data are missing.";
     private final boolean printCoreData;
     private final boolean printPricePredictionSummary;
@@ -39,25 +42,26 @@ final class Automation implements Runnable {
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private String reportLog;
 
-    Automation(CoreData coreData,
-               DataProcessor dataProcessor,
-               PatternComputer patternComputer,
-               TradingService tradingService,
-               boolean printCoreData,
-               boolean printPricePredictionSummary,
-               boolean runBasicDummyTrades,
-               boolean runRandomizedDummyTrades,
-               boolean runRandomizedDummyTradesOnDummyGraphs,
-               boolean runDeterministicDummyTradesOnDummyGraphs,
-               double initialBalance,
-               double minimumBalance,
-               int expectedBalanceX,
-               int maxTrades,
-               Set<Timeframe> dummyTradesTimeframes,
-               boolean writeDummyTradeReports,
-               String dummyGraphsDataFolderName,
-               List<String> dummyGraphsDataFilesNames,
-               boolean printTasksHistory) {
+    public Automation(CoreData coreData,
+                      DataProcessor dataProcessor,
+                      PatternComputer patternComputer,
+                      TradeGenerator tradeGenerator,
+                      TradeSimulator tradeSimulator,
+                      boolean printCoreData,
+                      boolean printPricePredictionSummary,
+                      boolean runBasicDummyTrades,
+                      boolean runRandomizedDummyTrades,
+                      boolean runRandomizedDummyTradesOnDummyGraphs,
+                      boolean runDeterministicDummyTradesOnDummyGraphs,
+                      double initialBalance,
+                      double minimumBalance,
+                      int expectedBalanceX,
+                      int maxTrades,
+                      Set<Timeframe> dummyTradesTimeframes,
+                      boolean writeDummyTradeReports,
+                      String dummyGraphsDataFolderName,
+                      List<String> dummyGraphsDataFilesNames,
+                      boolean printTasksHistory) {
         this.coreData = coreData;
         this.dataProcessor = dataProcessor;
         this.patternComputer = patternComputer;
@@ -93,7 +97,8 @@ final class Automation implements Runnable {
                 minimumBalance,
                 expectedBalanceX,
                 maxTrades,
-                tradingService,
+                tradeGenerator,
+                tradeSimulator,
                 coreData,
                 writeDummyTradeReports,
                 dummyTradesSummaryTable,

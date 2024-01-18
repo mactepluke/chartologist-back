@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.trading;
+package co.syngleton.chartomancer.shared_domain;
 
 public interface Accountable {
 

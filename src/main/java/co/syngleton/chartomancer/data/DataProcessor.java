@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.domain.CoreData;
+import co.syngleton.chartomancer.shared_domain.CoreData;
 
 import java.util.List;
 

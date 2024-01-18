@@ -1,11 +1,11 @@
 package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.charting.GraphUpscalor;
-import co.syngleton.chartomancer.domain.FloatCandle;
-import co.syngleton.chartomancer.domain.Graph;
-import co.syngleton.chartomancer.domain.Symbol;
-import co.syngleton.chartomancer.domain.Timeframe;
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
+import co.syngleton.chartomancer.shared_domain.FloatCandle;
+import co.syngleton.chartomancer.shared_domain.Graph;
 import co.syngleton.chartomancer.util.Format;
 import com.jsoniter.JsonIterator;
 import lombok.NonNull;

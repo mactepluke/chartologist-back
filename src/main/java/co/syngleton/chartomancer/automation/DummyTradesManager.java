@@ -1,12 +1,13 @@
 package co.syngleton.chartomancer.automation;
 
-import co.syngleton.chartomancer.data.CommonCoreDataSettingNames;
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.domain.*;
-import co.syngleton.chartomancer.trading.Trade;
-import co.syngleton.chartomancer.trading.TradeStatus;
-import co.syngleton.chartomancer.trading.TradingAccount;
-import co.syngleton.chartomancer.trading.TradingService;
+import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
+import co.syngleton.chartomancer.shared_domain.CoreData;
+import co.syngleton.chartomancer.shared_domain.Graph;
+import co.syngleton.chartomancer.shared_domain.PatternBox;
+import co.syngleton.chartomancer.trading.*;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
@@ -22,14 +23,15 @@ import java.util.concurrent.ThreadLocalRandom;
 import static java.lang.Math.round;
 
 @Log4j2
-class DummyTradesManager {
+final class DummyTradesManager {
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final int MAX_BLANK_TRADE_MULTIPLIER = 1;
     private final double initialBalance;
     private final double minimumBalance;
     private final int expectedBalanceX;
     private final int maxTrades;
-    private final TradingService tradingService;
+    private final TradeGenerator tradeGenerator;
+    private final TradeSimulator tradeSimulator;
     private final CoreData coreData;
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private final boolean writeReports;
@@ -40,7 +42,8 @@ class DummyTradesManager {
                        double minimumBalance,
                        int expectedBalanceX,
                        int maxTrades,
-                       TradingService tradingService,
+                       TradeGenerator tradeGenerator,
+                       TradeSimulator tradeSimulator,
                        CoreData coreData,
                        boolean writeReports,
                        DummyTradesSummaryTable dummyTradesSummaryTable,
@@ -50,7 +53,8 @@ class DummyTradesManager {
         this.minimumBalance = minimumBalance;
         this.expectedBalanceX = expectedBalanceX;
         this.maxTrades = maxTrades;
-        this.tradingService = tradingService;
+        this.tradeGenerator = tradeGenerator;
+        this.tradeSimulator = tradeSimulator;
         this.coreData = coreData;
         this.writeReports = writeReports;
         this.dummyTradesSummaryTable = dummyTradesSummaryTable;
@@ -187,7 +191,7 @@ class DummyTradesManager {
 
     private Trade generateAndProcessTrade(@NonNull Graph graph, TradingAccount account, int maxScope, int tradeOpenCandle) {
 
-        Trade trade = tradingService.generateParameterizedTrade(
+        Trade trade = tradeGenerator.generateOptimalTradeWithDefaultSettings(
                 account,
                 graph,
                 coreData,
@@ -196,7 +200,7 @@ class DummyTradesManager {
 
         if (trade != null && trade.getStatus() == TradeStatus.OPENED) {
 
-            tradingService.processTradeOnCompletedCandles(
+            tradeSimulator.processTradeOnCompletedCandles(
                     trade,
                     account,
                     graph.getFloatCandles().subList(tradeOpenCandle, tradeOpenCandle + maxScope)
@@ -222,34 +226,34 @@ class DummyTradesManager {
                                                                       double annualizedReturnPercentage) {
         return new DummyTradesSummaryEntry(
                 Format.toFrenchDateTime(LocalDateTime.now()),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.COMPUTATION_DATE),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.COMPUTATION_DATE),
                 fileName,
                 dummyTradesSummaryTable.getFileName(),
                 symbol.toString(),
                 timeframe.toString(),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.MATCH_SCORE_SMOOTHING),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.MATCH_SCORE_THRESHOLD),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.PRICE_VARIATION_THRESHOLD),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.PATTERN_AUTOCONFIG),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.COMPUTATION_AUTOCONFIG),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.COMPUTATION_TYPE),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.COMPUTATION_PATTERN_TYPE),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.ATOMIC_PARTITION),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.MATCH_SCORE_SMOOTHING),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.MATCH_SCORE_THRESHOLD),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.PATTERN_AUTOCONFIG),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.COMPUTATION_AUTOCONFIG),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.COMPUTATION_TYPE),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.ATOMIC_PARTITION),
                 Integer.toString(maxScope),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.FULL_SCOPE),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.FULL_SCOPE),
                 Integer.toString(patternLength),
-                coreData.getTradingPatternSettings().get(CommonCoreDataSettingNames.PATTERN_GRANULARITY),
-                tradingService.getAnalyzer().matchScoreSmoothing(),
-                tradingService.getAnalyzer().matchScoreThreshold(),
-                tradingService.getTradingSettings().getPriceVariationThreshold(),
-                tradingService.getAnalyzer().extrapolatePriceVariation(),
-                tradingService.getAnalyzer().extrapolateMatchScore(),
-                tradingService.getTradingSettings().getRewardToRiskRatio(),
-                tradingService.getTradingSettings().getRiskPercentage(),
-                tradingService.getTradingSettings().getPriceVariationMultiplier(),
-                tradingService.getTradingSettings().getSlTpStrategy(),
+                coreData.getTradingPatternSettings().get(CoreDataSettingNames.PATTERN_GRANULARITY),
+                tradeGenerator.getAnalyzer().matchScoreSmoothing(),
+                tradeGenerator.getAnalyzer().matchScoreThreshold(),
+                tradeGenerator.getTradingSettings().getPriceVariationThreshold(),
+                tradeGenerator.getAnalyzer().extrapolatePriceVariation(),
+                tradeGenerator.getAnalyzer().extrapolateMatchScore(),
+                tradeGenerator.getTradingSettings().getRewardToRiskRatio(),
+                tradeGenerator.getTradingSettings().getRiskPercentage(),
+                tradeGenerator.getTradingSettings().getPriceVariationMultiplier(),
+                tradeGenerator.getTradingSettings().getSlTpStrategy(),
                 maxTrades,
                 result,
                 initialBalance,
@@ -294,7 +298,7 @@ class DummyTradesManager {
 
         return
                 "TRADING SETTINGS: {}" +
-                        tradingService.printTradingSettings() + NEW_LINE + NEW_LINE +
+                        tradeGenerator.getTradingSettings().toString() + NEW_LINE + NEW_LINE +
                         "*** ADVANCED DUMMY TRADE RESULTS ***" + NEW_LINE +
                         "Result: " + result + NEW_LINE +
                         "Number of dummy trades performed: " + account.getNumberOfTrades() + NEW_LINE +
