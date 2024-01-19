@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
-import co.syngleton.chartomancer.charting.CandleNormalizer;
+import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import co.syngleton.chartomancer.shared_domain.*;
@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 final class PatternService implements PatternGenerator, PatternComputer {
     private final PatternFactory patternFactory;
-    private final CandleNormalizer candleNormalizer;
+    private final CandleRescaler candleRescaler;
     @Value("#{'${patternboxes_timeframes}'.split(',')}")
     private Set<Timeframe> patternBoxesTimeframes;
     @Getter
@@ -37,10 +37,10 @@ final class PatternService implements PatternGenerator, PatternComputer {
 
     @Autowired
     public PatternService(PatternFactory patternFactory,
-                          CandleNormalizer candleNormalizer,
+                          CandleRescaler candleRescaler,
                           Analyzer analyzer) {
         this.patternFactory = patternFactory;
-        this.candleNormalizer = candleNormalizer;
+        this.candleRescaler = candleRescaler;
         this.analyzer = analyzer;
     }
 
@@ -210,7 +210,7 @@ final class PatternService implements PatternGenerator, PatternComputer {
 
                 if (priceVariation != 0) {
 
-                    List<IntCandle> intCandlesToMatch = candleNormalizer.normalizeCandles(getCandlesToMatch(pattern, i), pattern.getGranularity());
+                    List<IntCandle> intCandlesToMatch = candleRescaler.rescale(getCandlesToMatch(pattern, i), pattern.getGranularity());
                     matchScore = analyzer.calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
                     pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f));
                     divider = incrementDivider(divider, matchScore);

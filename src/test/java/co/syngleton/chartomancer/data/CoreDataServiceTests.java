@@ -85,7 +85,6 @@ class CoreDataServiceTests {
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
         assertTrue(dataProcessor.loadCoreData(coreData));
-        assertTrue(dataProcessor.loadCoreData(coreData));
     }
 
     @Disabled

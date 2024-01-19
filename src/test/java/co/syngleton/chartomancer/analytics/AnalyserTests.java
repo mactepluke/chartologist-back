@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.analytics;
 
-import co.syngleton.chartomancer.charting.CandleNormalizer;
+import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.configuration.DataConfigTest;
 import co.syngleton.chartomancer.shared_domain.FloatCandle;
 import co.syngleton.chartomancer.shared_domain.IntCandle;
@@ -28,7 +28,7 @@ class AnalyserTests {
 
     private static final int GRANULARITY = 100;
     @Autowired
-    CandleNormalizer candleNormalizer;
+    CandleRescaler candleRescaler;
     private Analyzer analyzer;
     private List<IntCandle> intCandles;
 
@@ -43,7 +43,7 @@ class AnalyserTests {
         FloatCandle floatCandle3 = new FloatCandle(candleDate, 40, 100, 40, 60, 20);
 
         floatCandles = new ArrayList<>(List.of(floatCandle1, floatCandle2, floatCandle3));
-        intCandles = candleNormalizer.normalizeCandles(floatCandles, GRANULARITY);
+        intCandles = candleRescaler.rescale(floatCandles, GRANULARITY);
     }
 
     @AfterAll

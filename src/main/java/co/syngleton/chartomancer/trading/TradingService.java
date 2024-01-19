@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
-import co.syngleton.chartomancer.charting.CandleNormalizer;
+import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.shared_domain.*;
 import co.syngleton.chartomancer.util.Check;
@@ -26,16 +26,16 @@ class TradingService implements TradeGenerator, TradeSimulator {
 
     @Getter
     private final Analyzer analyzer;
-    private final CandleNormalizer candleNormalizer;
+    private final CandleRescaler candleRescaler;
     @Getter
     private final TradingSettings tradingSettings;
 
     @Autowired
     public TradingService(Analyzer tradingAnalyzer,
-                          CandleNormalizer candleNormalizer,
+                          CandleRescaler candleRescaler,
                           TradingSettings tradingSettings) {
         this.analyzer = tradingAnalyzer;
-        this.candleNormalizer = candleNormalizer;
+        this.candleRescaler = candleRescaler;
         this.tradingSettings = tradingSettings;
     }
 
@@ -267,7 +267,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
 
             float divider = 1;
             List<FloatCandle> floatCandles = graph.getFloatCandles().subList(tradeOpenCandle - patterns.get(0).getLength(), tradeOpenCandle);
-            List<IntCandle> intCandles = candleNormalizer.normalizeCandles(floatCandles, patterns.get(0).getGranularity());
+            List<IntCandle> intCandles = candleRescaler.rescale(floatCandles, patterns.get(0).getGranularity());
 
             for (Pattern pattern : patterns) {
 

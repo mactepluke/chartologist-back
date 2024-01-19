@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import static co.syngleton.chartomancer.shared_constants.Misc.TEST_CORE_DATA_FILENAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,7 +44,7 @@ class DataProcessorTests {
 
     @BeforeAll
     void setUp() {
-        log.info("*** STARTING CORE DATA SERVICE TESTS ***");
+        log.info("*** STARTING DATA PROCESSOR TESTS ***");
 
         coreData.setGraphs(mockData.getTestGraphs());
         coreData.setPatternBoxes(new HashSet<>());
@@ -83,7 +84,7 @@ class DataProcessorTests {
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
-        assertTrue(dataProcessor.loadCoreData(coreData));
+        assertTrue(dataProcessor.loadCoreDataWithName(coreData, TEST_CORE_DATA_FILENAME));
     }
 
     @Test

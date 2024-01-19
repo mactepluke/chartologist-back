@@ -1,11 +1,11 @@
-package co.syngleton.chartomancer.signaling;
+package co.syngleton.chartomancer.external_api_requesting;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "min-api.cryptocompare", url = "https://min-api.cryptocompare.com/data")
-public interface CryptoCompareApiProxy {
+interface CryptoCompareApiProxy {
 
     @GetMapping("/v2/histohour")
     String getHourGraph(@RequestParam String fsym,

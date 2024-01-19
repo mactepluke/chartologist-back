@@ -20,6 +20,7 @@ class SerializedCoreDataDAO implements CoreDataDAO {
 
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
         return readData;
     }

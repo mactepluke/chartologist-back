@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
-import co.syngleton.chartomancer.charting.CandleNormalizer;
+import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.shared_domain.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ final class PatternFactory {
     private static final int DEFAULT_SCOPE = 8;
     private static final int MIN_SCOPE = 1;
     private static final int MAX_SCOPE = 30;
-    private final CandleNormalizer candleNormalizer;
+    private final CandleRescaler candleRescaler;
     @Value("${min_granularity:0}")
     private int minGranularity;
     @Value("${max_granularity:0}")
@@ -65,8 +65,8 @@ final class PatternFactory {
     private int maxScope;
 
     @Autowired
-    public PatternFactory(CandleNormalizer candleNormalizer) {
-        this.candleNormalizer = candleNormalizer;
+    public PatternFactory(CandleRescaler candleRescaler) {
+        this.candleRescaler = candleRescaler;
     }
 
 
@@ -191,7 +191,7 @@ final class PatternFactory {
             for (List<FloatCandle> graphChunk : graphChunks) {
                 if (graphChunk.size() >= patternSettings.getLength()) {
 
-                    List<IntCandle> pixelatedChunk = candleNormalizer.normalizeCandles(graphChunk, patternSettings.getGranularity());
+                    List<IntCandle> pixelatedChunk = candleRescaler.rescale(graphChunk, patternSettings.getGranularity());
 
                     BasicPattern basicPattern = new BasicPattern(
                             pixelatedChunk,

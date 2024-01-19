@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.signaling;
+package co.syngleton.chartomancer.external_api_requesting;
 
 import java.util.List;
 

@@ -33,7 +33,7 @@ import static java.lang.Math.*;
 @Log4j2
 @Service
 @AllArgsConstructor
-final class ChartingService implements GraphGenerator, CandleNormalizer {
+final class ChartingService implements GraphGenerator, CandleRescaler {
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final int READING_ATTEMPTS = 3;
 
@@ -234,7 +234,7 @@ final class ChartingService implements GraphGenerator, CandleNormalizer {
     }
 
     @Override
-    public List<IntCandle> normalizeCandles(List<FloatCandle> floatCandles, int granularity) {
+    public List<IntCandle> rescale(List<FloatCandle> floatCandles, int granularity) {
 
         Pair<Float, Float> extremes = getLowestAndHighest(floatCandles);
 
