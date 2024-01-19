@@ -27,6 +27,6 @@ class EmailServiceTests {
     @Disabled
     @DisplayName("[UNIT] Sends basic email to admin email")
     void sendBasicEmailTest() {
-        emailingService.sendEmail("luc.metz@icloud.com", "Test email chartomancer", "Test is successful!");
+        emailingService.sendSignal("luc.metz@icloud.com", "Test email chartomancer", "Test is successful!");
     }
 }

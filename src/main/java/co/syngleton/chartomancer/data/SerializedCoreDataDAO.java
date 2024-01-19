@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 
 @Component("serialized")
-class SerializedCoreDataDAO implements CoreDataDAO {
+final class SerializedCoreDataDAO implements CoreDataDAO {
     public static final String DATA_SOURCE_PATH = "./core_data/";
 
     @Override

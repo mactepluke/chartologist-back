@@ -1,9 +1,11 @@
-package co.syngleton.chartomancer.signaling;
+package co.syngleton.chartomancer.controller;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
+import co.syngleton.chartomancer.signaling.TradeSignalDTO;
 import co.syngleton.chartomancer.trading.Trade;
+import co.syngleton.chartomancer.trading.TradingRequestManager;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -32,11 +34,11 @@ public class TradingRequestController {
 
     //http://localhost:8080/trading/getbesttrade?symbol=<symbol>
     @GetMapping("/getbesttrade")
-    public ResponseEntity<TradeDTO> getBestTrade(
+    public ResponseEntity<TradeSignalDTO> getBestTrade(
             @RequestParam Symbol symbol
     ) {
         HttpStatus status;
-        TradeDTO tradeDTO = null;
+        TradeSignalDTO tradeSignalDTO = null;
 
         if (symbol == null
                 || symbol == Symbol.UNDEFINED) {
@@ -48,20 +50,20 @@ public class TradingRequestController {
         if (trade == null) {
             status = NO_CONTENT;
         } else {
-            tradeDTO = new TradeDTO(trade);
+            tradeSignalDTO = new TradeSignalDTO(trade);
             status = OK;
         }
-        return new ResponseEntity<>(tradeDTO, status);
+        return new ResponseEntity<>(tradeSignalDTO, status);
     }
 
     //http://localhost:8080/trading/getbesttradefortimeframe?symbol=<symbol>&timeframe=<timeframe>
     @GetMapping("/getbesttradefortimeframe")
-    public ResponseEntity<TradeDTO> getBestTradeForTimeframe(
+    public ResponseEntity<TradeSignalDTO> getBestTradeForTimeframe(
             @RequestParam Symbol symbol,
             @RequestParam Timeframe timeframe
     ) {
         HttpStatus status;
-        TradeDTO tradeDTO = null;
+        TradeSignalDTO tradeSignalDTO = null;
 
         if (symbol == null
                 || timeframe == null
@@ -75,10 +77,10 @@ public class TradingRequestController {
         if (trade == null) {
             status = NO_CONTENT;
         } else {
-            tradeDTO = new TradeDTO(trade);
+            tradeSignalDTO = new TradeSignalDTO(trade);
             status = OK;
         }
-        return new ResponseEntity<>(tradeDTO, status);
+        return new ResponseEntity<>(tradeSignalDTO, status);
     }
 
     //http://localhost:8080/trading/subscribeToSignals?email=<email>

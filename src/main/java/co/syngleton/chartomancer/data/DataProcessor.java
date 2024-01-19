@@ -17,7 +17,7 @@ public interface DataProcessor {
 
     boolean generateTradingData(CoreData coreData);
 
-    boolean purgeNonTradingData(CoreData coreData, PurgeOption option);
+    boolean purgeUselessData(CoreData coreData, PurgeOption option);
 
     boolean createGraphsForMissingTimeframes(CoreData coreData);
 

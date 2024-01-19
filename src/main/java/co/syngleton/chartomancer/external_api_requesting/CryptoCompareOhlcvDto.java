@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.external_api_requesting;
 
-public class CryptoCompareOhlcvDto {
+final class CryptoCompareOhlcvDto {
 
     private String Response;
     private String Message;

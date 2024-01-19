@@ -2,10 +2,10 @@ package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.trading.Trade;
 import co.syngleton.chartomancer.trading.TradeStatus;
 import co.syngleton.chartomancer.trading.TradingAccount;
+import co.syngleton.chartomancer.trading.TradingRequestManager;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import java.util.Set;
 @Log4j2
 @Configuration
 @EnableScheduling
-public class EmailingConfig {
+public class SignalingConfig {
     private static final int FOUR_HOUR_RATE = 14400000;
     private static final String SIGNALS_HISTORY_FOLDER = "./signals_history/";
     private static final String SIGNALS_FILE_NAME = "signals";
@@ -28,8 +28,7 @@ public class EmailingConfig {
     private static final String MAIL_SUBJECT = "[CHARTOMANCER] Nouveau trade signalé !";
     private static final String MAIL_FOUR_HOUR_BODY = "Chartomancer vous propose le trade BTC/USD suivant à l'échelle des 4 heures :" + NEW_LINE + NEW_LINE;
     private final TradingRequestManager tradingRequestManager;
-    private final EmailingService emailingService;
-    private final DataProcessor dataProcessor;
+    private final SignalingService signalingService;
     private final TradingAccount signalsTradingAccount;
     @Value("${enable_email_scheduling:false}")
     private boolean enableEmailScheduling;
@@ -40,19 +39,17 @@ public class EmailingConfig {
 
 
     @Autowired
-    public EmailingConfig(TradingRequestManager tradingRequestManager,
-                          EmailingService emailingService,
-                          DataProcessor dataProcessor) {
+    public SignalingConfig(TradingRequestManager tradingRequestManager,
+                           SignalingService signalingService) {
         this.tradingRequestManager = tradingRequestManager;
-        this.emailingService = emailingService;
-        this.dataProcessor = dataProcessor;
+        this.signalingService = signalingService;
         this.signalsTradingAccount = new TradingAccount();
         this.signalsTradingAccount.credit(signalsAccountBalance);
     }
 
     @Async
     @Scheduled(fixedRate = FOUR_HOUR_RATE)
-    public void sendFourHourTradingSignalEmails() {
+    public void sendFourHourTradingSignals() {
 
         if (enableEmailScheduling) {
             Trade trade = tradingRequestManager.getCurrentBestTrade(signalsAccountBalance, Symbol.BTC_USD, Timeframe.FOUR_HOUR);
@@ -63,10 +60,10 @@ public class EmailingConfig {
 
                 updateSignalsHistory(trade, Timeframe.FOUR_HOUR);
 
-                TradeDTO tradeDTO = new TradeDTO(trade);
+                TradeSignalDTO tradeSignalDTO = new TradeSignalDTO(trade);
 
                 defaultTradingSignalSubscribers.forEach(email ->
-                        emailingService.sendEmail(email, MAIL_SUBJECT, MAIL_FOUR_HOUR_BODY + tradeDTO));
+                        signalingService.sendSignal(email, MAIL_SUBJECT, MAIL_FOUR_HOUR_BODY + tradeSignalDTO));
 
             }
         }

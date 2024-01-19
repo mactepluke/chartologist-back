@@ -6,14 +6,10 @@ import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.shared_domain.FloatCandle;
 import co.syngleton.chartomancer.shared_domain.Graph;
-import co.syngleton.chartomancer.signaling.PriceInUsdDto;
 import co.syngleton.chartomancer.util.Format;
 import com.jsoniter.JsonIterator;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -21,22 +17,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
-@Service("CRYPTO_COMPARE")
 final class CryptoCompareRequestingService implements DataRequestingService {
     private static final String SOURCE_API_NAME = "CryptoCompare_";
     private static final int MAX_CANDLES_TO_FETCH = 250;
     private final CryptoCompareApiProxy cryptoCompareApiProxy;
     private final GraphUpscaler graphUpscaler;
-    @Value("${api_key}")
-    private String apiKey;
-    @Value("${free_subscription:true}")
-    private boolean freeSubscription;
+    private final String apiKey;
+    private final boolean freeSubscription;
 
-    @Autowired
     public CryptoCompareRequestingService(CryptoCompareApiProxy cryptoCompareApiProxy,
-                                          GraphUpscaler graphUpscaler) {
+                                          GraphUpscaler graphUpscaler,
+                                          String apiKey,
+                                          boolean freeSubscription) {
         this.cryptoCompareApiProxy = cryptoCompareApiProxy;
         this.graphUpscaler = graphUpscaler;
+        this.apiKey = apiKey;
+        this.freeSubscription = freeSubscription;
     }
 
     private Symbol adjustSymbol(Symbol symbol) {

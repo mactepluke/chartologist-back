@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.external_api_requesting;
 
 import java.util.List;
 
-public class CryptoCompareOhlcvData {
+final class CryptoCompareOhlcvData {
     private boolean Aggregated;
     private long TimeFrom;
     private float TimeTo;

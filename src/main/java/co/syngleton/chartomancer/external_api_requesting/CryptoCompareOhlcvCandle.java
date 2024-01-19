@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.external_api_requesting;
 
-public class CryptoCompareOhlcvCandle {
+final class CryptoCompareOhlcvCandle {
     private long time;
     private float high;
     private float low;

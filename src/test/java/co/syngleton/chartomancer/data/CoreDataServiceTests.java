@@ -106,8 +106,8 @@ class CoreDataServiceTests {
     @Test
     @DisplayName("[UNIT] Purges non-trading data")
     void purgeNonTradingDataTest() {
-        assertTrue(dataProcessor.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS));
-        assertTrue(dataProcessor.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS));
+        assertTrue(dataProcessor.purgeUselessData(coreData, PurgeOption.GRAPHS_AND_PATTERNS));
+        assertTrue(dataProcessor.purgeUselessData(coreData, PurgeOption.GRAPHS_AND_PATTERNS));
     }
 
     @Test

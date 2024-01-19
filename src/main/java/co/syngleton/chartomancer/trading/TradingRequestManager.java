@@ -1,22 +1,14 @@
-package co.syngleton.chartomancer.signaling;
+package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.external_api_requesting.DataRequestingService;
-import co.syngleton.chartomancer.external_api_requesting.ExternalDataSource;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import co.syngleton.chartomancer.shared_domain.ChartObject;
 import co.syngleton.chartomancer.shared_domain.CoreData;
 import co.syngleton.chartomancer.shared_domain.Graph;
-import co.syngleton.chartomancer.trading.*;
-import jakarta.annotation.PostConstruct;
-import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -26,46 +18,28 @@ import static java.lang.Math.abs;
 
 @Service
 @Log4j2
-public class TradingRequestManager implements ApplicationContextAware {
-
+public class TradingRequestManager {
+    private final DataRequestingService dataRequestingService;
     private final TradeGenerator tradeGenerator;
     private final CoreData coreData;
     private final TradingSettings defaultTradingSettings;
-    private final ExternalDataSource externalDataSource;
     //private final MailingList mailingList;
-    private ApplicationContext applicationContext;
-    private DataRequestingService dataRequestingService;
     private TradingSettings tradingSettings;
 
+    //TODO Refactor and extract interface. Put methods in TradingService? Create a dedicated interface for methods called by the controller?
     @Autowired
-    public TradingRequestManager(TradeGenerator tradeGenerator,
+    public TradingRequestManager(DataRequestingService dataRequestingService,
+                                 TradeGenerator tradeGenerator,
                                  CoreData coreData,
-                                 TradingSettings tradingSettings,
-                                 @Value("${external_data_source}") ExternalDataSource externalDataSource
+                                 TradingSettings tradingSettings
             /*MailingList mailingList*/) {
+        this.dataRequestingService = dataRequestingService;
         this.tradeGenerator = tradeGenerator;
         this.coreData = coreData;
         this.defaultTradingSettings = tradingSettings;
         this.tradingSettings = defaultTradingSettings;
-        this.externalDataSource = externalDataSource;
         //this.mailingList = mailingList;
     }
-
-    @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
-
-    @PostConstruct
-    public void init() {
-        log.debug("Using external data source: {}", externalDataSource);
-        this.dataRequestingService = getExternalDataSourceService(externalDataSource);
-    }
-
-    private DataRequestingService getExternalDataSourceService(ExternalDataSource externalDataSource) {
-        return applicationContext.getBean(String.valueOf(externalDataSource), DataRequestingService.class);
-    }
-
 
     public TradingSettings getTradingSettings() {
         return this.tradingSettings;

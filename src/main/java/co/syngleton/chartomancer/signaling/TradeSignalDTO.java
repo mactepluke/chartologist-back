@@ -9,7 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-class TradeDTO {
+public class TradeSignalDTO {
     @JsonProperty
     private boolean blank;
     @JsonProperty
@@ -36,7 +36,7 @@ class TradeDTO {
     private float leverage;
 
 
-    public TradeDTO(Trade trade) {
+    public TradeSignalDTO(Trade trade) {
         this.blank = trade.getStatus() == TradeStatus.BLANK;
         this.timeframe = trade.getTimeframe();
         this.size = trade.getSize();

@@ -82,7 +82,7 @@ class TradeGeneratorTests {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
         dataProcessor.loadCoreDataWithName(coreData, TEST_CORE_DATA_FILENAME);
         dataProcessor.generateTradingData(coreData);
-        dataProcessor.purgeNonTradingData(coreData, PurgeOption.GRAPHS_AND_PATTERNS);
+        dataProcessor.purgeUselessData(coreData, PurgeOption.GRAPHS_AND_PATTERNS);
         dataProcessor.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);
         dataProcessor.createGraphsForMissingTimeframes(coreData);
     }

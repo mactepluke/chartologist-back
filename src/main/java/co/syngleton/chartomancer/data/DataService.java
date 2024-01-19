@@ -37,6 +37,7 @@ class DataService implements ApplicationContextAware, DataProcessor {
         this.graphGenerator = graphGenerator;
     }
 
+    //TODO Mettre en place un système de configuration plus simple et plus flexible pour choisir le DAO
     @Override
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
@@ -156,7 +157,7 @@ class DataService implements ApplicationContextAware, DataProcessor {
     }
 
     @Override
-    public boolean purgeNonTradingData(CoreData coreData, PurgeOption option) {
+    public boolean purgeUselessData(CoreData coreData, PurgeOption option) {
 
         if (option == null) {
             return false;

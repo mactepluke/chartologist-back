@@ -145,7 +145,7 @@ class DataConfig {
             log.info("Generated trading data: {}", dataProcessor.generateTradingData(coreData));
 
             log.info("Purged non-trading data: {}",
-                    dataProcessor.purgeNonTradingData(coreData, purgeAfterTradingDataGeneration));
+                    dataProcessor.purgeUselessData(coreData, purgeAfterTradingDataGeneration));
         } else if (purgeAfterTradingDataGeneration != PurgeOption.NO) {
             log.warn("Non-trading data will not be purged as no trading data has been generated.");
         }
