@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "patternfactory", ignoreUnknownFields = false)
+@ConfigurationProperties(prefix = "patternfactory")
 @Getter
 @Setter
 public class PatternFactoryProperties {

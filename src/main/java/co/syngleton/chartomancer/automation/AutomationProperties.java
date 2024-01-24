@@ -10,24 +10,24 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-@ConfigurationProperties(prefix = "automation", ignoreUnknownFields = false)
+@ConfigurationProperties(prefix = "automation")
 @Getter
 @Setter
 public class AutomationProperties {
-    private boolean launchAutomation;
-    private boolean printCoreData;
-    private boolean printPricePredictionSummary;
-    private boolean runBasicDummyTrades;
-    private boolean runRandomizedDummyTrades;
-    private boolean runRandomizedDummyTradesOnDummyGraphs;
-    private boolean runDeterministicDummyTradesOnDummyGraphs;
+    private boolean launchAutomation = false;
+    private boolean printCoreData = false;
+    private boolean printPricePredictionSummary = false;
+    private boolean runBasicDummyTrades = false;
+    private boolean runRandomizedDummyTrades = false;
+    private boolean runRandomizedDummyTradesOnDummyGraphs = false;
+    private boolean runDeterministicDummyTradesOnDummyGraphs = false;
     private String dummyGraphsDataFolderName;
     private List<String> dummyGraphsDataFilesNames;
-    private double dummyTradesInitialBalance;
-    private double dummyTradesMinimumBalance;
-    private int dummyTradesExpectedBalanceX;
-    private int dummyTradesMaxTrades;
-    private Set<Timeframe> dummyTradesTimeframes;
-    private boolean writeDummyTradesReports;
-    private boolean printTasksHistory;
+    private double dummyTradesInitialBalance = 10000;
+    private double dummyTradesMinimumBalance = 5000;
+    private int dummyTradesExpectedBalanceX = 2;
+    private int dummyTradesMaxTrades = 100;
+    private Set<Timeframe> dummyTradesTimeframes = null;
+    private boolean writeDummyTradesReports = false;
+    private boolean printTasksHistory = false;
 }
