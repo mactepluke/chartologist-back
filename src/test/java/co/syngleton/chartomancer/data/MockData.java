@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.configuration;
+package co.syngleton.chartomancer.data;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;

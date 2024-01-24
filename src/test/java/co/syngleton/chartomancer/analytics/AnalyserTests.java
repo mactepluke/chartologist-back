@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.charting.CandleRescaler;
-import co.syngleton.chartomancer.configuration.DataConfigTest;
+import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.shared_domain.FloatCandle;
 import co.syngleton.chartomancer.shared_domain.IntCandle;
 import lombok.extern.log4j.Log4j2;

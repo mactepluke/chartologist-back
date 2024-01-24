@@ -34,8 +34,8 @@ import static java.lang.Math.*;
 @Service
 @AllArgsConstructor
 final class ChartingService implements GraphGenerator, CandleRescaler {
-    private static final String NEW_LINE = System.getProperty("line.separator");
     private static final int READING_ATTEMPTS = 3;
+    private static final String NEW_LINE = System.lineSeparator();
 
     @Override
     public Graph generateGraphFromFile(String path) {

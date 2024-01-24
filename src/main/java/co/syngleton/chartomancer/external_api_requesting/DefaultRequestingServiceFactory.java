@@ -3,17 +3,16 @@ package co.syngleton.chartomancer.external_api_requesting;
 import co.syngleton.chartomancer.charting.GraphUpscaler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import javax.naming.ConfigurationException;
 
+@Component
+final class DefaultRequestingServiceFactory implements RequestingServiceFactory {
 
-@Configuration
-class ExternalRequestingConfiguration {
     private final GraphUpscaler graphUpscaler;
     private final CryptoCompareApiProxy cryptoCompareApiProxy;
-    @Value("${external_data_source}")
+    @Value("${external_data_source:UNKNOWN}")
     ExternalDataSource externalDataSource;
     @Value("${api_key}")
     private String apiKey;
@@ -21,20 +20,18 @@ class ExternalRequestingConfiguration {
     private boolean freeSubscription;
 
     @Autowired
-    ExternalRequestingConfiguration(CryptoCompareApiProxy cryptoCompareApiProxy,
+    DefaultRequestingServiceFactory(CryptoCompareApiProxy cryptoCompareApiProxy,
                                     GraphUpscaler graphUpscaler) {
         this.cryptoCompareApiProxy = cryptoCompareApiProxy;
         this.graphUpscaler = graphUpscaler;
     }
 
-    @Bean
-    DataRequestingService dataRequestingService() throws ConfigurationException {
-
+    @Override
+    public DataRequestingService getDataRequestingService() throws ConfigurationException {
         return switch (externalDataSource) {
             case CRYPTO_COMPARE -> getCryptoCompareRequestingService();
-            default -> throw new ConfigurationException("Unknown external data source: " + externalDataSource);
+            case UNKNOWN -> throw new ConfigurationException("Unknown external data source: " + externalDataSource);
         };
-
     }
 
     private DataRequestingService getCryptoCompareRequestingService() {
@@ -42,8 +39,8 @@ class ExternalRequestingConfiguration {
     }
 
     enum ExternalDataSource {
+        UNKNOWN,
         CRYPTO_COMPARE
     }
-
 
 }

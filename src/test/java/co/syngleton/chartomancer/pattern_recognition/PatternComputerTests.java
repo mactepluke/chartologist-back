@@ -1,12 +1,10 @@
-package co.syngleton.chartomancer.analytics;
+package co.syngleton.chartomancer.pattern_recognition;
 
+import co.syngleton.chartomancer.analytics.AnalyzerConfigTest;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.configuration.AnalyzerConfigTest;
-import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
-import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
+import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.shared_domain.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;

@@ -2,8 +2,7 @@ package co.syngleton.chartomancer.automation;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.configuration.TradingServiceConfig;
+import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.data.PurgeOption;
 import co.syngleton.chartomancer.shared_domain.CoreData;
@@ -30,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = {DataConfigTest.class, TradingServiceConfig.class})
+@ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
 class TradeGeneratorTests {
 
@@ -39,7 +38,7 @@ class TradeGeneratorTests {
     private static final double MINIMUM_BALANCE = 5000;
     private static final int MAX_TRADES = 100;
     private static final int EXPECTED_BALANCE_X = 2;
-    private static final boolean WRITE_REPORTS = false;
+    private static final boolean WRITE_REPORTS = true;
     private static final String EXPECTED_REPORT = "*** ADVANCED DUMMY TRADE RESULTS ***\n" +
             "Result: NEUTRAL\n" +
             "Number of dummy trades performed: 24\n" +
@@ -80,7 +79,7 @@ class TradeGeneratorTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
-        dataProcessor.loadCoreDataWithName(coreData, TEST_CORE_DATA_FILENAME);
+        dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILENAME);
         dataProcessor.generateTradingData(coreData);
         dataProcessor.purgeUselessData(coreData, PurgeOption.GRAPHS_AND_PATTERNS);
         dataProcessor.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);

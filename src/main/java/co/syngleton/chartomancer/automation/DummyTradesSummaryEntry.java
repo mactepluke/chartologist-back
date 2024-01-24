@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.automation;
 
 import co.syngleton.chartomancer.analytics.Smoothing;
 import co.syngleton.chartomancer.trading.ProfitFactor;
-import co.syngleton.chartomancer.trading.TradingSettings;
+import co.syngleton.chartomancer.trading.SL_TP_Strategy;
 import co.syngleton.chartomancer.util.datatabletool.PrintableData;
 import lombok.NonNull;
 import org.jetbrains.annotations.Contract;
@@ -39,7 +39,7 @@ public record DummyTradesSummaryEntry(String dummyTradesDateTime,
                                       double riskToRewardRatio,
                                       int riskPercentage,
                                       float priceVariationMultiplier,
-                                      TradingSettings.SL_TP_Strategy slTpStrategy,
+                                      SL_TP_Strategy slTpStrategy,
                                       int maxTrades,
                                       String tradesResult,
                                       double initialAccountBalance,

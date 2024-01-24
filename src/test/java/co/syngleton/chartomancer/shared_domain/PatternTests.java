@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.shared_domain;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.configuration.DataConfigTest;
+import co.syngleton.chartomancer.data.DataConfigTest;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

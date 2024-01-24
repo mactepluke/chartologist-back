@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.security;
 
-import co.syngleton.chartomancer.configuration.DataConfigTest;
+import co.syngleton.chartomancer.data.DataConfigTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

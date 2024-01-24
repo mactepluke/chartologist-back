@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.configuration;
+package co.syngleton.chartomancer.data;
 
 import co.syngleton.chartomancer.shared_domain.CoreData;
 import co.syngleton.chartomancer.shared_domain.DefaultCoreData;

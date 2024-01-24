@@ -7,71 +7,25 @@ import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import co.syngleton.chartomancer.shared_domain.ChartObject;
 import co.syngleton.chartomancer.shared_domain.CoreData;
 import co.syngleton.chartomancer.shared_domain.Graph;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.abs;
-
 @Service
 @Log4j2
+@AllArgsConstructor
 public class TradingRequestManager {
     private final DataRequestingService dataRequestingService;
     private final TradeGenerator tradeGenerator;
     private final CoreData coreData;
-    private final TradingSettings defaultTradingSettings;
     //private final MailingList mailingList;
-    private TradingSettings tradingSettings;
+    private TradingProperties tradingProperties;
 
     //TODO Refactor and extract interface. Put methods in TradingService? Create a dedicated interface for methods called by the controller?
-    @Autowired
-    public TradingRequestManager(DataRequestingService dataRequestingService,
-                                 TradeGenerator tradeGenerator,
-                                 CoreData coreData,
-                                 TradingSettings tradingSettings
-            /*MailingList mailingList*/) {
-        this.dataRequestingService = dataRequestingService;
-        this.tradeGenerator = tradeGenerator;
-        this.coreData = coreData;
-        this.defaultTradingSettings = tradingSettings;
-        this.tradingSettings = defaultTradingSettings;
-        //this.mailingList = mailingList;
-    }
 
-    public TradingSettings getTradingSettings() {
-        return this.tradingSettings;
-    }
-
-    public void updateTradingSettings(int rewardToRiskRatio,
-                                      int riskPercentage,
-                                      float priceVariationThreshold,
-                                      int priceVariationMultiplier,
-                                      TradingSettings.SL_TP_Strategy slTpStrategy,
-                                      double feePercentage) {
-        this.tradingSettings = new TradingSettings(
-                rewardToRiskRatio,
-                riskPercentage,
-                priceVariationThreshold,
-                priceVariationMultiplier,
-                slTpStrategy,
-                feePercentage
-        );
-    }
-
-    public void restoreDefaultTradingSettings() {
-        tradingSettings = defaultTradingSettings;
-    }
-
-    public void setFeePercentage(double feePercentage) {
-        this.tradingSettings.setFeePercentage(abs(feePercentage));
-    }
-
-    public void setDefaultAccountBalance(double defaultAccountBalance) {
-        this.tradingSettings.setDefaultAccountBalance(abs(defaultAccountBalance));
-    }
 
     public Trade getCurrentBestTrade(Symbol symbol) {
 
@@ -82,7 +36,7 @@ public class TradingRequestManager {
 
         Set<Trade> trades = timeframes
                 .stream()
-                .map(timeframe -> getCurrentBestTrade(this.tradingSettings.getDefaultAccountBalance(), symbol, timeframe))
+                .map(timeframe -> getCurrentBestTrade(this.tradingProperties.getDefaultAccountBalance(), symbol, timeframe))
                 .collect(Collectors.toUnmodifiableSet());
 
         Trade bestTrade = Trade.blank();
@@ -100,7 +54,7 @@ public class TradingRequestManager {
     }
 
     public Trade getCurrentBestTrade(Symbol symbol, Timeframe timeframe) {
-        return getCurrentBestTrade(this.tradingSettings.getDefaultAccountBalance(), symbol, timeframe);
+        return getCurrentBestTrade(this.tradingProperties.getDefaultAccountBalance(), symbol, timeframe);
     }
 
     public Trade getCurrentBestTrade(double accountBalance, Symbol symbol, Timeframe timeframe) {
@@ -116,8 +70,7 @@ public class TradingRequestManager {
         return tradeGenerator.generateOptimalTrade(tradingAccount,
                 graph,
                 coreData,
-                graph.getFloatCandles().size() - 1,
-                tradingSettings);
+                graph.getFloatCandles().size() - 1);
     }
 
     public void subscribeToSignals(String email) {

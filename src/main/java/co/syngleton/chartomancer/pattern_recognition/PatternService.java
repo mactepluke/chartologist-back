@@ -2,19 +2,15 @@ package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
-import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import co.syngleton.chartomancer.shared_domain.*;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.Futures;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,68 +20,15 @@ import java.util.concurrent.ExecutionException;
 
 @Log4j2
 @Service
+@AllArgsConstructor
 final class PatternService implements PatternGenerator, PatternComputer {
     private final PatternFactory patternFactory;
     private final CandleRescaler candleRescaler;
-    @Value("#{'${patternboxes_timeframes}'.split(',')}")
-    private Set<Timeframe> patternBoxesTimeframes;
-    @Getter
-    @Setter
-    private Analyzer analyzer;
-    private ComputationSettings computationSettings;
-    private ProgressBar pb;
-
-    @Autowired
-    public PatternService(PatternFactory patternFactory,
-                          CandleRescaler candleRescaler,
-                          Analyzer analyzer) {
-        this.patternFactory = patternFactory;
-        this.candleRescaler = candleRescaler;
-        this.analyzer = analyzer;
-    }
-
-    @Override
-    public boolean createPatternBoxes(CoreData coreData, PatternSettings.Builder settingsInput) {
-
-        Set<PatternBox> patternBoxes = new HashSet<>();
-
-        if (coreData != null
-                && Check.isNotEmpty(coreData.getGraphs())
-        ) {
-            if (Check.isNotEmpty(coreData.getPatternBoxes())) {
-                patternBoxes = coreData.getPatternBoxes();
-            }
-            for (Graph graph : coreData.getGraphs()) {
-
-                if (graph.doesNotMatchAnyChartObjectIn(patternBoxes) && patternBoxesTimeframes.contains(graph.getTimeframe())) {
-
-                    log.debug(">>> Creating patterns for graph: " + graph.getTimeframe() + " " + graph.getSymbol());
-                    List<Pattern> patterns = createPatterns(settingsInput.graph(graph));
-
-                    if (Check.isNotEmpty(patterns)) {
-                        patternBoxes.add(new PatternBox(patterns));
-                    }
-                }
-            }
-            coreData.setPatternBoxes(patternBoxes);
-            updateCoreDataPatternSettings(coreData, settingsInput.build());
-        }
-        return !patternBoxes.isEmpty();
-    }
+    private final Analyzer analyzer;
 
     @Override
     public List<Pattern> createPatterns(PatternSettings.Builder settingsInput) {
         return patternFactory.create(settingsInput);
-    }
-
-    private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY, Integer.toString(patternSettings.getGranularity()));
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_LENGTH, Integer.toString(patternSettings.getLength()));
-        coreData.setPatternSetting(CoreDataSettingNames.SCOPE, Integer.toString(patternSettings.getScope()));
-        coreData.setPatternSetting(CoreDataSettingNames.FULL_SCOPE, Boolean.toString(patternSettings.isFullScope()));
-        coreData.setPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION, Boolean.toString(patternSettings.isAtomicPartition()));
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG, patternSettings.getAutoconfig().toString());
-        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE, patternSettings.getPatternType().toString());
     }
 
     @Override
@@ -136,11 +79,11 @@ final class PatternService implements PatternGenerator, PatternComputer {
     @Override
     public List<Pattern> computePatterns(ComputationSettings.Builder settingsInput) {
 
-        computationSettings = settingsInput.build();
+        ComputationSettings computationSettings = settingsInput.build();
 
         if (Objects.requireNonNull(computationSettings.getComputationType()) == ComputationType.BASIC_ITERATION) {
             try {
-                return computeBasicIterationPatterns();
+                return computeBasicIterationPatterns(computationSettings);
             } catch (ExecutionException e) {
                 e.printStackTrace();
                 return Collections.emptyList();
@@ -154,15 +97,15 @@ final class PatternService implements PatternGenerator, PatternComputer {
         return Collections.emptyList();
     }
 
-    private List<Pattern> computeBasicIterationPatterns() throws ExecutionException, InterruptedException {
+    private List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) throws ExecutionException, InterruptedException {
 
         List<Pattern> computedPatterns = new ArrayList<>();
 
         if (areValid(computationSettings.getPatterns())) {
 
-            startProgressBar();
-            computedPatterns = launchMultiThreadedComputations();
-            stopProgressBar();
+            ProgressBar pb = startProgressBar(computationSettings);
+            computedPatterns = launchMultiThreadedComputations(computationSettings, pb);
+            stopProgressBar(pb);
 
         } else {
             log.error("Could not compute: no computable patterns found.");
@@ -174,25 +117,24 @@ final class PatternService implements PatternGenerator, PatternComputer {
         return (!patterns.isEmpty() && patterns.get(0) instanceof ComputablePattern);
     }
 
-    private void startProgressBar() {
-        pb = new ProgressBar("Processing " + computationSettings.getGraph().getSymbol() + ", " + computationSettings.getGraph().getTimeframe(), computationSettings.getPatterns().size());
-        pb.start();
+    private ProgressBar startProgressBar(ComputationSettings computationSettings) {
+        ProgressBar pb = new ProgressBar("Processing " + computationSettings.getGraph().getSymbol() + ", " + computationSettings.getGraph().getTimeframe(), computationSettings.getPatterns().size());
+        return pb.start();
     }
 
-    private void incrementProgressBar() {
+    private synchronized void incrementProgressBar(ProgressBar pb) {
         pb.step();
     }
 
-    private void stopProgressBar() {
+    private void stopProgressBar(ProgressBar pb) {
         pb.stop();
     }
 
-    private List<Pattern> launchMultiThreadedComputations() throws ExecutionException, InterruptedException {
-
-        return Futures.listCompleted(Collections.unmodifiableList(computationSettings.getPatterns()).stream().map(pattern -> CompletableFuture.supplyAsync(() -> computeBasicIterationPattern((ComputablePattern) pattern))).toList());
+    private List<Pattern> launchMultiThreadedComputations(ComputationSettings computationSettings, ProgressBar pb) throws ExecutionException, InterruptedException {
+        return Futures.listCompleted(Collections.unmodifiableList(computationSettings.getPatterns()).stream().map(pattern -> CompletableFuture.supplyAsync(() -> computeBasicIterationPattern((ComputablePattern) pattern, computationSettings, pb))).toList());
     }
 
-    private Pattern computeBasicIterationPattern(ComputablePattern pattern) {
+    private Pattern computeBasicIterationPattern(ComputablePattern pattern, ComputationSettings computationSettings, ProgressBar pb) {
 
         int matchScore;
         float priceVariation;
@@ -205,12 +147,12 @@ final class PatternService implements PatternGenerator, PatternComputer {
 
             for (var i = 0; i < computations; i++) {
 
-                priceVariation = analyzer.calculatePriceVariation(getFollowingFloatCandles(pattern, i), pattern.getScope());
+                priceVariation = analyzer.calculatePriceVariation(getFollowingFloatCandles(pattern, computationSettings, i), pattern.getScope());
                 priceVariation = analyzer.filterPriceVariation(priceVariation);
 
                 if (priceVariation != 0) {
 
-                    List<IntCandle> intCandlesToMatch = candleRescaler.rescale(getCandlesToMatch(pattern, i), pattern.getGranularity());
+                    List<IntCandle> intCandlesToMatch = candleRescaler.rescale(getCandlesToMatch(pattern, computationSettings, i), pattern.getGranularity());
                     matchScore = analyzer.calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
                     pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + priceVariation * (matchScore / 100f));
                     divider = incrementDivider(divider, matchScore);
@@ -218,15 +160,15 @@ final class PatternService implements PatternGenerator, PatternComputer {
             }
             adjustPriceVariationPrediction(pattern, divider);
         }
-        incrementProgressBar();
+        incrementProgressBar(pb);
         return (Pattern) pattern;
     }
 
-    private List<FloatCandle> getFollowingFloatCandles(ComputablePattern pattern, int pivot) {
+    private List<FloatCandle> getFollowingFloatCandles(ComputablePattern pattern, ComputationSettings computationSettings, int pivot) {
         return computationSettings.getGraph().getFloatCandles().subList(pivot + pattern.getLength(), pivot + pattern.getLength() + pattern.getScope());
     }
 
-    private List<FloatCandle> getCandlesToMatch(ComputablePattern pattern, int pivot) {
+    private List<FloatCandle> getCandlesToMatch(ComputablePattern pattern, ComputationSettings computationSettings, int pivot) {
         return computationSettings.getGraph().getFloatCandles().subList(pivot, pivot + pattern.getLength());
     }
 

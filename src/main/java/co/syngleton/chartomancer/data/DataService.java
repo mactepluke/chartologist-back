@@ -3,57 +3,74 @@ package co.syngleton.chartomancer.data;
 import co.syngleton.chartomancer.charting.GraphGenerator;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
+import co.syngleton.chartomancer.pattern_recognition.PatternGenerator;
+import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
+import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import co.syngleton.chartomancer.shared_domain.*;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
-import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-import static co.syngleton.chartomancer.shared_constants.Misc.NEW_LINE;
-
 @Log4j2
 @Service
-class DataService implements ApplicationContextAware, DataProcessor {
+@AllArgsConstructor
+class DataService implements DataProcessor {
+    private static final String NEW_LINE = System.lineSeparator();
+
     private final GraphGenerator graphGenerator;
-    private final String dataSource;
-    private CoreDataDAO coreDataDAO;
-    private ApplicationContext applicationContext;
-    @Value("${data_source_name:data.ser}")
-    private String dataSourceName;
-
-    @Autowired
-    DataService(@Value("${data_source:serialized}") String dataSource,
-                GraphGenerator graphGenerator) {
-        this.dataSource = dataSource;
-        this.graphGenerator = graphGenerator;
-    }
-
-    //TODO Mettre en place un système de configuration plus simple et plus flexible pour choisir le DAO
-    @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
-
-    @PostConstruct
-    private void init() {
-        log.debug("Using data source: {}", dataSource);
-        this.coreDataDAO = getCoreDataDAO(dataSource);
-    }
-
-    private CoreDataDAO getCoreDataDAO(String dataSource) {
-        return applicationContext.getBean(dataSource, CoreDataDAO.class);
-    }
+    private final PatternGenerator patternGenerator;
+    private final CoreDataDAO coreDataDAO;
+    private final DataProperties dataProperties;
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public boolean createPatternBoxes(CoreData coreData, PatternSettings.Builder settingsInput) {
+
+        Set<PatternBox> patternBoxes = new HashSet<>();
+
+        if (coreData != null
+                && Check.isNotEmpty(coreData.getGraphs())
+        ) {
+            if (Check.isNotEmpty(coreData.getPatternBoxes())) {
+                patternBoxes = coreData.getPatternBoxes();
+            }
+            for (Graph graph : coreData.getGraphs()) {
+
+                if (graph.doesNotMatchAnyChartObjectIn(patternBoxes) && dataProperties.getPatternBoxesTimeframes().contains(graph.getTimeframe())) {
+
+                    log.debug(">>> Creating patterns for graph: " + graph.getTimeframe() + " " + graph.getSymbol());
+                    List<Pattern> patterns = patternGenerator.createPatterns(settingsInput.graph(graph));
+
+                    if (Check.isNotEmpty(patterns)) {
+                        patternBoxes.add(new PatternBox(patterns));
+                    }
+                }
+            }
+            coreData.setPatternBoxes(patternBoxes);
+            updateCoreDataPatternSettings(coreData, settingsInput.build());
+        }
+        return !patternBoxes.isEmpty();
+    }
+
+    private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY, Integer.toString(patternSettings.getGranularity()));
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_LENGTH, Integer.toString(patternSettings.getLength()));
+        coreData.setPatternSetting(CoreDataSettingNames.SCOPE, Integer.toString(patternSettings.getScope()));
+        coreData.setPatternSetting(CoreDataSettingNames.FULL_SCOPE, Boolean.toString(patternSettings.isFullScope()));
+        coreData.setPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION, Boolean.toString(patternSettings.isAtomicPartition()));
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG, patternSettings.getAutoconfig().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE, patternSettings.getPatternType().toString());
+    }
+
+    @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean loadGraphs(CoreData coreData, String dataFolderName, List<String> dataFilesNames) {
 
         Set<Graph> graphs = new HashSet<>();
@@ -77,14 +94,10 @@ class DataService implements ApplicationContextAware, DataProcessor {
     }
 
     @Override
-    public boolean loadCoreData(CoreData coreData) {
-        return loadCoreDataWithName(coreData, dataSourceName);
-    }
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public boolean loadCoreData(CoreData coreData, String dataSourceName) {
 
-    @Override
-    public boolean loadCoreDataWithName(CoreData coreData, String dataSourceName) {
-
-        log.info("Loading core data from: {}, of name: {}", dataSource, dataSourceName);
+        log.info("Loading core data from: {}, of name: {}", dataProperties.getSource(), dataSourceName);
 
         CoreData readData = coreDataDAO.loadCoreDataFrom(dataSourceName);
 
@@ -98,18 +111,15 @@ class DataService implements ApplicationContextAware, DataProcessor {
     }
 
     @Override
-    public boolean saveCoreData(CoreData coreData) {
-        return saveCoreDataWithName(coreData, dataSourceName);
-    }
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public boolean saveCoreData(CoreData coreData, String dataFileName) {
 
-    @Override
-    public boolean saveCoreDataWithName(CoreData coreData, String dataFileName) {
-
-        log.info("Saving core data to: {}", dataSource + "/" + dataFileName);
+        log.info("Saving core data to: {}", dataProperties.getSource() + "/" + dataFileName);
         return coreDataDAO.saveCoreDataTo(coreData, dataFileName);
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean generateTradingData(CoreData coreData) {
 
         Set<PatternBox> tradingData = new HashSet<>();
@@ -157,6 +167,7 @@ class DataService implements ApplicationContextAware, DataProcessor {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean purgeUselessData(CoreData coreData, PurgeOption option) {
 
         if (option == null) {
@@ -175,6 +186,7 @@ class DataService implements ApplicationContextAware, DataProcessor {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean createGraphsForMissingTimeframes(CoreData coreData) {
 
         if (coreData == null || Check.isEmpty(coreData.getGraphs())) {
@@ -211,6 +223,7 @@ class DataService implements ApplicationContextAware, DataProcessor {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void printCoreData(CoreData coreData) {
 
         if (coreData != null) {

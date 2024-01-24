@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.security;
 
-import co.syngleton.chartomancer.configuration.DataConfigTest;
+import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import lombok.extern.log4j.Log4j2;

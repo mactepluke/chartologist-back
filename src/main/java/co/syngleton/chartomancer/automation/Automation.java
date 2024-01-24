@@ -16,10 +16,10 @@ import org.springframework.util.StopWatch;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static co.syngleton.chartomancer.shared_constants.Misc.NEW_LINE;
 
 @Log4j2
 final class Automation implements Runnable {
+    private static final String NEW_LINE = System.lineSeparator();
     private static final String DUMMY_TRADES_FOLDER_PATH = "./trades_history/";
     private static final String DUMMY_TRADES_SUMMARY_FILE_NAME = "dummy_trades_summary";
     private static final String DATA_MISSING_ERROR = "Could not run dummy trades: core data are missing.";

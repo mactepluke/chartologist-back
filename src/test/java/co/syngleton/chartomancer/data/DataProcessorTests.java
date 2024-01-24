@@ -1,8 +1,5 @@
-package co.syngleton.chartomancer.analytics;
+package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.configuration.MockData;
-import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.shared_domain.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -84,13 +81,13 @@ class DataProcessorTests {
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
-        assertTrue(dataProcessor.loadCoreDataWithName(coreData, TEST_CORE_DATA_FILENAME));
+        assertTrue(dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILENAME));
     }
 
     @Test
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
-        assertTrue(dataProcessor.saveCoreDataWithName(coreData, "trashdata.ser"));
+        assertTrue(dataProcessor.saveCoreData(coreData, "trashdata.ser"));
     }
 
     @Test

@@ -5,7 +5,7 @@ import java.util.List;
 
 public final class DataTableTool {
 
-    private static final String NEW_LINE = System.getProperty("line.separator");
+    private static final String NEW_LINE = System.lineSeparator();
     private static final String FAILED_INTEGRITY_CHECK_MESSAGE = "COULD NOT GENERATE DATA: table did not pass integrity check.";
 
     private DataTableTool() throws IllegalAccessException {

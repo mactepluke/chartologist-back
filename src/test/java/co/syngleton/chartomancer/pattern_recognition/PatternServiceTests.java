@@ -1,12 +1,8 @@
-package co.syngleton.chartomancer.analytics;
+package co.syngleton.chartomancer.pattern_recognition;
 
-import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.configuration.MockData;
+import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
-import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
-import co.syngleton.chartomancer.pattern_recognition.PatternGenerator;
-import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
+import co.syngleton.chartomancer.data.MockData;
 import co.syngleton.chartomancer.shared_domain.CoreData;
 import co.syngleton.chartomancer.shared_domain.Pattern;
 import lombok.extern.log4j.Log4j2;
@@ -85,7 +81,7 @@ class PatternServiceTests {
     @DisplayName("[IT] Creates and computes pattern boxes from mock graphs")
     void createAndComputePatternBoxes() {
 
-        assertTrue(patternGenerator.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
+        assertTrue(dataProcessor.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
         assertTrue(patternComputer.computePatternBoxes(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());

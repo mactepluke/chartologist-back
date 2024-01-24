@@ -14,10 +14,10 @@ public interface TradeGenerator {
     Trade generateOptimalTrade(Account tradingAccount,
                                Graph graph,
                                CoreData coreData,
-                               int tradeOpenCandle,
-                               TradingSettings settings);
+                               int tradeOpenCandle);
 
-    Analyzer getAnalyzer();
+    Analyzer getTradingAnalyzer();
 
-    TradingSettings getTradingSettings();
+    TradingProperties getTradingProperties();
+
 }

@@ -7,11 +7,11 @@ import co.syngleton.chartomancer.shared_domain.*;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.Triad;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.Contract;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,22 +22,14 @@ import static java.lang.Math.abs;
 
 @Log4j2
 @Service
+@AllArgsConstructor
 class TradingService implements TradeGenerator, TradeSimulator {
 
     @Getter
-    private final Analyzer analyzer;
+    private final Analyzer tradingAnalyzer;
     private final CandleRescaler candleRescaler;
     @Getter
-    private final TradingSettings tradingSettings;
-
-    @Autowired
-    public TradingService(Analyzer tradingAnalyzer,
-                          CandleRescaler candleRescaler,
-                          TradingSettings tradingSettings) {
-        this.analyzer = tradingAnalyzer;
-        this.candleRescaler = candleRescaler;
-        this.tradingSettings = tradingSettings;
-    }
+    private final TradingProperties tradingProperties;
 
     /**
      * This method finds the best price variation percentages and uses it to set the take profit;
@@ -56,15 +48,14 @@ class TradingService implements TradeGenerator, TradeSimulator {
                                                          Graph graph,
                                                          CoreData coreData,
                                                          int tradeOpenCandle) {
-        return generateOptimalTrade(tradingAccount, graph, coreData, tradeOpenCandle, tradingSettings);
+        return generateOptimalTrade(tradingAccount, graph, coreData, tradeOpenCandle);
     }
 
     @Override
     public Trade generateOptimalTrade(Account tradingAccount,
                                       Graph graph,
                                       CoreData coreData,
-                                      int tradeOpenCandle,
-                                      TradingSettings settings) {
+                                      int tradeOpenCandle) {
 
         Trade trade = null;
 
@@ -77,7 +68,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
                     -1);
 
             int mostProfitableMoment = mostProfitableMomentAndPriceVariationAndStopLoss.first();
-            float mostProfitablePriceVariation = filterPriceVariation(mostProfitableMomentAndPriceVariationAndStopLoss.second(), settings);
+            float mostProfitablePriceVariation = filterPriceVariation(mostProfitableMomentAndPriceVariationAndStopLoss.second());
 
             if (mostProfitablePriceVariation == 0) {
                 return Trade.blank();
@@ -86,7 +77,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
 
             float openingPrice = Format.roundTwoDigits(getCandleClosePrice(graph, tradeOpenCandle));
 
-            Triad<Float, Float, Double> tpAndSlAndSize = defineTpAndSlAndSize(tradingAccount.getBalance(), openingPrice, mostProfitablePriceVariation, settings);
+            Triad<Float, Float, Double> tpAndSlAndSize = defineTpAndSlAndSize(tradingAccount.getBalance(), openingPrice, mostProfitablePriceVariation);
 
             if (tpAndSlAndSize.second() == openingPrice || tpAndSlAndSize.first() == openingPrice) {
                 return Trade.blank();
@@ -110,7 +101,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
                     openingPrice,
                     tpAndSlAndSize.first(),
                     tpAndSlAndSize.second(),
-                    tradingSettings.getFeePercentage(),
+                    tradingProperties.getFeePercentage(),
                     false
             );
 
@@ -187,8 +178,8 @@ class TradingService implements TradeGenerator, TradeSimulator {
         return new Triad<>(mostProfitableMoment, mostProfitablePrice, stopLoss);
     }
 
-    private float filterPriceVariation(float priceVariation, @NonNull TradingSettings settings) {
-        if (abs(priceVariation) < settings.getPriceVariationThreshold()) {
+    private float filterPriceVariation(float priceVariation) {
+        if (abs(priceVariation) < tradingProperties.getPriceVariationThreshold()) {
             priceVariation = 0;
         }
         return priceVariation;
@@ -208,24 +199,24 @@ class TradingService implements TradeGenerator, TradeSimulator {
     }
 
     @Contract("_, _, _, _ -> new")
-    private @NonNull Triad<Float, Float, Double> defineTpAndSlAndSize(double balance, float openingPrice, float priceVariation, @NonNull TradingSettings settings) {
+    private @NonNull Triad<Float, Float, Double> defineTpAndSlAndSize(double balance, float openingPrice, float priceVariation) {
 
         float takeProfit;
         float stopLoss;
         double size;
 
-        priceVariation = priceVariation * settings.getPriceVariationMultiplier();
+        priceVariation = priceVariation * tradingProperties.getPriceVariationMultiplier();
 
-        switch (settings.getSlTpStrategy()) {
+        switch (tradingProperties.getSlTpStrategy()) {
             case NONE -> {
                 takeProfit = 0;
                 stopLoss = 0;
-                size = ((balance * settings.getRiskPercentage()) / 100) / openingPrice;
+                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / openingPrice;
             }
             case SL_NO_TP -> {
                 takeProfit = 0;
-                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / settings.getRewardToRiskRatio()) / 100);
-                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / tradingProperties.getRewardToRiskRatio()) / 100);
+                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             case TP_NO_SL -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
@@ -235,22 +226,22 @@ class TradingService implements TradeGenerator, TradeSimulator {
             case EQUAL -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
                 stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) / 100);
-                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             case SL_IS_2X_TP -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
                 stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) * 2 / 100);
-                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             case SL_IS_3X_TP -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
                 stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) * 3 / 100);
-                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             case BASIC_RR -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
-                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / settings.getRewardToRiskRatio()) / 100);
-                size = ((balance * settings.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / tradingProperties.getRewardToRiskRatio()) / 100);
+                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             default -> throw new InvalidParametersException("SL_TP_Strategy is unspecified.");
         }
@@ -273,10 +264,10 @@ class TradingService implements TradeGenerator, TradeSimulator {
 
                 float patternPricePrediction = ((TradingPattern) pattern).getPriceVariationPrediction();
 
-                float price = analyzer.filterPriceVariation(patternPricePrediction);
+                float price = tradingAnalyzer.filterPriceVariation(patternPricePrediction);
 
                 if (price != 0) {
-                    int matchScore = analyzer.calculateMatchScore(pattern.getIntCandles(), intCandles);
+                    int matchScore = tradingAnalyzer.calculateMatchScore(pattern.getIntCandles(), intCandles);
 
                     pricePrediction = pricePrediction + price * (matchScore / 100f);
                     divider = divider + matchScore / 100f;

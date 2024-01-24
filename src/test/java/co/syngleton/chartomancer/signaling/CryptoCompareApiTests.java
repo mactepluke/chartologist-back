@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.configuration.DataConfigTest;
+import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.external_api_requesting.DataRequestingService;
 import lombok.extern.log4j.Log4j2;

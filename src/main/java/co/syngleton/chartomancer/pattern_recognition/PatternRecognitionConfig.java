@@ -1,32 +1,23 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
-import co.syngleton.chartomancer.analytics.Smoothing;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@AllArgsConstructor
 class PatternRecognitionConfig {
-
-    @Value("${match_score_smoothing:NONE}")
-    private Smoothing matchScoreSmoothing;
-    @Value("${match_score_threshold:0}")
-    private int matchScoreThreshold;
-    @Value("${price_variation_threshold:0}")
-    private int priceVariationThreshold;
-    @Value("${extrapolate_price_variation:false}")
-    private boolean extrapolatePriceVariation;
-    @Value("${extrapolate_match_score:false}")
-    private boolean extrapolateMatchScore;
+    private final PatternRecognitionProperties patternRecognitionProperties;
 
     @Bean
     Analyzer analyzer() {
-        return Analyzer.getNewInstance(matchScoreSmoothing,
-                matchScoreThreshold,
-                priceVariationThreshold,
-                extrapolatePriceVariation,
-                extrapolateMatchScore);
+        return Analyzer.getNewInstance(
+                patternRecognitionProperties.getMatchScoreSmoothing(),
+                patternRecognitionProperties.getMatchScoreThreshold(),
+                patternRecognitionProperties.getPriceVariationThreshold(),
+                patternRecognitionProperties.isExtrapolatePriceVariation(),
+                patternRecognitionProperties.isExtrapolateMatchScore());
     }
 
 

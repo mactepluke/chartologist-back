@@ -24,7 +24,7 @@ import static java.lang.Math.round;
 
 @Log4j2
 final class DummyTradesManager {
-    private static final String NEW_LINE = System.getProperty("line.separator");
+    private static final String NEW_LINE = System.lineSeparator();
     private static final int MAX_BLANK_TRADE_MULTIPLIER = 1;
     private final double initialBalance;
     private final double minimumBalance;
@@ -76,7 +76,7 @@ final class DummyTradesManager {
             int maxScope = optionalPatternBox.get().getMaxScope();
             int patternLength = optionalPatternBox.get().getPatternLength();
 
-            reportLog = reportLog + "*** TRADING WITH ACCOUNT: {} ***" + account.getName() + NEW_LINE;
+            reportLog = reportLog + "*** TRADING WITH ACCOUNT:  " + account.getName() + " ***" + NEW_LINE;
 
             int blankTradesCount;
 
@@ -245,15 +245,15 @@ final class DummyTradesManager {
                 coreData.getTradingPatternSettings().get(CoreDataSettingNames.FULL_SCOPE),
                 Integer.toString(patternLength),
                 coreData.getTradingPatternSettings().get(CoreDataSettingNames.PATTERN_GRANULARITY),
-                tradeGenerator.getAnalyzer().matchScoreSmoothing(),
-                tradeGenerator.getAnalyzer().matchScoreThreshold(),
-                tradeGenerator.getTradingSettings().getPriceVariationThreshold(),
-                tradeGenerator.getAnalyzer().extrapolatePriceVariation(),
-                tradeGenerator.getAnalyzer().extrapolateMatchScore(),
-                tradeGenerator.getTradingSettings().getRewardToRiskRatio(),
-                tradeGenerator.getTradingSettings().getRiskPercentage(),
-                tradeGenerator.getTradingSettings().getPriceVariationMultiplier(),
-                tradeGenerator.getTradingSettings().getSlTpStrategy(),
+                tradeGenerator.getTradingAnalyzer().matchScoreSmoothing(),
+                tradeGenerator.getTradingAnalyzer().matchScoreThreshold(),
+                tradeGenerator.getTradingProperties().getPriceVariationThreshold(),
+                tradeGenerator.getTradingAnalyzer().extrapolatePriceVariation(),
+                tradeGenerator.getTradingAnalyzer().extrapolateMatchScore(),
+                tradeGenerator.getTradingProperties().getRewardToRiskRatio(),
+                tradeGenerator.getTradingProperties().getRiskPercentage(),
+                tradeGenerator.getTradingProperties().getPriceVariationMultiplier(),
+                tradeGenerator.getTradingProperties().getSlTpStrategy(),
                 maxTrades,
                 result,
                 initialBalance,
@@ -297,8 +297,8 @@ final class DummyTradesManager {
         String cur = account.getCurrency();
 
         return
-                "TRADING SETTINGS: {}" +
-                        tradeGenerator.getTradingSettings().toString() + NEW_LINE + NEW_LINE +
+                "TRADING SETTINGS: " +
+                        tradeGenerator.getTradingProperties().toString() + NEW_LINE + NEW_LINE +
                         "*** ADVANCED DUMMY TRADE RESULTS ***" + NEW_LINE +
                         "Result: " + result + NEW_LINE +
                         "Number of dummy trades performed: " + account.getNumberOfTrades() + NEW_LINE +
@@ -333,6 +333,7 @@ final class DummyTradesManager {
 
     private void addDummyTradeEntry(DummyTradesSummaryEntry dummyTradesSummaryEntry) {
         this.dummyTradesSummaryTable.getPrintableData().add(dummyTradesSummaryEntry);
+        log.debug(" ------> DUMMY TRADE SUMMARY TABLE: {}", DataTableTool.generatePrintableHeaderAndData(dummyTradesSummaryTable));
     }
 
 }

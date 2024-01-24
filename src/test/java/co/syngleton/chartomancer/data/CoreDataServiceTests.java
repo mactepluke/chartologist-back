@@ -1,7 +1,5 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.configuration.DataConfigTest;
-import co.syngleton.chartomancer.configuration.MockData;
 import co.syngleton.chartomancer.shared_domain.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -80,7 +78,7 @@ class CoreDataServiceTests {
         assertEquals(testDataFilesNames.size(), testCoreData.getGraphs().size());
     }
 
-    @Disabled
+/*    @Disabled
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
@@ -93,7 +91,7 @@ class CoreDataServiceTests {
     void saveTradingDataTest() {
         assertTrue(dataProcessor.saveCoreData(coreData));
         assertTrue(dataProcessor.saveCoreData(coreData));
-    }
+    }*/
 
     @Test
     @DisplayName("[UNIT] Generates trading data")
