@@ -69,11 +69,9 @@ class TradeGeneratorTests {
     CoreData coreData;
     @Autowired
     DataProcessor dataProcessor;
-    @Value("${test_data_folder_name}")
+    @Value("${data.folder_name}")
     private String testDataFolderName;
-    @Value("#{'${test_data_files_names}'.split(',')}")
-    private List<String> testDataFilesNames;
-    @Value("#{'${test_dummy_graphs_data_files_names}'.split(',')}")
+    @Value("#{'${automation.dummy_graphs_data_files_names}'.split(',')}")
     private List<String> testDummyGraphsDataFilesNames;
 
     @BeforeAll

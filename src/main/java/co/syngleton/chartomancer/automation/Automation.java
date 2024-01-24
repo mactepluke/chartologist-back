@@ -58,7 +58,7 @@ final class Automation implements Runnable {
                       int expectedBalanceX,
                       int maxTrades,
                       Set<Timeframe> dummyTradesTimeframes,
-                      boolean writeDummyTradeReports,
+                      boolean writeDummyTradesReports,
                       String dummyGraphsDataFolderName,
                       List<String> dummyGraphsDataFilesNames,
                       boolean printTasksHistory) {
@@ -71,7 +71,7 @@ final class Automation implements Runnable {
         this.runRandomizedDummyTrades = runRandomizedDummyTrades;
         this.runRandomizedDummyTradesOnDummyGraphs = runRandomizedDummyTradesOnDummyGraphs;
         this.runDeterministicDummyTradesOnDummyGraphs = runDeterministicDummyTradesOnDummyGraphs;
-        this.writeDummyTradeReports = writeDummyTradeReports;
+        this.writeDummyTradeReports = writeDummyTradesReports;
         this.dummyGraphsDataFolderName = dummyGraphsDataFolderName;
         this.dummyGraphsDataFilesNames = dummyGraphsDataFilesNames;
 
@@ -100,7 +100,7 @@ final class Automation implements Runnable {
                 tradeGenerator,
                 tradeSimulator,
                 coreData,
-                writeDummyTradeReports,
+                writeDummyTradesReports,
                 dummyTradesSummaryTable,
                 DUMMY_TRADES_FOLDER_PATH,
                 dataProcessor);
@@ -337,6 +337,7 @@ final class Automation implements Runnable {
         return dummyGraphsData;
     }
 
+    //TODO Vérifier pourquoi la mise à jour du fichier dummy_trades_summary.csv ne fonctionne pas
     private synchronized void writeDummyTradesReports() {
         log.info(reportLog);
         DataTableTool.writeDataTableToFile(DUMMY_TRADES_FOLDER_PATH + DUMMY_TRADES_SUMMARY_FILE_NAME, dummyTradesSummaryTable);

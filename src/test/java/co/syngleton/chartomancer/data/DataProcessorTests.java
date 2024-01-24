@@ -33,10 +33,10 @@ class DataProcessorTests {
     MockData mockData;
     @Autowired
     CoreData coreData;
-    @Value("${test_data_folder_name}")
+    @Value("${data.folder_name}")
     private String testDataFolderName;
     private String getTestDataFolderPath;
-    @Value("#{'${test_data_files_names}'.split(',')}")
+    @Value("#{'${data.files_names}'.split(',')}")
     private List<String> testDataFilesNames;
 
     @BeforeAll

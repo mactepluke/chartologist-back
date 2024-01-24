@@ -1,46 +1,32 @@
 package co.syngleton.chartomancer.external_api_requesting;
 
 import co.syngleton.chartomancer.charting.GraphUpscaler;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.naming.ConfigurationException;
 
+
 @Component
+@AllArgsConstructor
 final class DefaultRequestingServiceFactory implements RequestingServiceFactory {
 
     private final GraphUpscaler graphUpscaler;
     private final CryptoCompareApiProxy cryptoCompareApiProxy;
-    @Value("${external_data_source:UNKNOWN}")
-    ExternalDataSource externalDataSource;
-    @Value("${api_key}")
-    private String apiKey;
-    @Value("${free_subscription:true}")
-    private boolean freeSubscription;
+    private final RequestingServiceFactoryProperties rsfp;
 
-    @Autowired
-    DefaultRequestingServiceFactory(CryptoCompareApiProxy cryptoCompareApiProxy,
-                                    GraphUpscaler graphUpscaler) {
-        this.cryptoCompareApiProxy = cryptoCompareApiProxy;
-        this.graphUpscaler = graphUpscaler;
-    }
 
     @Override
     public DataRequestingService getDataRequestingService() throws ConfigurationException {
-        return switch (externalDataSource) {
+        return switch (rsfp.getExternalDataSource()) {
             case CRYPTO_COMPARE -> getCryptoCompareRequestingService();
-            case UNKNOWN -> throw new ConfigurationException("Unknown external data source: " + externalDataSource);
+            case UNKNOWN ->
+                    throw new ConfigurationException("Unknown external data source: " + rsfp.getExternalDataSource());
         };
     }
 
     private DataRequestingService getCryptoCompareRequestingService() {
-        return new CryptoCompareRequestingService(cryptoCompareApiProxy, graphUpscaler, apiKey, freeSubscription);
-    }
-
-    enum ExternalDataSource {
-        UNKNOWN,
-        CRYPTO_COMPARE
+        return new CryptoCompareRequestingService(cryptoCompareApiProxy, graphUpscaler, rsfp.getApiKey(), rsfp.isFreeSubscription());
     }
 
 }

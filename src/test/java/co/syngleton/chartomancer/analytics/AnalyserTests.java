@@ -52,7 +52,7 @@ class AnalyserTests {
     }
 
     @Test
-    @DisplayName("[UNIT] Calculates match score")
+    @DisplayName("[UNIT] Calculates basic match score")
     void calculateMatchScoreBasicTest() {
 
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1)));
@@ -64,7 +64,7 @@ class AnalyserTests {
     }
 
     @Test
-    @DisplayName("[UNIT] Calculates match score")
+    @DisplayName("[UNIT] Calculates extrapolated match score")
     void calculateMatchScoreExtrapolatedTest() {
 
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1)));
