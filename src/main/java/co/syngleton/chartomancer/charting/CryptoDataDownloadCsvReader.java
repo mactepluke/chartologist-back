@@ -24,12 +24,10 @@ import java.util.List;
 
 import static java.lang.Math.abs;
 
+//TODO Make this class more specific to CryptoDataDownload and move general CSV reader features to superclass
 @Component
 @Log4j2
 final class CryptoDataDownloadCsvReader extends HistoricalDataCsvReader {
-
-    private static final int READING_ATTEMPTS = 3;
-    private static final String NEW_LINE = System.lineSeparator();
 
     @Override
     public Graph generateGraphFromSource(String source) {
@@ -148,7 +146,6 @@ final class CryptoDataDownloadCsvReader extends HistoricalDataCsvReader {
         }
         return timeframe;
     }
-
 
     private enum CSVFormat {
         CRYPTO_DATA_DOWNLOAD_USD_BTC("unix,date,symbol,open,high,low,close,Volume USD,Volume BTC", ",", 0, 2, 3, 4, 5, 6, 7, Symbol.BTC_USD),

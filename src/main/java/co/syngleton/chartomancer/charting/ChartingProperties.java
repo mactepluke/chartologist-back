@@ -9,9 +9,10 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "charting")
 @Getter
 @Setter
-public class ChartingProperties {
+class ChartingProperties {
     private HistoricalDataSource dataSource = HistoricalDataSource.UNKNOWN;
     private CsvReader csvReader = CsvReader.UNKNOWN;
+    private boolean repairMissingCandles = false;
 
     enum HistoricalDataSource {
         UNKNOWN,

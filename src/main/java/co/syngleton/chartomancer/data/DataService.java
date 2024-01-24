@@ -82,7 +82,7 @@ class DataService implements DataProcessor {
 
                 log.info("Loading graph from: {}", dataFilePath);
 
-                Graph graph = graphGenerator.generateContinuousGraphFromFile(dataFilePath);
+                Graph graph = graphGenerator.generateGraphFromFile(dataFilePath);
 
                 if (graph != null && graph.doesNotMatchAnyChartObjectIn(coreData.getGraphs())) {
                     graphs.add(graph);

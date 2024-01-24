@@ -12,7 +12,6 @@ import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -25,76 +24,61 @@ import static java.lang.Math.*;
 @Service
 @AllArgsConstructor
 final class ChartingService implements GraphGenerator, CandleRescaler {
-    private static final int READING_ATTEMPTS = 3;
-    private static final String NEW_LINE = System.lineSeparator();
     private final HistoricalDataDAO historicalDataDAO;
+    private final ChartingProperties chartingProperties;
 
+    //TODO Make this method more universal
     @Override
-    public Graph generateContinuousGraphFromFile(String path) {
+    public Graph generateGraphFromFile(String path) {
 
         log.debug("Generating graphs from file... : " + path);
 
         Graph graph = historicalDataDAO.generateGraphFromSource(path);
-        List<FloatCandle> floatCandles = repairMissingCandles(graph.getFloatCandles());
-        graph = new Graph(graph.getName(), graph.getSymbol(), graph.getTimeframe(), floatCandles);
+
+        if (chartingProperties.isRepairMissingCandles()) {
+            graph = repairMissingCandles(graph);
+        }
 
         log.debug("*** CREATED GRAPH (name: {}, symbol: {}, timeframe: {}) ***", graph.getName(), graph.getSymbol(), graph.getTimeframe());
 
         return graph;
     }
 
-    private @NonNull List<FloatCandle> repairMissingCandles(@NonNull List<FloatCandle> floatCandles) {
+    private @NonNull Graph repairMissingCandles(@NonNull Graph graph) {
 
         log.debug("Repairing missing candles...");
 
         List<FloatCandle> repairedFloatCandles = new ArrayList<>();
 
-        Timeframe timeframe = getTimeframe(floatCandles);
-
-        for (var i = 0; i < floatCandles.size() - 1; i++) {
+        for (var i = 0; i < graph.getFloatCandles().size() - 1; i++) {
 
             var j = 0;
 
-            repairedFloatCandles.add(floatCandles.get(i));
+            repairedFloatCandles.add(graph.getFloatCandles().get(i));
 
-            while ((i + j + 1 < floatCandles.size())
+            while ((i + j + 1 < graph.getFloatCandles().size())
                     &&
-                    (floatCandles.get(i + j + 1).dateTime().toEpochSecond(ZoneOffset.UTC) >
-                            (floatCandles.get(i + j).dateTime().toEpochSecond(ZoneOffset.UTC) + timeframe.durationInSeconds))
+                    (graph.getFloatCandles().get(i + j + 1).dateTime().toEpochSecond(ZoneOffset.UTC) >
+                            (graph.getFloatCandles().get(i + j).dateTime().toEpochSecond(ZoneOffset.UTC) + graph.getTimeframe().durationInSeconds))
             ) {
 
                 FloatCandle missingCandle = new FloatCandle(
-                        LocalDateTime.ofEpochSecond(floatCandles.get(i).dateTime().toEpochSecond(
-                                ZoneOffset.UTC) + (j + 1) * timeframe.durationInSeconds, 0, ZoneOffset.UTC),
-                        floatCandles.get(i).close(),
-                        floatCandles.get(i).high(),
-                        floatCandles.get(i).low(),
-                        floatCandles.get(i).close(),
-                        floatCandles.get(i).volume()
+                        LocalDateTime.ofEpochSecond(graph.getFloatCandles().get(i).dateTime().toEpochSecond(
+                                ZoneOffset.UTC) + (j + 1) * graph.getTimeframe().durationInSeconds, 0, ZoneOffset.UTC),
+                        graph.getFloatCandles().get(i).close(),
+                        graph.getFloatCandles().get(i).high(),
+                        graph.getFloatCandles().get(i).low(),
+                        graph.getFloatCandles().get(i).close(),
+                        graph.getFloatCandles().get(i).volume()
                 );
                 repairedFloatCandles.add(missingCandle);
 
                 j++;
             }
         }
-        repairedFloatCandles.add(floatCandles.get(floatCandles.size() - 1));
+        repairedFloatCandles.add(graph.getFloatCandles().get(graph.getFloatCandles().size() - 1));
 
-        return repairedFloatCandles;
-    }
-
-    //TODO put the duplicate methode at another level?
-    private Timeframe getTimeframe(@NonNull List<FloatCandle> floatCandles) {
-        Timeframe timeframe = Timeframe.UNKNOWN;
-
-        if (floatCandles.size() > 1) {
-            long timeBetweenCandles = abs(Duration.between(floatCandles.get(0).dateTime(), floatCandles.get(1).dateTime()).getSeconds());
-            for (Timeframe tf : Timeframe.values()) {
-                if (timeBetweenCandles == tf.durationInSeconds) {
-                    timeframe = tf;
-                }
-            }
-        }
-        return timeframe;
+        return new Graph(graph.getName(), graph.getSymbol(), graph.getTimeframe(), repairedFloatCandles);
     }
 
     @Override

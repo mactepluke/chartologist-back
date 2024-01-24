@@ -8,7 +8,7 @@ import javax.naming.ConfigurationException;
 
 @Configuration
 @AllArgsConstructor
-public class ChartingConfig {
+class ChartingConfig {
     private final ChartingProperties chartingProperties;
 
     @Bean
