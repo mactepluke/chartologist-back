@@ -7,71 +7,50 @@ import co.syngleton.chartomancer.trading.TradeStatus;
 import co.syngleton.chartomancer.trading.TradingAccount;
 import co.syngleton.chartomancer.trading.TradingRequestManager;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-
-import java.util.Set;
 
 @Log4j2
 @Configuration
 @EnableScheduling
-public class SignalingConfig {
+@AllArgsConstructor
+class SignalingConfig {
     private static final int FOUR_HOUR_RATE = 14400000;
     private static final String SIGNALS_HISTORY_FOLDER = "./signals_history/";
     private static final String SIGNALS_FILE_NAME = "signals";
-    private static final String NEW_LINE = System.getProperty("line.separator");
-    private static final String MAIL_SUBJECT = "[CHARTOMANCER] Nouveau trade signalé !";
-    private static final String MAIL_FOUR_HOUR_BODY = "Chartomancer vous propose le trade BTC/USD suivant à l'échelle des 4 heures :" + NEW_LINE + NEW_LINE;
+    private static final String NEW_LINE = System.lineSeparator();
+    private static final String SUBJECT = "[CHARTOMANCER] Nouveau trade signalé !";
+    private static final String BODY = "Chartomancer vous propose le trade BTC/USD suivant :" + NEW_LINE + NEW_LINE;
     private final TradingRequestManager tradingRequestManager;
     private final SignalingService signalingService;
-    private final TradingAccount signalsTradingAccount;
-    @Value("${enable_email_scheduling:false}")
-    private boolean enableEmailScheduling;
-    @Value("#{'${default_trading_signal_subscriber_emails}'.split(',')}")
-    private Set<String> defaultTradingSignalSubscribers;
-    @Value("${signals_account_balance:100}")
-    private int signalsAccountBalance;
+    private final SignalingProperties signalingProperties;
 
 
-    @Autowired
-    public SignalingConfig(TradingRequestManager tradingRequestManager,
-                           SignalingService signalingService) {
-        this.tradingRequestManager = tradingRequestManager;
-        this.signalingService = signalingService;
-        this.signalsTradingAccount = new TradingAccount();
-        this.signalsTradingAccount.credit(signalsAccountBalance);
+    @Scheduled(fixedRate = FOUR_HOUR_RATE)
+    private synchronized void sendFourHourSignals() {
+        if (signalingProperties.isEnabled() && signalingProperties.getRates().contains(Timeframe.FOUR_HOUR)) {
+            sendSignal(Timeframe.FOUR_HOUR);
+        }
     }
 
-    @Async
-    @Scheduled(fixedRate = FOUR_HOUR_RATE)
-    public void sendFourHourTradingSignals() {
+    private synchronized void sendSignal(Timeframe timeframe) {
+        Trade trade = tradingRequestManager.getCurrentBestTrade(signalingProperties.getExampleAccountBalance(), Symbol.BTC_USD, timeframe);
 
-        if (enableEmailScheduling) {
-            Trade trade = tradingRequestManager.getCurrentBestTrade(signalsAccountBalance, Symbol.BTC_USD, Timeframe.FOUR_HOUR);
+        log.debug("Scheduled getCurrentBestTrade triggered – Trade status=: {}", trade.getStatus());
 
-            log.debug("Scheduled getCurrentBestTrade triggered – Trade status=: {}", trade.getStatus());
-
-            if (trade.getStatus() == TradeStatus.OPENED) {
-
-                updateSignalsHistory(trade, Timeframe.FOUR_HOUR);
-
-                TradeSignalDTO tradeSignalDTO = new TradeSignalDTO(trade);
-
-                defaultTradingSignalSubscribers.forEach(email ->
-                        signalingService.sendSignal(email, MAIL_SUBJECT, MAIL_FOUR_HOUR_BODY + tradeSignalDTO));
-
-            }
+        if (trade.getStatus() == TradeStatus.OPENED) {
+            updateSignalsHistory(trade, timeframe);
+            signalingService.sendSignal(SUBJECT, BODY + new TradeSignalDTO(trade));
         }
     }
 
     private synchronized void updateSignalsHistory(Trade trade, Timeframe timeframe) {
-        this.signalsTradingAccount.getTrades().add(trade);
-        DataTableTool.writeDataTableToFile(SIGNALS_HISTORY_FOLDER + SIGNALS_FILE_NAME + "_" + timeframe, signalsTradingAccount);
+        TradingAccount tradingAccount = new TradingAccount();
+        tradingAccount.addTrade(trade);
+        DataTableTool.writeDataTableToFile(SIGNALS_HISTORY_FOLDER + SIGNALS_FILE_NAME + "_" + timeframe, tradingAccount);
     }
 
 }

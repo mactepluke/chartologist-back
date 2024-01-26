@@ -301,7 +301,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
             if (trade.getStatus() == TradeStatus.OPENED) {
                 completeExpiredTrade(candles, trade, account);
             }
-            account.getTrades().add(trade);
+            account.addTrade(trade);
         }
     }
 

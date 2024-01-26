@@ -1,5 +1,6 @@
 package co.syngleton.chartomancer.signaling;
 
-public interface SignalingService {
-    void sendSignal(String to, String subject, String body);
+interface SignalingService {
+
+    void sendSignal(String subject, String body);
 }

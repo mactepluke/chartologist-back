@@ -15,20 +15,25 @@ import java.util.OptionalDouble;
 
 import static java.lang.Math.abs;
 
-@Getter
 public class TradingAccount implements PrintableDataTable, Account {
 
     private static final String DEFAULT_CURRENCY = "$";
-    private static final String NEW_LINE = System.getProperty("line.separator");
+    private static final String NEW_LINE = System.lineSeparator();
     private static final String SEP = " | ";
 
     private final List<Trade> trades;
+
+    @Getter
     private final String currency;
+    @Getter
     @Setter
     boolean liquidated;
+    @Getter
     private double balance;
+    @Getter
     @Setter
     private boolean enabled;
+    @Getter
     @Setter
     private String name;
 
@@ -39,6 +44,10 @@ public class TradingAccount implements PrintableDataTable, Account {
         this.liquidated = false;
         this.name = "untitled_account";
         this.currency = DEFAULT_CURRENCY;
+    }
+
+    public void addTrade(Trade trade) {
+        trades.add(trade);
     }
 
     public void credit(double value) {
