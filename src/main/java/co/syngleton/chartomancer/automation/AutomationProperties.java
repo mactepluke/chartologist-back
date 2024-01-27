@@ -1,33 +1,29 @@
 package co.syngleton.chartomancer.automation;
 
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.util.List;
 import java.util.Set;
 
-@Component
 @ConfigurationProperties(prefix = "automation")
-@Getter
-@Setter
-public class AutomationProperties {
-    private boolean launchAutomation = false;
-    private boolean printCoreData = false;
-    private boolean printPricePredictionSummary = false;
-    private boolean runBasicDummyTrades = false;
-    private boolean runRandomizedDummyTrades = false;
-    private boolean runRandomizedDummyTradesOnDummyGraphs = false;
-    private boolean runDeterministicDummyTradesOnDummyGraphs = false;
-    private String dummyGraphsDataFolderName;
-    private List<String> dummyGraphsDataFilesNames;
-    private double dummyTradesInitialBalance = 10000;
-    private double dummyTradesMinimumBalance = 5000;
-    private int dummyTradesExpectedBalanceX = 2;
-    private int dummyTradesMaxTrades = 100;
-    private Set<Timeframe> dummyTradesTimeframes = null;
-    private boolean writeDummyTradesReports = false;
-    private boolean printTasksHistory = false;
+record AutomationProperties(
+        @DefaultValue("false") boolean launchAutomation,
+        @DefaultValue("false") boolean printCoreData,
+        @DefaultValue("false") boolean printPricePredictionSummary,
+        @DefaultValue("false") boolean runBasicDummyTrades,
+        @DefaultValue("false") boolean runRandomizedDummyTrades,
+        @DefaultValue("false") boolean runRandomizedDummyTradesOnDummyGraphs,
+        @DefaultValue("false") boolean runDeterministicDummyTradesOnDummyGraphs,
+        @DefaultValue("dummy_data") String dummyGraphsDataFolderName,
+        @DefaultValue("[]") List<String> dummyGraphsDataFilesNames,
+        @DefaultValue("10000") double dummyTradesInitialBalance,
+        @DefaultValue("5000") double dummyTradesMinimumBalance,
+        @DefaultValue("2") int dummyTradesExpectedBalanceX,
+        @DefaultValue("100") int dummyTradesMaxTrades,
+        @DefaultValue("[]") Set<Timeframe> dummyTradesTimeframes,
+        @DefaultValue("false") boolean writeDummyTradesReports,
+        @DefaultValue("false") boolean printTasksHistory
+) {
 }

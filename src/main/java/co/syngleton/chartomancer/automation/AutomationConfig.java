@@ -23,7 +23,7 @@ class AutomationConfig {
 
     @PostConstruct
     void launchAutomation() {
-        if (automationProperties.isLaunchAutomation()) {
+        if (automationProperties.launchAutomation()) {
             log.info("Launching automation...");
 
             Thread automation = new Thread(new Automation(
@@ -32,21 +32,21 @@ class AutomationConfig {
                     patternComputer,
                     tradeGenerator,
                     tradeSimulator,
-                    automationProperties.isPrintCoreData(),
-                    automationProperties.isPrintPricePredictionSummary(),
-                    automationProperties.isRunBasicDummyTrades(),
-                    automationProperties.isRunRandomizedDummyTrades(),
-                    automationProperties.isRunRandomizedDummyTradesOnDummyGraphs(),
-                    automationProperties.isRunDeterministicDummyTradesOnDummyGraphs(),
-                    automationProperties.getDummyTradesInitialBalance(),
-                    automationProperties.getDummyTradesMinimumBalance(),
-                    automationProperties.getDummyTradesExpectedBalanceX(),
-                    automationProperties.getDummyTradesMaxTrades(),
-                    automationProperties.getDummyTradesTimeframes(),
-                    automationProperties.isWriteDummyTradesReports(),
-                    automationProperties.getDummyGraphsDataFolderName(),
-                    automationProperties.getDummyGraphsDataFilesNames(),
-                    automationProperties.isPrintTasksHistory()));
+                    automationProperties.printCoreData(),
+                    automationProperties.printPricePredictionSummary(),
+                    automationProperties.runBasicDummyTrades(),
+                    automationProperties.runRandomizedDummyTrades(),
+                    automationProperties.runRandomizedDummyTradesOnDummyGraphs(),
+                    automationProperties.runDeterministicDummyTradesOnDummyGraphs(),
+                    automationProperties.dummyTradesInitialBalance(),
+                    automationProperties.dummyTradesMinimumBalance(),
+                    automationProperties.dummyTradesExpectedBalanceX(),
+                    automationProperties.dummyTradesMaxTrades(),
+                    automationProperties.dummyTradesTimeframes(),
+                    automationProperties.writeDummyTradesReports(),
+                    automationProperties.dummyGraphsDataFolderName(),
+                    automationProperties.dummyGraphsDataFilesNames(),
+                    automationProperties.printTasksHistory()));
             automation.start();
         }
     }

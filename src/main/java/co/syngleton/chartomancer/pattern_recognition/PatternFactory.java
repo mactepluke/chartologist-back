@@ -46,57 +46,57 @@ final class PatternFactory {
 
         switch (initialParams.getAutoconfig()) {
             case NONE -> paramsInput = paramsInput
-                    .granularity(streamline(initialParams.getGranularity(), pfp.getMinGranularity(), pfp.getMaxGranularity()))
-                    .length(streamline(initialParams.getLength(), pfp.getMinPatternLength(), pfp.getMaxPatternLength()))
-                    .scope(streamline(initialParams.getScope(), pfp.getMinScope(), pfp.getMaxScope()));
+                    .granularity(streamline(initialParams.getGranularity(), pfp.minGranularity(), pfp.maxGranularity()))
+                    .length(streamline(initialParams.getLength(), pfp.minPatternLength(), pfp.maxPatternLength()))
+                    .scope(streamline(initialParams.getScope(), pfp.minScope(), pfp.maxScope()));
             case DEFAULT -> paramsInput = paramsInput
-                    .length(pfp.getDefaultPatternLength())
-                    .granularity(pfp.getDefaultGranularity())
-                    .scope(pfp.getDefaultScope());
+                    .length(pfp.defaultPatternLength())
+                    .granularity(pfp.defaultGranularity())
+                    .scope(pfp.defaultScope());
             case TIMEFRAME -> paramsInput = paramsInput
-                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 2, pfp.getMinPatternLength(), pfp.getMaxPatternLength()))
-                    .granularity(pfp.getDefaultGranularity())
-                    .scope(streamline(initialParams.getGraph().getTimeframe().scope, pfp.getMinScope(), pfp.getMaxScope()));
+                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 2, pfp.minPatternLength(), pfp.maxPatternLength()))
+                    .granularity(pfp.defaultGranularity())
+                    .scope(streamline(initialParams.getGraph().getTimeframe().scope, pfp.minScope(), pfp.maxScope()));
             case TIMEFRAME_LONG -> paramsInput = paramsInput
-                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 3, pfp.getMinPatternLength(), pfp.getMaxPatternLength()))
-                    .granularity(pfp.getDefaultGranularity())
-                    .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, pfp.getMinScope(), pfp.getMaxScope()));
+                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 3, pfp.minPatternLength(), pfp.maxPatternLength()))
+                    .granularity(pfp.defaultGranularity())
+                    .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, pfp.minScope(), pfp.maxScope()));
             case TIMEFRAME_VERY_LONG -> paramsInput = paramsInput
-                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 6, pfp.getMinPatternLength(), pfp.getMaxPatternLength()))
-                    .granularity(pfp.getDefaultGranularity())
-                    .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, pfp.getMinScope(), pfp.getMaxScope()));
+                    .length(streamline(initialParams.getGraph().getTimeframe().scope * 6, pfp.minPatternLength(), pfp.maxPatternLength()))
+                    .granularity(pfp.defaultGranularity())
+                    .scope(streamline(initialParams.getGraph().getTimeframe().scope * 2, pfp.minScope(), pfp.maxScope()));
             case HALF_LENGTH -> paramsInput = paramsInput
-                    .length(pfp.getDefaultPatternLength())
-                    .granularity(pfp.getDefaultGranularity())
-                    .scope(round(pfp.getDefaultPatternLength() / (float) 2));
+                    .length(pfp.defaultPatternLength())
+                    .granularity(pfp.defaultGranularity())
+                    .scope(round(pfp.defaultPatternLength() / (float) 2));
             case EQUAL_LENGTH -> paramsInput = paramsInput
-                    .length(pfp.getDefaultPatternLength())
-                    .granularity(pfp.getDefaultGranularity())
-                    .scope(pfp.getDefaultPatternLength());
+                    .length(pfp.defaultPatternLength())
+                    .granularity(pfp.defaultGranularity())
+                    .scope(pfp.defaultPatternLength());
             case THIRD_LENGTH -> paramsInput = paramsInput
-                    .length(pfp.getDefaultPatternLength())
-                    .granularity(pfp.getDefaultGranularity())
-                    .scope(round(pfp.getDefaultPatternLength() / (float) 3));
+                    .length(pfp.defaultPatternLength())
+                    .granularity(pfp.defaultGranularity())
+                    .scope(round(pfp.defaultPatternLength() / (float) 3));
             case TWO_THIRDS_LENGTH -> paramsInput = paramsInput
-                    .length(pfp.getDefaultPatternLength())
-                    .granularity(pfp.getDefaultGranularity())
-                    .scope(round(2 * pfp.getDefaultPatternLength() / (float) 3));
+                    .length(pfp.defaultPatternLength())
+                    .granularity(pfp.defaultGranularity())
+                    .scope(round(2 * pfp.defaultPatternLength() / (float) 3));
             case MINIMIZE -> paramsInput = paramsInput
-                    .length(pfp.getMinPatternLength())
-                    .granularity(pfp.getMinGranularity())
-                    .scope(pfp.getMinScope());
+                    .length(pfp.minPatternLength())
+                    .granularity(pfp.minGranularity())
+                    .scope(pfp.minScope());
             case MAXIMIZE -> paramsInput = paramsInput
-                    .length(pfp.getMaxPatternLength())
-                    .granularity(pfp.getMaxGranularity())
-                    .scope(pfp.getMaxScope());
+                    .length(pfp.maxPatternLength())
+                    .granularity(pfp.maxGranularity())
+                    .scope(pfp.maxScope());
             case BYPASS_SAFETY_CHECK -> log.warn("!! Using raw parameters from input: NOT CHECKED FOR SAFETY !!");
             case TEST -> {
                 log.info("Using test parameters for pattern generation (set up in config file)");
 
                 paramsInput = paramsInput
-                        .length(streamline(pfp.getTestPatternLength(), pfp.getMinPatternLength(), pfp.getMaxPatternLength()))
-                        .granularity(streamline(pfp.getTestGranularity(), pfp.getMinPatternLength(), pfp.getMaxPatternLength()))
-                        .scope(streamline(pfp.getTestScope(), pfp.getMinScope(), pfp.getMaxScope()));
+                        .length(streamline(pfp.testPatternLength(), pfp.minPatternLength(), pfp.maxPatternLength()))
+                        .granularity(streamline(pfp.testGranularity(), pfp.minPatternLength(), pfp.maxPatternLength()))
+                        .scope(streamline(pfp.testScope(), pfp.minScope(), pfp.maxScope()));
             }
             default -> log.error("Could not define parameters configuration strategy.");
         }
@@ -165,7 +165,7 @@ final class PatternFactory {
         return patternSettings.getGraph() != null
                 && patternSettings.getGraph().getFloatCandles() != null
                 && patternSettings.getLength() > 0
-                && patternSettings.getGraph().getFloatCandles().size() / patternSettings.getLength() > pfp.getMinPatternsPerGraph();
+                && patternSettings.getGraph().getFloatCandles().size() / patternSettings.getLength() > pfp.minPatternsPerGraph();
     }
 
     private List<Pattern> convertPatterns(List<Pattern> patterns, PatternSettings patternSettings) {

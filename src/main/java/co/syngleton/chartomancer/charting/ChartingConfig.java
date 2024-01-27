@@ -13,18 +13,17 @@ class ChartingConfig {
 
     @Bean
     HistoricalDataDAO historicalDataDAO() throws ConfigurationException {
-        return switch (chartingProperties.getDataSource()) {
+        return switch (chartingProperties.dataSource()) {
             case CSV_FILES -> getHistoricalDataDAOCsvReader();
             case UNKNOWN ->
-                    throw new ConfigurationException("Unknown historical data source: " + chartingProperties.getDataSource());
+                    throw new ConfigurationException("Unknown historical data source: " + chartingProperties.dataSource());
         };
     }
 
     private HistoricalDataCsvReader getHistoricalDataDAOCsvReader() throws ConfigurationException {
-        return switch (chartingProperties.getCsvReader()) {
+        return switch (chartingProperties.csvReader()) {
             case CRYPTO_DATA_DOWNLOAD -> getCryptoDataDownloadCsvReader();
-            case UNKNOWN ->
-                    throw new ConfigurationException("Unknown CSV reader: " + chartingProperties.getCsvReader());
+            case UNKNOWN -> throw new ConfigurationException("Unknown CSV reader: " + chartingProperties.csvReader());
         };
     }
 

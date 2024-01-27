@@ -1,18 +1,14 @@
 package co.syngleton.chartomancer.charting;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
-@Component
 @ConfigurationProperties(prefix = "charting")
-@Getter
-@Setter
-class ChartingProperties {
-    private HistoricalDataSource dataSource = HistoricalDataSource.UNKNOWN;
-    private CsvReader csvReader = CsvReader.UNKNOWN;
-    private boolean repairMissingCandles = true;
+record ChartingProperties(
+        @DefaultValue("UNKNOWN") HistoricalDataSource dataSource,
+        @DefaultValue("UNKNOWN") CsvReader csvReader,
+        @DefaultValue("true") boolean repairMissingCandles
+) {
 
     enum HistoricalDataSource {
         UNKNOWN,

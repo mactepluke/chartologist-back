@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.controller.TradingRequestManager;
+import co.syngleton.chartomancer.trade_requester.PassiveTradeRequester;
 import co.syngleton.chartomancer.trading.Trade;
 import co.syngleton.chartomancer.trading.TradingAccount;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
@@ -23,20 +23,20 @@ class SignalingConfig {
     private static final String NEW_LINE = System.lineSeparator();
     private static final String SUBJECT = "[CHARTOMANCER] Nouveau trade signalé !";
     private static final String BODY = "Chartomancer vous propose le trade BTC/USD suivant :" + NEW_LINE + NEW_LINE;
-    private final TradingRequestManager tradingRequestManager;
+    private final PassiveTradeRequester tradingRequestManager;
     private final SignalingService signalingService;
     private final SignalingProperties signalingProperties;
 
 
     @Scheduled(fixedRate = FOUR_HOUR_RATE)
     private synchronized void sendFourHourSignals() {
-        if (signalingProperties.isEnabled() && signalingProperties.getRates().contains(Timeframe.FOUR_HOUR)) {
+        if (signalingProperties.enabled() && signalingProperties.rates().contains(Timeframe.FOUR_HOUR)) {
             sendSignal(Timeframe.FOUR_HOUR);
         }
     }
 
     private synchronized void sendSignal(Timeframe timeframe) {
-        Trade trade = tradingRequestManager.getCurrentBestTrade(signalingProperties.getExampleAccountBalance(), Symbol.BTC_USD, timeframe);
+        Trade trade = tradingRequestManager.getCurrentBestTrade(signalingProperties.exampleAccountBalance(), Symbol.BTC_USD, timeframe);
 
         log.debug("Scheduled getCurrentBestTrade triggered – Trade status=: {}", trade.getStatus());
 

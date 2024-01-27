@@ -13,11 +13,11 @@ class TradingConfig {
     @Bean
     Analyzer tradingAnalyzer() {
         return Analyzer.getNewInstance(
-                tradingProperties.getMatchScoreSmoothing(),
-                tradingProperties.getMatchScoreThreshold(),
-                tradingProperties.getPriceVariationThreshold(),
-                tradingProperties.isExtrapolatePriceVariation(),
-                tradingProperties.isExtrapolateMatchScore()
+                tradingProperties.matchScoreSmoothing(),
+                tradingProperties.matchScoreThreshold(),
+                tradingProperties.priceVariationThreshold(),
+                tradingProperties.extrapolatePriceVariation(),
+                tradingProperties.extrapolateMatchScore()
         );
     }
 

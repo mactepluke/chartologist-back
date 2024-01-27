@@ -35,7 +35,7 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
 
         Graph graph = historicalDataDAO.generateGraphFromSource(path);
 
-        if (chartingProperties.isRepairMissingCandles()) {
+        if (chartingProperties.repairMissingCandles()) {
             graph = repairMissingCandles(graph);
         }
 

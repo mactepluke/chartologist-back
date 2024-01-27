@@ -101,7 +101,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
                     openingPrice,
                     tpAndSlAndSize.first(),
                     tpAndSlAndSize.second(),
-                    tradingProperties.getFeePercentage(),
+                    tradingProperties.feePercentage(),
                     false
             );
 
@@ -179,7 +179,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
     }
 
     private float filterPriceVariation(float priceVariation) {
-        if (abs(priceVariation) < tradingProperties.getPriceVariationThreshold()) {
+        if (abs(priceVariation) < tradingProperties.priceVariationThreshold()) {
             priceVariation = 0;
         }
         return priceVariation;
@@ -205,18 +205,18 @@ class TradingService implements TradeGenerator, TradeSimulator {
         float stopLoss;
         double size;
 
-        priceVariation = priceVariation * tradingProperties.getPriceVariationMultiplier();
+        priceVariation = priceVariation * tradingProperties.priceVariationMultiplier();
 
-        switch (tradingProperties.getSlTpStrategy()) {
+        switch (tradingProperties.slTpStrategy()) {
             case NONE -> {
                 takeProfit = 0;
                 stopLoss = 0;
-                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / openingPrice;
+                size = ((balance * tradingProperties.riskPercentage()) / 100) / openingPrice;
             }
             case SL_NO_TP -> {
                 takeProfit = 0;
-                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / tradingProperties.getRewardToRiskRatio()) / 100);
-                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / tradingProperties.rewardToRiskRatio()) / 100);
+                size = ((balance * tradingProperties.riskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             case TP_NO_SL -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
@@ -226,22 +226,22 @@ class TradingService implements TradeGenerator, TradeSimulator {
             case EQUAL -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
                 stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) / 100);
-                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                size = ((balance * tradingProperties.riskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             case SL_IS_2X_TP -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
                 stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) * 2 / 100);
-                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                size = ((balance * tradingProperties.riskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             case SL_IS_3X_TP -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
                 stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation) * 3 / 100);
-                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                size = ((balance * tradingProperties.riskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             case BASIC_RR -> {
                 takeProfit = Format.roundTwoDigits(openingPrice + (openingPrice * priceVariation) / 100);
-                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / tradingProperties.getRewardToRiskRatio()) / 100);
-                size = ((balance * tradingProperties.getRiskPercentage()) / 100) / abs(stopLoss - openingPrice);
+                stopLoss = Format.roundTwoDigits(openingPrice - (openingPrice * priceVariation / tradingProperties.rewardToRiskRatio()) / 100);
+                size = ((balance * tradingProperties.riskPercentage()) / 100) / abs(stopLoss - openingPrice);
             }
             default -> throw new InvalidParametersException("SL_TP_Strategy is unspecified.");
         }

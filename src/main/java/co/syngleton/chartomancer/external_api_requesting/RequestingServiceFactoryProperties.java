@@ -1,19 +1,14 @@
 package co.syngleton.chartomancer.external_api_requesting;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
-@Component
-@ConfigurationProperties(prefix = "requestingservicefactory", ignoreUnknownFields = false)
-@Getter
-@Setter
-public class RequestingServiceFactoryProperties {
-    private ExternalDataSource externalDataSource = ExternalDataSource.UNKNOWN;
-    private String apiKey;
-    private boolean freeSubscription = true;
-
+@ConfigurationProperties(prefix = "requestingservicefactory")
+record RequestingServiceFactoryProperties(
+        @DefaultValue("UNKNOWN") ExternalDataSource externalDataSource,
+        @DefaultValue("(Undefined API Key)") String apiKey,
+        @DefaultValue("true") boolean freeSubscription
+) {
     enum ExternalDataSource {
         UNKNOWN,
         CRYPTO_COMPARE

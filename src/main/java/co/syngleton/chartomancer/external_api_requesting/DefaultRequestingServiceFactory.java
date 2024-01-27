@@ -17,15 +17,15 @@ final class DefaultRequestingServiceFactory implements RequestingServiceFactory 
 
     @Override
     public DataRequestingService getDataRequestingService() throws ConfigurationException {
-        return switch (rsfp.getExternalDataSource()) {
+        return switch (rsfp.externalDataSource()) {
             case CRYPTO_COMPARE -> getCryptoCompareRequestingService();
             case UNKNOWN ->
-                    throw new ConfigurationException("Unknown external data source: " + rsfp.getExternalDataSource());
+                    throw new ConfigurationException("Unknown external data source: " + rsfp.externalDataSource());
         };
     }
 
     private DataRequestingService getCryptoCompareRequestingService() {
-        return new CryptoCompareRequestingService(cryptoCompareApiProxy, graphUpscaler, rsfp.getApiKey(), rsfp.isFreeSubscription());
+        return new CryptoCompareRequestingService(cryptoCompareApiProxy, graphUpscaler, rsfp.apiKey(), rsfp.freeSubscription());
     }
 
 }

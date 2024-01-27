@@ -1,26 +1,22 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
-@Component
 @ConfigurationProperties(prefix = "patternfactory")
-@Getter
-@Setter
-public class PatternFactoryProperties {
-    private int minGranularity = 30;
-    private int maxGranularity = 500;
-    private int minPatternLength = 10;
-    private int maxPatternLength = 50;
-    private int defaultGranularity = 100;
-    private int defaultPatternLength = 15;
-    private int defaultScope = 8;
-    private int minScope = 1;
-    private int maxScope = 30;
-    private int minPatternsPerGraph = 1;
-    private int testGranularity = 100;
-    private int testPatternLength = 10;
-    private int testScope = 2;
+record PatternFactoryProperties(
+        @DefaultValue("30") int minGranularity,
+        @DefaultValue("500") int maxGranularity,
+        @DefaultValue("10") int minPatternLength,
+        @DefaultValue("50") int maxPatternLength,
+        @DefaultValue("100") int defaultGranularity,
+        @DefaultValue("15") int defaultPatternLength,
+        @DefaultValue("8") int defaultScope,
+        @DefaultValue("1") int minScope,
+        @DefaultValue("30") int maxScope,
+        @DefaultValue("1") int minPatternsPerGraph,
+        @DefaultValue("100") int testGranularity,
+        @DefaultValue("10") int testPatternLength,
+        @DefaultValue("2") int testScope
+) {
 }

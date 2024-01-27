@@ -4,38 +4,34 @@ import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
 import co.syngleton.chartomancer.pattern_recognition.ComputationType;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.util.List;
 import java.util.Set;
 
-@Component
-@ConfigurationProperties(prefix = "data", ignoreUnknownFields = false)
-@Getter
-@Setter
-class DataProperties {
-    private String folderName;
-    private CoreDataSource source = CoreDataSource.UNKNOWN;
-    private String sourceName;
-    private List<String> filesNames;
-    private boolean runAnalysisAtStartup;
-    private boolean generateTradingData;
-    private boolean createGraphsForMissingTimeframes;
-    private boolean loadCoreDataAtStartup;
-    private boolean overrideSavedCoreData;
-    private boolean overrideSavedTestCoreData;
-    private boolean createTimestampedCoreDataArchive;
-    private PurgeOption purgeAfterTradingDataGeneration;
-    private PatternSettings.Autoconfig patternSettingsAutoconfig;
-    private ComputationSettings.Autoconfig computationSettingsAutoconfig;
-    private ComputationType computationType;
-    private PatternSettings.PatternType computablePatternType;
-    private boolean atomicPartition;
-    private boolean fullScope;
-    private Set<Timeframe> patternBoxesTimeframes;
+@ConfigurationProperties(prefix = "data")
+record DataProperties(
+        @DefaultValue("data") String folderName,
+        @DefaultValue("SERIALIZED") CoreDataSource source,
+        @DefaultValue("data.ser") String sourceName,
+        @DefaultValue("[]") List<String> filesNames,
+        @DefaultValue("false") boolean runAnalysisAtStartup,
+        @DefaultValue("false") boolean generateTradingData,
+        @DefaultValue("false") boolean createGraphsForMissingTimeframes,
+        @DefaultValue("true") boolean loadCoreDataAtStartup,
+        @DefaultValue("false") boolean overrideSavedCoreData,
+        @DefaultValue("false") boolean overrideSavedTestCoreData,
+        @DefaultValue("false") boolean createTimestampedCoreDataArchive,
+        @DefaultValue("NO") PurgeOption purgeAfterTradingDataGeneration,
+        @DefaultValue("TIMEFRAME_LONG") PatternSettings.Autoconfig patternSettingsAutoconfig,
+        @DefaultValue("DEFAULT") ComputationSettings.Autoconfig computationSettingsAutoconfig,
+        @DefaultValue("BASIC_ITERATION") ComputationType computationType,
+        @DefaultValue("PREDICTIVE") PatternSettings.PatternType computablePatternType,
+        @DefaultValue("true") boolean atomicPartition,
+        @DefaultValue("true") boolean fullScope,
+        @DefaultValue("DAY,FOUR_HOUR") Set<Timeframe> patternBoxesTimeframes
+) {
 
     enum CoreDataSource {
         SERIALIZED,

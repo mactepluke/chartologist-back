@@ -8,16 +8,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @AllArgsConstructor
 class PatternRecognitionConfig {
-    private final PatternRecognitionProperties patternRecognitionProperties;
+    private final PatternRecognitionProperties prp;
 
     @Bean
     Analyzer analyzer() {
         return Analyzer.getNewInstance(
-                patternRecognitionProperties.getMatchScoreSmoothing(),
-                patternRecognitionProperties.getMatchScoreThreshold(),
-                patternRecognitionProperties.getPriceVariationThreshold(),
-                patternRecognitionProperties.isExtrapolatePriceVariation(),
-                patternRecognitionProperties.isExtrapolateMatchScore());
+                prp.matchScoreSmoothing(),
+                prp.matchScoreThreshold(),
+                prp.priceVariationThreshold(),
+                prp.extrapolatePriceVariation(),
+                prp.extrapolateMatchScore());
     }
 
 

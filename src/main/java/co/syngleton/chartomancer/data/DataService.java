@@ -23,6 +23,8 @@ import java.util.*;
 @AllArgsConstructor
 class DataService implements DataProcessor {
     private static final String NEW_LINE = System.lineSeparator();
+    private static final String PATH_DELIMITER = "/";
+    private static final String PATH_ROOT = ".";
 
     private final GraphGenerator graphGenerator;
     private final PatternGenerator patternGenerator;
@@ -43,7 +45,7 @@ class DataService implements DataProcessor {
             }
             for (Graph graph : coreData.getGraphs()) {
 
-                if (graph.doesNotMatchAnyChartObjectIn(patternBoxes) && dataProperties.getPatternBoxesTimeframes().contains(graph.getTimeframe())) {
+                if (graph.doesNotMatchAnyChartObjectIn(patternBoxes) && dataProperties.patternBoxesTimeframes().contains(graph.getTimeframe())) {
 
                     log.debug(">>> Creating patterns for graph: " + graph.getTimeframe() + " " + graph.getSymbol());
                     List<Pattern> patterns = patternGenerator.createPatterns(settingsInput.graph(graph));
@@ -78,7 +80,7 @@ class DataService implements DataProcessor {
         if (coreData != null) {
             for (String dataFileName : dataFilesNames) {
 
-                String dataFilePath = "./" + dataFolderName + "/" + dataFileName;
+                String dataFilePath = PATH_ROOT + PATH_DELIMITER + dataFolderName + PATH_DELIMITER + dataFileName;
 
                 log.info("Loading graph from: {}", dataFilePath);
 
@@ -97,7 +99,7 @@ class DataService implements DataProcessor {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean loadCoreData(CoreData coreData, String dataSourceName) {
 
-        log.info("Loading core data from: {}, of name: {}", dataProperties.getSource(), dataSourceName);
+        log.info("Loading core data from: {}, of name: {}", dataProperties.source(), dataSourceName);
 
         CoreData readData = coreDataDAO.loadCoreDataFrom(dataSourceName);
 
@@ -114,7 +116,7 @@ class DataService implements DataProcessor {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean saveCoreData(CoreData coreData, String dataFileName) {
 
-        log.info("Saving core data to: {}", dataProperties.getSource() + "/" + dataFileName);
+        log.info("Saving core data to: {}", dataProperties.source() + PATH_DELIMITER + dataFileName);
         return coreDataDAO.saveCoreDataTo(coreData, dataFileName);
     }
 

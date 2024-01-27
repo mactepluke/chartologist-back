@@ -14,9 +14,9 @@ class CoreDataDAOConfig {
     @Bean
     CoreDataDAO coreDataDAO() throws ConfigurationException {
 
-        return switch (dataProperties.getSource()) {
+        return switch (dataProperties.source()) {
             case SERIALIZED -> getSerializedCoreDataDAO();
-            case UNKNOWN -> throw new ConfigurationException("Unknown core data source: " + dataProperties.getSource());
+            case UNKNOWN -> throw new ConfigurationException("Unknown core data source: " + dataProperties.source());
         };
     }
 
