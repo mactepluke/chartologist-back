@@ -45,4 +45,6 @@ public interface CoreData extends Serializable {
     void setTradingPatternSettings(Map<String, String> tradingPatternSettings);
 
     void setTradingPatternSetting(String key, String value);
+
+    Set<Timeframe> getTradingTimeframes();
 }

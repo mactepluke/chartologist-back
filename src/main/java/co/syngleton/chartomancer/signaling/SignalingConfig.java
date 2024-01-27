@@ -2,10 +2,9 @@ package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.controller.TradingRequestManager;
 import co.syngleton.chartomancer.trading.Trade;
-import co.syngleton.chartomancer.trading.TradeStatus;
 import co.syngleton.chartomancer.trading.TradingAccount;
-import co.syngleton.chartomancer.trading.TradingRequestManager;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -41,7 +40,7 @@ class SignalingConfig {
 
         log.debug("Scheduled getCurrentBestTrade triggered – Trade status=: {}", trade.getStatus());
 
-        if (trade.getStatus() == TradeStatus.OPENED) {
+        if (trade.isOpen()) {
             updateSignalsHistory(trade, timeframe);
             signalingService.sendSignal(SUBJECT, BODY + new TradeSignalDTO(trade));
         }

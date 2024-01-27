@@ -15,7 +15,6 @@ final class DefaultRequestingServiceFactory implements RequestingServiceFactory 
     private final CryptoCompareApiProxy cryptoCompareApiProxy;
     private final RequestingServiceFactoryProperties rsfp;
 
-
     @Override
     public DataRequestingService getDataRequestingService() throws ConfigurationException {
         return switch (rsfp.getExternalDataSource()) {

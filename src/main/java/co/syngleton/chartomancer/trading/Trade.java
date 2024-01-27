@@ -139,6 +139,10 @@ public class Trade extends ChartObject implements PrintableData {
         return new Trade();
     }
 
+    public boolean isOpen() {
+        return status == TradeStatus.OPENED;
+    }
+
     /**
      * @param stopLoss zero means "no stop loss"
      */
@@ -260,7 +264,35 @@ public class Trade extends ChartObject implements PrintableData {
         return new ArrayList<>(List.of(OPEN_NAME, LAST_UPDATE_NAME, PLATFORM_NAME, SYMBOL_NAME, TIMEFRAME_NAME, ACCOUNT_BALANCE_NAME, SIZE_NAME, EXPECTED_CLOSE_NAME, EXPIRY_NAME, CLOSE_NAME, STATUS_NAME, SIDE_NAME, OPENING_PRICE_NAME, CLOSING_PRICE_NAME, TP_NAME, SL_NAME, LEVERAGE_NAME, TP_PRICE_PER_NAME, SL_PRICE_PER_NAME, EXPECTED_PROFIT_NAME, RISK_PER_NAME, RR_RATIO_NAME, PNL_NAME, FEE_PERCENTAGE_NAME, FEE_AMOUNT_NAME, ORDER_TYPE_NAME));
     }
 
-    public void close(LocalDateTime closeDateTime, double closingPrice, TradeStatus status) {
+    public void hitStopLoss(LocalDateTime closeDateTime) {
+        close(closeDateTime, stopLoss, TradeStatus.STOP_LOSS_HIT);
+    }
+
+    public void hitTakeProfit(LocalDateTime closeDateTime) {
+        close(closeDateTime, takeProfit, TradeStatus.TAKE_PROFIT_HIT);
+    }
+
+    public void expire(LocalDateTime closeDateTime, float lastCandleClose) {
+        close(closeDateTime, lastCandleClose, TradeStatus.EXPIRED);
+    }
+
+    public boolean isBlank() {
+        return status == TradeStatus.BLANK;
+    }
+
+    public boolean isNotBlank() {
+        return !isBlank();
+    }
+
+    public boolean isUnfunded() {
+        return status == TradeStatus.UNFUNDED;
+    }
+
+    public boolean isClosed() {
+        return status == TradeStatus.STOP_LOSS_HIT || status == TradeStatus.TAKE_PROFIT_HIT || status == TradeStatus.EXPIRED;
+    }
+
+    private void close(LocalDateTime closeDateTime, double closingPrice, TradeStatus status) {
 
         if (this.status == TradeStatus.OPENED) {
             this.closingPrice = closingPrice;

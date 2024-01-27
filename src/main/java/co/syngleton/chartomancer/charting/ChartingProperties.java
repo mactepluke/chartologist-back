@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 class ChartingProperties {
     private HistoricalDataSource dataSource = HistoricalDataSource.UNKNOWN;
     private CsvReader csvReader = CsvReader.UNKNOWN;
-    private boolean repairMissingCandles = false;
+    private boolean repairMissingCandles = true;
 
     enum HistoricalDataSource {
         UNKNOWN,

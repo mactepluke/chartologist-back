@@ -7,6 +7,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -77,6 +78,14 @@ public class DefaultCoreData implements CoreData {
     @Override
     public void setTradingPatternSetting(String key, String value) {
         this.tradingPatternSettings.put(key, value);
+    }
+
+    @Override
+    public Set<Timeframe> getTradingTimeframes() {
+        return getTradingPatternBoxes()
+                .stream()
+                .map(ChartObject::getTimeframe)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
 }

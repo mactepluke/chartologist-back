@@ -198,7 +198,7 @@ final class DummyTradesManager {
                 tradeOpenCandle
         );
 
-        if (trade != null && trade.getStatus() == TradeStatus.OPENED) {
+        if (trade != null && trade.isOpen()) {
 
             tradeSimulator.processTradeOnCompletedCandles(
                     trade,

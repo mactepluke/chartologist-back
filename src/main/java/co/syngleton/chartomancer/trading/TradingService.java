@@ -105,7 +105,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
                     false
             );
 
-            if (trade.getStatus() == TradeStatus.UNFUNDED) {
+            if (trade.isUnfunded()) {
                 log.warn("Could not open trade: not enough funds (account balance: {})", tradingAccount.getBalance());
             }
         }
@@ -284,7 +284,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
         if (trade != null
                 && account != null
                 && Check.isNotEmpty(candles)
-                && trade.getStatus() == TradeStatus.OPENED
+                && trade.isOpen()
         ) {
             trade.setExpiry(candles.get(candles.size() - 1).dateTime());
 
@@ -294,11 +294,11 @@ class TradingService implements TradeGenerator, TradeSimulator {
                 } else {
                     completeShortTradeOnLimitsHit(candle, trade, account);
                 }
-                if (trade.getStatus() != TradeStatus.OPENED) {
+                if (!trade.isOpen()) {
                     break;
                 }
             }
-            if (trade.getStatus() == TradeStatus.OPENED) {
+            if (trade.isOpen()) {
                 completeExpiredTrade(candles, trade, account);
             }
             account.addTrade(trade);
@@ -306,30 +306,30 @@ class TradingService implements TradeGenerator, TradeSimulator {
     }
 
     private void completeLongTradeOnLimitsHit(@NonNull FloatCandle candle, @NonNull Trade trade, Account account) {
-        if (candle.low() < trade.getStopLoss() && trade.getStatus() == TradeStatus.OPENED) {
-            trade.close(candle.dateTime(), trade.getStopLoss(), TradeStatus.STOP_LOSS_HIT);
+        if (candle.low() < trade.getStopLoss() && trade.isOpen()) {
+            trade.hitStopLoss(candle.dateTime());
             account.debit(trade.getPnL());
         }
-        if (candle.high() > trade.getTakeProfit() && trade.getStatus() == TradeStatus.OPENED && trade.getTakeProfit() != 0) {
-            trade.close(candle.dateTime(), trade.getTakeProfit(), TradeStatus.TAKE_PROFIT_HIT);
+        if (candle.high() > trade.getTakeProfit() && trade.isOpen() && trade.getTakeProfit() != 0) {
+            trade.hitTakeProfit(candle.dateTime());
             account.credit(trade.getPnL());
         }
     }
 
     private void completeShortTradeOnLimitsHit(@NonNull FloatCandle candle, @NonNull Trade trade, Account account) {
-        if (candle.high() > trade.getStopLoss() && trade.getStatus() == TradeStatus.OPENED && trade.getStopLoss() != 0) {
-            trade.close(candle.dateTime(), trade.getStopLoss(), TradeStatus.STOP_LOSS_HIT);
+        if (candle.high() > trade.getStopLoss() && trade.isOpen() && trade.getStopLoss() != 0) {
+            trade.hitStopLoss(candle.dateTime());
             account.debit(trade.getPnL());
         }
-        if (candle.low() < trade.getTakeProfit() && trade.getStatus() == TradeStatus.OPENED) {
-            trade.close(candle.dateTime(), trade.getTakeProfit(), TradeStatus.TAKE_PROFIT_HIT);
+        if (candle.low() < trade.getTakeProfit() && trade.isOpen()) {
+            trade.hitTakeProfit(candle.dateTime());
             account.credit(trade.getPnL());
         }
     }
 
     private void completeExpiredTrade(@NonNull List<FloatCandle> candles, @NonNull Trade trade, Account account) {
         FloatCandle lastCandle = candles.get(candles.size() - 1);
-        trade.close(lastCandle.dateTime(), lastCandle.close(), TradeStatus.EXPIRED);
+        trade.expire(lastCandle.dateTime(), lastCandle.close());
 
         if (trade.getPnL() > 0) {
             account.credit(trade.getPnL());

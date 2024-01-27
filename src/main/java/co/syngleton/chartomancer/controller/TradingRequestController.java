@@ -5,7 +5,6 @@ import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.signaling.TradeSignalDTO;
 import co.syngleton.chartomancer.trading.Trade;
-import co.syngleton.chartomancer.trading.TradingRequestManager;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -91,7 +90,7 @@ public class TradingRequestController {
         HttpStatus status;
         String response;
 
-        tradingRequestManager.subscribeToSignals(email);
+        //TODO implement subscription
         status = OK;
         response = "Subscription confirmed with email: " + email;
 
