@@ -2,11 +2,10 @@ package co.syngleton.chartomancer.automation;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
-import co.syngleton.chartomancer.shared_domain.CoreData;
-import co.syngleton.chartomancer.shared_domain.Graph;
-import co.syngleton.chartomancer.shared_domain.PatternBox;
 import co.syngleton.chartomancer.trading.*;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
@@ -17,7 +16,6 @@ import org.jetbrains.annotations.Contract;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.round;
@@ -69,12 +67,10 @@ final class DummyTradesManager {
         account.credit(initialBalance);
         account.setName("Dummy Trade Account_randomized=" + randomized + "_" + graph.getSymbol() + "_" + graph.getTimeframe());
 
-        Optional<PatternBox> optionalPatternBox = coreData.getTradingPatternBox(graph.getSymbol(), graph.getTimeframe());
+        if (coreData.canProvideDataForTradingOn(graph.getSymbol(), graph.getTimeframe())) {
 
-        if (optionalPatternBox.isPresent()) {
-
-            int maxScope = optionalPatternBox.get().getMaxScope();
-            int patternLength = optionalPatternBox.get().getPatternLength();
+            int maxScope = coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe());
+            int patternLength = coreData.getTradingPatternLength(graph.getSymbol(), graph.getTimeframe());
 
             reportLog = reportLog + "*** TRADING WITH ACCOUNT:  " + account.getName() + " ***" + NEW_LINE;
 
@@ -109,8 +105,8 @@ final class DummyTradesManager {
                     coreData,
                     account,
                     fileName,
-                    optionalPatternBox.get().getSymbol(),
-                    optionalPatternBox.get().getTimeframe(),
+                    graph.getSymbol(),
+                    graph.getTimeframe(),
                     maxScope,
                     patternLength,
                     result,
@@ -226,25 +222,25 @@ final class DummyTradesManager {
                                                                       double annualizedReturnPercentage) {
         return new DummyTradesSummaryEntry(
                 Format.toFrenchDateTime(LocalDateTime.now()),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.COMPUTATION_DATE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_DATE),
                 fileName,
                 dummyTradesSummaryTable.getFileName(),
                 symbol.toString(),
                 timeframe.toString(),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.MATCH_SCORE_SMOOTHING),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.MATCH_SCORE_THRESHOLD),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.PATTERN_AUTOCONFIG),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.COMPUTATION_AUTOCONFIG),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.COMPUTATION_TYPE),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.ATOMIC_PARTITION),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.MATCH_SCORE_SMOOTHING),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.MATCH_SCORE_THRESHOLD),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_AUTOCONFIG),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_TYPE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION),
                 Integer.toString(maxScope),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.FULL_SCOPE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.FULL_SCOPE),
                 Integer.toString(patternLength),
-                coreData.getTradingPatternSettings().get(CoreDataSettingNames.PATTERN_GRANULARITY),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY),
                 tradeGenerator.getTradingAnalyzer().matchScoreSmoothing(),
                 tradeGenerator.getTradingAnalyzer().matchScoreThreshold(),
                 tradeGenerator.getTradingProperties().priceVariationThreshold(),

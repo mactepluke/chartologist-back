@@ -2,8 +2,8 @@ package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.data.DataConfigTest;
-import co.syngleton.chartomancer.shared_domain.FloatCandle;
-import co.syngleton.chartomancer.shared_domain.IntCandle;
+import co.syngleton.chartomancer.core_entities.FloatCandle;
+import co.syngleton.chartomancer.core_entities.IntCandle;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

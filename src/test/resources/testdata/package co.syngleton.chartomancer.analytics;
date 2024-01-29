@@ -1,8 +1,8 @@
 package co.syngleton.chartomancer.analytics;
 
-import co.syngleton.chartomancer.shared_domain.charting.candles.FloatCandle;
-import co.syngleton.chartomancer.shared_domain.charting.candles.IntCandle;
-import co.syngleton.chartomancer.shared_domain.charting.patterns.IntPattern;
+import co.syngleton.chartomancer.core_entities.charting.candles.FloatCandle;
+import co.syngleton.chartomancer.core_entities.charting.candles.IntCandle;
+import co.syngleton.chartomancer.core_entities.charting.patterns.IntPattern;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import lombok.Getter;

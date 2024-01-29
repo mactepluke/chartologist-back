@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.trading;
 
-import co.syngleton.chartomancer.shared_domain.Account;
+import co.syngleton.chartomancer.core_entities.Account;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.datatabletool.PrintableData;

@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.shared_domain.CoreData;
+import co.syngleton.chartomancer.core_entities.CoreData;
 
 interface CoreDataDAO {
     //TODO Create a record-based serialization or use jsoniter like in the "alerts" project

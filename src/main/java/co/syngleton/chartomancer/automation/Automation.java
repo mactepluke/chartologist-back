@@ -1,9 +1,9 @@
 package co.syngleton.chartomancer.automation;
 
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.core_entities.*;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
-import co.syngleton.chartomancer.shared_domain.*;
 import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
 import co.syngleton.chartomancer.util.Check;
@@ -330,7 +330,7 @@ final class Automation implements Runnable {
         CoreData dummyGraphsData = new DefaultCoreData();
 
         dummyGraphsData.copy(coreData);
-        dummyGraphsData.purgeNonTrading();
+        dummyGraphsData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
         dataProcessor.loadGraphs(dummyGraphsData, dummyGraphsDataFolderName, dummyGraphsDataFilesNames);
         dataProcessor.createGraphsForMissingTimeframes(dummyGraphsData);
 

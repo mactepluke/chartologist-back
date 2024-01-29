@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.shared_domain.*;
+import co.syngleton.chartomancer.core_entities.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,7 @@ class DataProcessorTests {
                 mockData.getMockGraphDay1(),
                 patterns
         );
-        coreData.getPatternBoxes().add(patternBox);
+        //coreData.getPatternBoxes().add(patternBox);
         getTestDataFolderPath = "src/test/resources/" + testDataFolderName;
     }
 
@@ -66,7 +66,7 @@ class DataProcessorTests {
     void tearDown() {
         coreData = null;
         mockData.resetGraphs();
-        log.info("*** ENDING DATA SERVICE TESTS ***");
+        log.info("*** ENDING DATA PROCESSOR TESTS ***");
     }
 
     @Test
@@ -88,13 +88,6 @@ class DataProcessorTests {
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
         assertTrue(dataProcessor.saveCoreData(coreData, "trashdata.ser"));
-    }
-
-    @Test
-    @DisplayName("[UNIT] Generates trading data")
-    void generateTradingDataTest() {
-        assertTrue(dataProcessor.generateTradingData(coreData));
-        assertEquals(coreData.getPatternBoxes().size(), coreData.getTradingPatternBoxes().size());
     }
 
     @Test

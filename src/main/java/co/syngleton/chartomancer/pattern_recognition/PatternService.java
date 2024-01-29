@@ -2,8 +2,8 @@ package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
+import co.syngleton.chartomancer.core_entities.*;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
-import co.syngleton.chartomancer.shared_domain.*;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.Futures;
@@ -32,7 +32,7 @@ final class PatternService implements PatternGenerator, PatternComputer {
     }
 
     @Override
-    public boolean computePatternBoxes(CoreData coreData, ComputationSettings.Builder settingsInput) {
+    public boolean computeCoreData(CoreData coreData, ComputationSettings.Builder settingsInput) {
 
         boolean result = false;
 
@@ -52,7 +52,7 @@ final class PatternService implements PatternGenerator, PatternComputer {
 
                         List<Pattern> computedPatterns = computePatterns(
                                 settingsInput
-                                        .patterns(patternBox.getListOfAllPatterns())
+                                        .patterns(coreData.getPatterns(matchingGraph.getSymbol(), matchingGraph.getTimeframe()))
                                         .graph(matchingGraph)
                         );
 

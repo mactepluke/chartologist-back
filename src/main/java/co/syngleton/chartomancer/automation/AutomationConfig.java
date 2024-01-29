@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.automation;
 
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
-import co.syngleton.chartomancer.shared_domain.CoreData;
+import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
 import jakarta.annotation.PostConstruct;

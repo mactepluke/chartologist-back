@@ -2,12 +2,11 @@ package co.syngleton.chartomancer.automation;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.Graph;
+import co.syngleton.chartomancer.core_entities.PurgeOption;
 import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.data.PurgeOption;
-import co.syngleton.chartomancer.shared_domain.CoreData;
-import co.syngleton.chartomancer.shared_domain.Graph;
-import co.syngleton.chartomancer.shared_domain.PatternBox;
 import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
 import lombok.extern.log4j.Log4j2;
@@ -20,10 +19,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
-import java.util.Optional;
 
 import static co.syngleton.chartomancer.shared_constants.Misc.TEST_CORE_DATA_FILENAME;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Log4j2
@@ -78,8 +77,8 @@ class TradeGeneratorTests {
     void setUp() {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
         dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILENAME);
-        dataProcessor.generateTradingData(coreData);
-        dataProcessor.purgeUselessData(coreData, PurgeOption.GRAPHS_AND_PATTERNS);
+        coreData.pushTradingPatternData();
+        coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
         dataProcessor.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);
         dataProcessor.createGraphsForMissingTimeframes(coreData);
     }
@@ -94,25 +93,19 @@ class TradeGeneratorTests {
     @DisplayName("[IT] Checks test core data integrity")
     void checkCoreDataIntegrity() {
         dataProcessor.printCoreData(coreData);
-        Optional<PatternBox> optionalPatternBox = coreData.getTradingPatternBox(Symbol.BTC_USD, Timeframe.FOUR_HOUR);
 
-        assertTrue(optionalPatternBox.isPresent());
-
-        PatternBox patternBox = optionalPatternBox.get();
-
-        assertFalse(patternBox.getPatterns().isEmpty());
-        assertEquals(404, patternBox.getPatterns().get(1).size());
-        assertEquals(855, patternBox.getPatterns().get(2).size());
-        assertEquals(1302, patternBox.getPatterns().get(3).size());
-        assertEquals(1696, patternBox.getPatterns().get(4).size());
-        assertEquals(2076, patternBox.getPatterns().get(5).size());
-        assertEquals(2450, patternBox.getPatterns().get(6).size());
-        assertEquals(2708, patternBox.getPatterns().get(7).size());
-        assertEquals(2952, patternBox.getPatterns().get(8).size());
-        assertEquals(3134, patternBox.getPatterns().get(9).size());
-        assertEquals(3332, patternBox.getPatterns().get(10).size());
-        assertEquals(3488, patternBox.getPatterns().get(11).size());
-        assertEquals(3683, patternBox.getPatterns().get(12).size());
+        assertEquals(404, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 1).size());
+        assertEquals(855, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 2).size());
+        assertEquals(1302, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 3).size());
+        assertEquals(1696, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 4).size());
+        assertEquals(2076, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 5).size());
+        assertEquals(2450, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 6).size());
+        assertEquals(2708, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 7).size());
+        assertEquals(2952, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 8).size());
+        assertEquals(3134, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 9).size());
+        assertEquals(3332, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 10).size());
+        assertEquals(3488, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 11).size());
+        assertEquals(3683, coreData.getTradingPatterns(Symbol.BTC_USD, Timeframe.FOUR_HOUR, 12).size());
     }
 
     @Test

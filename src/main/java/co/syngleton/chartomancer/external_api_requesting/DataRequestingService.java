@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.external_api_requesting;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.shared_domain.Graph;
+import co.syngleton.chartomancer.core_entities.Graph;
 
 public interface DataRequestingService {
 

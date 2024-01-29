@@ -20,12 +20,11 @@ class EmailingSignalingService implements SignalingService {
         Set<String> addresses = signalingProperties.subscribersAddresses() != null ?
                 signalingProperties.subscribersAddresses() : new HashSet<>();
 
-        signalSubscribersDAO.loadSignalSubscribers().forEach(subscriber -> {
-                    if (subscriber.isEnabled()) {
-                        addresses.add(subscriber.getAddress());
-                    }
-                }
-        );
+        signalSubscribersDAO.loadSignalSubscribers().stream()
+                .filter(SubscriberDTO::isEnabled)
+                .forEach(subscriber -> addresses
+                        .add(subscriber.getAddress()));
+
         emailingService.sendEmails(addresses, subject, body);
     }
 

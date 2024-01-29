@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.trading;
 
-import co.syngleton.chartomancer.shared_domain.FloatCandle;
+import co.syngleton.chartomancer.core_entities.FloatCandle;
 
 import java.util.List;
 

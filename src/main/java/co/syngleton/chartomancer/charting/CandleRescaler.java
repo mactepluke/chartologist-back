@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.charting;
 
-import co.syngleton.chartomancer.shared_domain.FloatCandle;
-import co.syngleton.chartomancer.shared_domain.IntCandle;
+import co.syngleton.chartomancer.core_entities.FloatCandle;
+import co.syngleton.chartomancer.core_entities.IntCandle;
 
 import java.util.List;
 

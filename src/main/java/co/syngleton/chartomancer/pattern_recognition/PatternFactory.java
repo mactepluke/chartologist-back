@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
 import co.syngleton.chartomancer.charting.CandleRescaler;
-import co.syngleton.chartomancer.shared_domain.*;
+import co.syngleton.chartomancer.core_entities.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;

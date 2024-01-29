@@ -4,6 +4,7 @@ import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
 import co.syngleton.chartomancer.pattern_recognition.ComputationType;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
+import co.syngleton.chartomancer.core_entities.PurgeOption;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 

@@ -3,7 +3,7 @@ package co.syngleton.chartomancer.trading;
 import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
-import co.syngleton.chartomancer.shared_domain.*;
+import co.syngleton.chartomancer.core_entities.*;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.Triad;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.lang.Math.abs;
 
@@ -83,10 +82,9 @@ class TradingService implements TradeGenerator, TradeSimulator {
                 return Trade.blank();
             }
 
-            int maxScope = 0;
-            Optional<PatternBox> tradingPatternBox = coreData.getTradingPatternBox(graph.getSymbol(), graph.getTimeframe());
-            if (tradingPatternBox.isPresent()) {
-                maxScope = tradingPatternBox.get().getMaxScope() - 1;
+            int maxScope = coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()) - 1;
+            if (maxScope < 0) {
+                maxScope = 0;
             }
 
             trade = new Trade(

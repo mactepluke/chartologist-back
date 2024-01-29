@@ -2,10 +2,10 @@ package co.syngleton.chartomancer.trade_requester;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.external_api_requesting.DataRequestingService;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
-import co.syngleton.chartomancer.shared_domain.CoreData;
-import co.syngleton.chartomancer.shared_domain.Graph;
 import co.syngleton.chartomancer.trading.Trade;
 import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradingAccount;
@@ -66,7 +66,7 @@ class TradeRequestManager implements PassiveTradeRequester {
         Graph graph = dataRequestingService.getLatestPriceHistoryGraphWithCurrentPriceCandle(
                 symbol,
                 timeframe,
-                Integer.parseInt(coreData.getTradingPatternSettings().get(CoreDataSettingNames.PATTERN_LENGTH)));
+                Integer.parseInt(coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_LENGTH)));
 
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.credit(accountBalance);

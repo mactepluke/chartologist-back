@@ -1,9 +1,9 @@
 package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
-import co.syngleton.chartomancer.shared_domain.Account;
-import co.syngleton.chartomancer.shared_domain.CoreData;
-import co.syngleton.chartomancer.shared_domain.Graph;
+import co.syngleton.chartomancer.core_entities.Account;
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.Graph;
 
 public interface TradeGenerator {
     Trade generateOptimalTradeWithDefaultSettings(Account tradingAccount,

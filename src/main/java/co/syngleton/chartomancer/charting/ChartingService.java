@@ -2,9 +2,9 @@ package co.syngleton.chartomancer.charting;
 
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
-import co.syngleton.chartomancer.shared_domain.FloatCandle;
-import co.syngleton.chartomancer.shared_domain.Graph;
-import co.syngleton.chartomancer.shared_domain.IntCandle;
+import co.syngleton.chartomancer.core_entities.FloatCandle;
+import co.syngleton.chartomancer.core_entities.Graph;
+import co.syngleton.chartomancer.core_entities.IntCandle;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Pair;
 import lombok.AllArgsConstructor;

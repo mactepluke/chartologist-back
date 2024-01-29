@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.charting;
 
-import co.syngleton.chartomancer.shared_domain.Graph;
+import co.syngleton.chartomancer.core_entities.Graph;
 
 interface HistoricalDataDAO {
 

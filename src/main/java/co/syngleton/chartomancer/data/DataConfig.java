@@ -1,12 +1,12 @@
 package co.syngleton.chartomancer.data;
 
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.DefaultCoreData;
+import co.syngleton.chartomancer.core_entities.PurgeOption;
 import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
-import co.syngleton.chartomancer.shared_domain.CoreData;
-import co.syngleton.chartomancer.shared_domain.DefaultCoreData;
-import co.syngleton.chartomancer.util.Check;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
@@ -100,7 +100,7 @@ class DataConfig {
                 result = dataProcessor.saveCoreData(coreData,
                         CORE_DATA_ARCHIVES_FOLDER_PATH +
                                 "_" +
-                                coreData.getPatternSettings().get(CoreDataSettingNames.COMPUTATION_DATE)
+                                coreData.getPatternSetting(CoreDataSettingNames.COMPUTATION_DATE)
                 );
             }
             log.info("Created time stamped archive with newly generated data: {}", result);
@@ -116,7 +116,7 @@ class DataConfig {
         //LOADING GRAPHS
         log.debug("Loading graphs from folder {} with files {}...", dataProperties.folderName(), dataProperties.filesNames());
         if (dataProcessor.loadGraphs(coreData, dataProperties.folderName(), dataProperties.filesNames())) {
-            log.info("Created {} graph(s)", coreData.getGraphs().size());
+            log.info("Created {} graph(s)", coreData.getGraphNumber());
         } else {
             log.error("Application could not initialize its data: no files of correct format could be read.");
         }
@@ -140,7 +140,7 @@ class DataConfig {
         }
 
         if (dataProcessor.createPatternBoxes(coreData, patternSettingsInput)) {
-            log.info("Created {} pattern box(es)", coreData.getPatternBoxes().size());
+            log.info("Created {} pattern box(es)", coreData.getNumberOfPatternSets());
         } else {
             log.error("Application could not initialize its data: no pattern boxes could be created.");
         }
@@ -150,8 +150,8 @@ class DataConfig {
                 .computationType(dataProperties.computationType())
                 .autoconfig(dataProperties.computationSettingsAutoconfig());
 
-        if (patternComputer.computePatternBoxes(coreData, computationSettingsInput)) {
-            log.info("Computed {} pattern box(es)", coreData.getPatternBoxes().size());
+        if (patternComputer.computeCoreData(coreData, computationSettingsInput)) {
+            log.info("Computed {} pattern box(es)", coreData.getNumberOfPatternSets());
         } else {
             log.error("Application could not initialize its data: no pattern boxes format could be computed.");
         }
@@ -160,15 +160,15 @@ class DataConfig {
 
         log.info("Analysis time: {} seconds.", TimeUnit.MILLISECONDS.toSeconds(stopWatch.getLastTaskTimeMillis()));
 
-        return Check.isNotEmpty(coreData.getPatternBoxes());
+        return coreData.getNumberOfPatternSets() > 0;
     }
 
     private void generateTradingData(CoreData coreData) {
         if (dataProperties.generateTradingData()) {
-            log.info("Generated trading data: {}", dataProcessor.generateTradingData(coreData));
+            log.info("Generated trading data: {}", coreData.pushTradingPatternData());
 
             log.info("Purged non-trading data: {}",
-                    dataProcessor.purgeUselessData(coreData, dataProperties.purgeAfterTradingDataGeneration()));
+                    coreData.purgeUselessData(dataProperties.purgeAfterTradingDataGeneration()));
         } else if (dataProperties.purgeAfterTradingDataGeneration() != PurgeOption.NO) {
             log.warn("Non-trading data will not be purged as no trading data has been generated.");
         }

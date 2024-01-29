@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.data;
 
+import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
-import co.syngleton.chartomancer.shared_domain.CoreData;
 
 import java.util.List;
 
@@ -15,8 +15,6 @@ public interface DataProcessor {
     boolean saveCoreData(CoreData coreData, String dataFileName);
 
     boolean generateTradingData(CoreData coreData);
-
-    boolean purgeUselessData(CoreData coreData, PurgeOption option);
 
     boolean createGraphsForMissingTimeframes(CoreData coreData);
 

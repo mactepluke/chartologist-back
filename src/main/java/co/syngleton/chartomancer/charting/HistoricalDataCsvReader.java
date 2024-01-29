@@ -3,8 +3,8 @@ package co.syngleton.chartomancer.charting;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidFileFormatException;
-import co.syngleton.chartomancer.shared_domain.FloatCandle;
-import co.syngleton.chartomancer.shared_domain.Graph;
+import co.syngleton.chartomancer.core_entities.FloatCandle;
+import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.util.Format;
 import lombok.NonNull;
 
