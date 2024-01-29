@@ -1,6 +1,9 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.core_entities.*;
+import co.syngleton.chartomancer.core_entities.BasicPattern;
+import co.syngleton.chartomancer.core_entities.Pattern;
+import co.syngleton.chartomancer.core_entities.PredictivePattern;
+import co.syngleton.chartomancer.core_entities.PurgeOption;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +15,10 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
@@ -22,15 +27,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
-class CoreDataServiceTests {
+class CoreDataTests {
 
 
     @Autowired
     DataProcessor dataProcessor;
     @Autowired
     MockData mockData;
-    @Autowired
-    CoreData coreData;
+    TestableCoreData coreData;
     @Value("${data.folder_name}")
     private String testDataFolderName;
     private String getTestDataFolderPath;
@@ -41,8 +45,9 @@ class CoreDataServiceTests {
     void setUp() {
         log.info("*** STARTING CORE DATA TESTS ***");
 
-        /*coreData.setGraphs(mockData.getTestGraphs());
-        coreData.setPatternBoxes(new HashSet<>());*/
+        coreData = new TestableCoreData();
+        coreData.setGraphs(mockData.getTestGraphs());
+        coreData.setPatternBoxes(new HashSet<>());
         List<Pattern> patterns = new ArrayList<>();
         BasicPattern basicPattern = new BasicPattern(
                 new ArrayList<>(),
@@ -52,11 +57,8 @@ class CoreDataServiceTests {
                 mockData.getMockGraphDay1().getTimeframe(),
                 LocalDateTime.now());
         patterns.add(new PredictivePattern(basicPattern, 5));
-        PatternBox patternBox = new PatternBox(
-                mockData.getMockGraphDay1(),
-                patterns
-        );
-        //coreData.getPatternBoxes().add(patternBox);
+
+        coreData.addPatterns(patterns, mockData.getMockGraphDay1().getSymbol(), mockData.getMockGraphDay1().getTimeframe());
         getTestDataFolderPath = "src/test/resources/" + testDataFolderName;
     }
 
@@ -71,7 +73,7 @@ class CoreDataServiceTests {
     @DisplayName("[UNIT] Generates trading data")
     void generateTradingDataTest() {
         assertTrue(coreData.pushTradingPatternData());
-        //assertEquals(coreData.getPatternScopeNumber(), coreData.getTradingPatternScopeNumber());
+        assertEquals(coreData.getNumberOfPatternSets(), coreData.getNumberOfTradingPatternSets());
     }
 
     @Test

@@ -68,7 +68,7 @@ final class PatternService implements PatternGenerator, PatternComputer {
                 }
             }
             if (Check.isNotEmpty(computedPatternBoxes)) {
-                coreData.setPatternBoxes(computedPatternBoxes);
+                coreData.setPatternBoxesDeprecated(computedPatternBoxes);
                 updateCoreDataComputationSettings(coreData, settingsInput.build());
             }
             result = true;

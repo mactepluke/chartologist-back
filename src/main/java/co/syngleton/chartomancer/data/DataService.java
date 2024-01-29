@@ -64,7 +64,7 @@ class DataService implements DataProcessor {
             //coreData.setPatternBoxes(patternBoxes);
             updateCoreDataPatternSettings(coreData, settingsInput.build());
         }
-        return !patternBoxes.isEmpty();
+        return coreData != null && coreData.getNumberOfPatternSets() > 0;
     }
 
     private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
@@ -90,7 +90,7 @@ class DataService implements DataProcessor {
 
                 log.info("Loading graph from: {}", dataFilePath);
 
-                Graph graph = graphGenerator.generateGraphFromFile(dataFilePath);
+                Graph graph = graphGenerator.generateGraphFromHistoricalDataSource(dataFilePath);
 
                 if (graph != null && graph.doesNotMatchAnyChartObjectIn(coreData.getGraphs())) {
                     graphs.add(graph);
@@ -101,7 +101,6 @@ class DataService implements DataProcessor {
         return !graphs.isEmpty();
     }
 
-    //TODO Trace all loadings and savings to normalize filepaths and debug
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean loadCoreData(CoreData coreData, String dataSourceName) {

@@ -56,37 +56,13 @@ public abstract class CoreData {
 
     public abstract boolean pushTradingPatternData();
 
-    //Optional<PatternBox> getPatternBox(Symbol symbol, Timeframe timeframe);
-
-    //Optional<PatternBox> getTradingPatternBox(Symbol symbol, Timeframe timeframe);
-
-    //public abstract Set<Graph> getGraphs();
-
     public abstract Graph getGraph(Symbol symbol, Timeframe timeframe);
-
-    //public abstract void setGraphs(Set<Graph> graphs);
 
     public abstract List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe, int scope);
 
     public abstract List<Pattern> getTradingPatterns(Symbol symbol, Timeframe timeframe, int scope);
 
-    //Set<PatternBox> getPatternBoxes();
-
-    //public abstract void setPatternBoxes(Set<PatternBox> patternBoxes);
-
-    //public abstract Map<String, String> getPatternSettings();
-
-    //public abstract void setPatternSettings(Map<String, String> patternSettings);
-
     public abstract void setPatternSetting(String key, String value);
-
-    //public abstract Set<PatternBox> getTradingPatternBoxes();
-
-    //public abstract void setTradingPatternBoxes(Set<PatternBox> tradingPatternBoxes);
-
-    //public abstract Map<String, String> getTradingPatternSettings();
-
-    //public abstract void setTradingPatternSettings(Map<String, String> tradingPatternSettings);
 
     public abstract void setTradingPatternSetting(String key, String value);
 
@@ -98,10 +74,10 @@ public abstract class CoreData {
 
     public abstract int getMaxTradingScope(Symbol symbol, Timeframe timeframe);
 
-    //TODO à supprimer
+    //TODO à supprimer (toutes les classes en dessous de cette ligne)
     public abstract Set<PatternBox> getPatternBoxes();
 
-    public abstract void setPatternBoxes(Set<PatternBox> patternBoxes);
+    public abstract void setPatternBoxesDeprecated(Set<PatternBox> patternBoxes);
 
     public abstract Set<PatternBox> getTradingPatternBoxes();
 

@@ -12,10 +12,8 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
-import static co.syngleton.chartomancer.shared_constants.Misc.TEST_CORE_DATA_FILENAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,12 +25,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 class DataProcessorTests {
 
+    public static final String TEST_CORE_DATA_FILE_PATH = "./core_data/TEST_coredata.ser";
     @Autowired
     DataProcessor dataProcessor;
     @Autowired
     MockData mockData;
-    @Autowired
-    CoreData coreData;
+    TestableCoreData coreData;
     @Value("${data.folder_name}")
     private String testDataFolderName;
     private String getTestDataFolderPath;
@@ -43,8 +41,9 @@ class DataProcessorTests {
     void setUp() {
         log.info("*** STARTING DATA PROCESSOR TESTS ***");
 
+        coreData = new TestableCoreData();
         coreData.setGraphs(mockData.getTestGraphs());
-        coreData.setPatternBoxes(new HashSet<>());
+
         List<Pattern> patterns = new ArrayList<>();
         BasicPattern basicPattern = new BasicPattern(
                 new ArrayList<>(),
@@ -54,11 +53,9 @@ class DataProcessorTests {
                 mockData.getMockGraphDay1().getTimeframe(),
                 LocalDateTime.now());
         patterns.add(new PredictivePattern(basicPattern, 5));
-        PatternBox patternBox = new PatternBox(
-                mockData.getMockGraphDay1(),
-                patterns
-        );
-        //coreData.getPatternBoxes().add(patternBox);
+
+        coreData.addPatterns(patterns, mockData.getMockGraphDay1().getSymbol(), mockData.getMockGraphDay1().getTimeframe());
+
         getTestDataFolderPath = "src/test/resources/" + testDataFolderName;
     }
 
@@ -81,13 +78,13 @@ class DataProcessorTests {
     @Test
     @DisplayName("[UNIT] Loads trading data from file")
     void loadTradingDataTest() {
-        assertTrue(dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILENAME));
+        assertTrue(dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILE_PATH));
     }
 
     @Test
     @DisplayName("[UNIT] Saves trading data to file")
     void saveTradingDataTest() {
-        assertTrue(dataProcessor.saveCoreData(coreData, "trashdata.ser"));
+        assertTrue(dataProcessor.saveCoreData(coreData, "./core_data/trashdata.ser"));
     }
 
     @Test

@@ -17,7 +17,7 @@ final class SerializedCoreDataDAO implements CoreDataDAO {
 
         try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(dataFilePath))) {
             readData = (CoreDataSnapshot) is.readObject();
-        } catch (Exception e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             return null;
         }

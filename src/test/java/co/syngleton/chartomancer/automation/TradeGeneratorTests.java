@@ -7,6 +7,7 @@ import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.PurgeOption;
 import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
+import co.syngleton.chartomancer.data.TestableCoreData;
 import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
 import lombok.extern.log4j.Log4j2;
@@ -20,7 +21,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
-import static co.syngleton.chartomancer.shared_constants.Misc.TEST_CORE_DATA_FILENAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 class TradeGeneratorTests {
 
+    public static final String TEST_CORE_DATA_FILE_PATH = "./core_data/TEST_coredata.ser";
     private static final String TEST_PATH = "./src/test/resources/";
     private static final double INITIAL_BALANCE = 10000;
     private static final double MINIMUM_BALANCE = 5000;
@@ -64,7 +65,6 @@ class TradeGeneratorTests {
     TradeGenerator tradeGenerator;
     @Autowired
     TradeSimulator tradeSimulator;
-    @Autowired
     CoreData coreData;
     @Autowired
     DataProcessor dataProcessor;
@@ -76,7 +76,8 @@ class TradeGeneratorTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
-        dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILENAME);
+        coreData = new TestableCoreData();
+        dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILE_PATH);
         coreData.pushTradingPatternData();
         coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
         dataProcessor.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);

@@ -3,5 +3,5 @@ package co.syngleton.chartomancer.charting;
 import co.syngleton.chartomancer.core_entities.Graph;
 
 public interface GraphGenerator extends GraphUpscaler {
-    Graph generateGraphFromFile(String path);
+    Graph generateGraphFromHistoricalDataSource(String path);
 }

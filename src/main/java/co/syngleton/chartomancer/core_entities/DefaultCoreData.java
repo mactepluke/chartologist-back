@@ -29,7 +29,7 @@ public class DefaultCoreData extends CoreData {
     }
 
     @Override
-    public void setPatternBoxes(Set<PatternBox> patternBoxes) {
+    public void setPatternBoxesDeprecated(Set<PatternBox> patternBoxes) {
         this.patternBoxes = patternBoxes;
     }
 

@@ -1,10 +1,10 @@
 package co.syngleton.chartomancer.charting;
 
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.core_entities.FloatCandle;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.IntCandle;
+import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Pair;
 import lombok.AllArgsConstructor;
@@ -27,13 +27,12 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
     private final HistoricalDataDAO historicalDataDAO;
     private final ChartingProperties chartingProperties;
 
-    //TODO Make this method more universal
     @Override
-    public Graph generateGraphFromFile(String path) {
+    public Graph generateGraphFromHistoricalDataSource(String source) {
 
-        log.debug("Generating graphs from file... : " + path);
+        log.debug("Generating graphs from source... : " + source);
 
-        Graph graph = historicalDataDAO.generateGraphFromSource(path);
+        Graph graph = historicalDataDAO.generateGraphFromSource(source);
 
         if (chartingProperties.repairMissingCandles()) {
             graph = repairMissingCandles(graph);

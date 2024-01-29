@@ -1,10 +1,11 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
-import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.core_entities.Pattern;
+import co.syngleton.chartomancer.core_entities.PurgeOption;
 import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.data.MockData;
+import co.syngleton.chartomancer.data.TestableCoreData;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +32,7 @@ class PatternServiceTests {
     PatternGenerator patternGenerator;
     @Autowired
     MockData mockData;
-    @Autowired
-    CoreData coreData;
+    TestableCoreData coreData;
     @Autowired
     DataProcessor dataProcessor;
     private List<Pattern> patterns;
@@ -42,7 +42,8 @@ class PatternServiceTests {
     void setUp() {
         log.info("*** STARTING PATTERN SERVICE TESTS ***");
 
-        coreData.purgeNonTrading();
+        coreData = new TestableCoreData();
+        coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
         coreData.setGraphs(mockData.getTestGraphs());
 
         testPatternSettingsBuilder = new PatternSettings.Builder()
@@ -81,6 +82,7 @@ class PatternServiceTests {
     @DisplayName("[IT] Creates and computes pattern boxes from mock graphs")
     void createAndComputePatternBoxes() {
 
+        log.debug(coreData);
         assertTrue(dataProcessor.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
         assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
         assertTrue(patternComputer.computeCoreData(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));

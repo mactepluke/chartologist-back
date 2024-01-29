@@ -15,14 +15,15 @@ import org.springframework.util.StopWatch;
 
 import java.util.concurrent.TimeUnit;
 
-import static co.syngleton.chartomancer.shared_constants.Misc.CORE_DATA_ARCHIVES_FOLDER_PATH;
-import static co.syngleton.chartomancer.shared_constants.Misc.TEST_CORE_DATA_FILENAME;
 
 @Configuration
 @Log4j2
 @AllArgsConstructor
 class DataConfig {
+    public static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive";
+    public static final String TEST_CORE_DATA_FILENAME = "TEST_coredata.ser";
     private static final String NEW_LINE = System.lineSeparator();
+    private static final String DELIMITER = "/";
     private final DataProcessor dataProcessor;
     private final PatternComputer patternComputer;
     private final DataProperties dataProperties;
@@ -83,7 +84,9 @@ class DataConfig {
     }
 
     private void preLoadData(CoreData coreData) {
-        log.info("Loaded core data: {}", dataProperties.loadCoreDataAtStartup() && dataProcessor.loadCoreData(coreData, dataProperties.sourceName()));
+        log.info("Loaded core data: {}",
+                dataProperties.loadCoreDataAtStartup()
+                        && dataProcessor.loadCoreData(coreData, dataProperties.folderName() + DELIMITER + dataProperties.sourceName()));
     }
 
     private void performAnalysis(CoreData coreData) {
@@ -175,8 +178,12 @@ class DataConfig {
     }
 
     private void saveCoreData(CoreData coreData) {
-        log.info("Saved core data overriden with newly generated core data: {}", dataProperties.overrideSavedCoreData() && dataProcessor.saveCoreData(coreData, dataProperties.sourceName()));
-        log.info("Saved test core data overriden with newly generated core data: {}", dataProperties.overrideSavedTestCoreData() && dataProcessor.saveCoreData(coreData, TEST_CORE_DATA_FILENAME));
+        log.info("Saved core data overriden with newly generated core data: {}",
+                dataProperties.overrideSavedCoreData()
+                        && dataProcessor.saveCoreData(coreData, dataProperties.folderName() + DELIMITER + dataProperties.sourceName()));
+        log.info("Saved test core data overriden with newly generated core data: {}",
+                dataProperties.overrideSavedTestCoreData()
+                        && dataProcessor.saveCoreData(coreData, TEST_CORE_DATA_FILENAME));
     }
 
 }
