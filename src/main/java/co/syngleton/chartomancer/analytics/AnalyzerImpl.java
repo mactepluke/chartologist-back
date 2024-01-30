@@ -6,6 +6,7 @@ import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import lombok.extern.log4j.Log4j2;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.Math.*;
@@ -171,10 +172,15 @@ record AnalyzerImpl(Smoothing matchScoreSmoothing,
 
     int overlapAmount(int aStart, int aEnd, int bStart, int bEnd) {
 
-        if (bStart > aEnd || aStart > bEnd) {
+        if ((min(aStart, aEnd) > max(bStart, bEnd)) || (max(aStart, aEnd) < min(bStart, bEnd))) {
             return 0;
-        } else {
-            return abs(min(aEnd, bEnd) - max(aStart, bStart));
         }
+
+        int[] values = {aStart, aEnd, bStart, bEnd};
+        Arrays.sort(values);
+
+        return abs(values[1] - values[2]);
     }
+
 }
+

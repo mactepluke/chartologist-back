@@ -58,9 +58,17 @@ class AnalyserImplTests {
     @Test
     @DisplayName("[UNIT] Calculates overlap amount between integer intervals")
     void calculateOverlapAmountTest() {
-
         assertEquals(20, defaultAnalyzer.overlapAmount(20, 80, 40, 60));
         assertEquals(20, defaultAnalyzer.overlapAmount(20, 80, 60, 40));
+        assertEquals(10, defaultAnalyzer.overlapAmount(-20, 30, 20, 120));
+        assertEquals(15, defaultAnalyzer.overlapAmount(-50, -90, 40, -65));
+        assertEquals(0, defaultAnalyzer.overlapAmount(0, 0, -10, 10));
+        assertEquals(0, defaultAnalyzer.overlapAmount(50, -90, 0, 0));
+        assertEquals(0, defaultAnalyzer.overlapAmount(10, 0, 0, -65));
+        assertEquals(5, defaultAnalyzer.overlapAmount(10, 0, 5, 55));
+        assertEquals(0, defaultAnalyzer.overlapAmount(0, 10, 10, 20));
+        assertEquals(0, defaultAnalyzer.overlapAmount(0, 10, 15, 20));
+        assertEquals(0, defaultAnalyzer.overlapAmount(100, 40, 30, -10));
     }
 
 
