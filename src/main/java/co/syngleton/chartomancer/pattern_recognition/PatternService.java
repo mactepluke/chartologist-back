@@ -14,7 +14,9 @@ import me.tongfei.progressbar.ProgressBar;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -34,46 +36,44 @@ final class PatternService implements PatternGenerator, PatternComputer {
     @Override
     public boolean computeCoreData(CoreData coreData, ComputationSettings.Builder settingsInput) {
 
-        boolean result = false;
-
-        Set<PatternBox> computedPatternBoxes = new HashSet<>();
-
-        if (coreData != null
-                && Check.isNotEmpty(coreData.getGraphs())
-                && Check.isNotEmpty(coreData.getPatternBoxes())
-        ) {
-            for (PatternBox patternBox : coreData.getPatternBoxes()) {
-
-                if ((patternBox != null) && Check.isNotEmpty(patternBox.getPatterns())) {
-
-                    Graph matchingGraph = patternBox.getFirstMatchingChartObjectIn(coreData.getGraphs());
-
-                    if (matchingGraph != null) {
-
-                        List<Pattern> computedPatterns = computePatterns(
-                                settingsInput
-                                        .patterns(coreData.getPatterns(matchingGraph.getSymbol(), matchingGraph.getTimeframe()))
-                                        .graph(matchingGraph)
-                        );
-
-                        if (Check.isNotEmpty(computedPatterns)) {
-                            computedPatternBoxes.add(
-                                    new PatternBox(
-                                            matchingGraph,
-                                            computedPatterns
-                                    )
-                            );
-                        }
-                    }
-                }
-            }
-            if (Check.isNotEmpty(computedPatternBoxes)) {
-                coreData.setPatternBoxesDeprecated(computedPatternBoxes);
-                updateCoreDataComputationSettings(coreData, settingsInput.build());
-            }
-            result = true;
+        if (isBroken(coreData)) {
+            return false;
         }
-        return result;
+
+        boolean successfulComplete = true;
+
+        for (Graph graph : coreData.getReadOnlyGraphs()) {
+
+            List<Pattern> patternsToCompute = coreData.getPatterns(graph.getSymbol(), graph.getTimeframe());
+
+            if (Check.isEmpty(patternsToCompute)) {
+                successfulComplete = false;
+                continue;
+            }
+
+            List<Pattern> computedPatterns = computePatterns(
+                    settingsInput
+                            .patterns(patternsToCompute)
+                            .graph(graph)
+            );
+
+            if (Check.isEmpty(computedPatterns)) {
+                successfulComplete = false;
+            }
+
+            coreData.putPatterns(computedPatterns, graph.getSymbol(), graph.getTimeframe());
+            updateCoreDataComputationSettings(coreData, settingsInput.build());
+
+        }
+        return successfulComplete;
+    }
+
+    private boolean isBroken(CoreData coreData) {
+        if (coreData == null || !coreData.hasValidStructure()) {
+            log.error("! Core data instance is null or broken !");
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -99,22 +99,22 @@ final class PatternService implements PatternGenerator, PatternComputer {
 
     private List<Pattern> computeBasicIterationPatterns(ComputationSettings computationSettings) throws ExecutionException, InterruptedException {
 
-        List<Pattern> computedPatterns = new ArrayList<>();
-
-        if (areValid(computationSettings.getPatterns())) {
-
-            ProgressBar pb = startProgressBar(computationSettings);
-            computedPatterns = launchMultiThreadedComputations(computationSettings, pb);
-            stopProgressBar(pb);
-
-        } else {
-            log.error("Could not compute: no computable patterns found.");
+        if (!areValidComputablePatterns(computationSettings.getPatterns())) {
+            log.warn("No computable patterns found for settings: " + computationSettings);
+            return Collections.emptyList();
         }
+
+        List<Pattern> computedPatterns;
+        ProgressBar pb = startProgressBar(computationSettings);
+        computedPatterns = launchMultiThreadedComputations(computationSettings, pb);
+        stopProgressBar(pb);
+
         return filterOutUselessPatterns(computedPatterns);
     }
 
-    private boolean areValid(List<Pattern> patterns) {
-        return (!patterns.isEmpty() && patterns.get(0) instanceof ComputablePattern);
+    private boolean areValidComputablePatterns(List<Pattern> patterns) {
+        log.debug(patterns.get(0).getClass().toString());
+        return Check.isNotEmpty(patterns) && patterns.get(0) instanceof ComputablePattern;
     }
 
     private ProgressBar startProgressBar(ComputationSettings computationSettings) {

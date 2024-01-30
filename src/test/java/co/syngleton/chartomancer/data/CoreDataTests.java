@@ -1,9 +1,6 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.core_entities.BasicPattern;
-import co.syngleton.chartomancer.core_entities.Pattern;
-import co.syngleton.chartomancer.core_entities.PredictivePattern;
-import co.syngleton.chartomancer.core_entities.PurgeOption;
+import co.syngleton.chartomancer.core_entities.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +12,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,7 +30,7 @@ class CoreDataTests {
     DataProcessor dataProcessor;
     @Autowired
     MockData mockData;
-    TestableCoreData coreData;
+    CoreData coreData;
     @Value("${data.folder_name}")
     private String testDataFolderName;
     private String getTestDataFolderPath;
@@ -45,9 +41,8 @@ class CoreDataTests {
     void setUp() {
         log.info("*** STARTING CORE DATA TESTS ***");
 
-        coreData = new TestableCoreData();
-        coreData.setGraphs(mockData.getTestGraphs());
-        coreData.setPatternBoxes(new HashSet<>());
+        coreData = DefaultCoreData.newInstance();
+        mockData.getTestGraphs().forEach(graph -> coreData.addGraph(graph));
         List<Pattern> patterns = new ArrayList<>();
         BasicPattern basicPattern = new BasicPattern(
                 new ArrayList<>(),

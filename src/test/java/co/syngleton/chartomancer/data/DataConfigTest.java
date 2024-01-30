@@ -10,7 +10,7 @@ public class DataConfigTest {
 
     @Bean
     CoreData coreData() {
-        return new DefaultCoreData();
+        return DefaultCoreData.newInstance();
     }
 
     @Bean

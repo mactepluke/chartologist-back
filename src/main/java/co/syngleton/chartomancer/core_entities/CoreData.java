@@ -8,14 +8,14 @@ import java.util.*;
 
 public abstract class CoreData {
 
-    protected static final String NEW_LINE = System.lineSeparator();
-    protected Set<Graph> graphs;
-    protected Set<PatternBox> patternBoxes;
-    protected Map<String, String> patternSettings;
-    protected Set<PatternBox> tradingPatternBoxes;
-    protected Map<String, String> tradingPatternSettings;
+    static final String NEW_LINE = System.lineSeparator();
+    Set<Graph> graphs;
+    Set<PatternBox> patternBoxes;
+    Map<String, String> patternSettings;
+    Set<PatternBox> tradingPatternBoxes;
+    Map<String, String> tradingPatternSettings;
 
-    protected CoreData() {
+    CoreData() {
         this.graphs = new HashSet<>();
         this.patternBoxes = new HashSet<>();
         this.patternSettings = new HashMap<>();
@@ -23,28 +23,80 @@ public abstract class CoreData {
         this.tradingPatternSettings = new HashMap<>();
     }
 
-    protected CoreData(CoreDataSnapshot coreDataSnapshot) {
+    CoreData(CoreDataSnapshot coreDataSnapshot) {
         this.graphs = coreDataSnapshot.graphs();
-        this.patternBoxes = coreDataSnapshot.patternBoxes();
+        this.patternBoxes = getPatternBoxesFromSnapshot(coreDataSnapshot.patternBoxes());
         this.patternSettings = coreDataSnapshot.patternSettings();
-        this.tradingPatternBoxes = coreDataSnapshot.tradingPatternBoxes();
+        this.tradingPatternBoxes = getPatternBoxesFromSnapshot(coreDataSnapshot.tradingPatternBoxes());
         this.tradingPatternSettings = coreDataSnapshot.tradingPatternSettings();
     }
 
-    //TODO Make deep copy of unmodifiable objects when everything else works?
     public CoreDataSnapshot getSnapshot() {
-        return new CoreDataSnapshot(graphs, patternBoxes, patternSettings, tradingPatternBoxes, tradingPatternSettings);
+        return new CoreDataSnapshot(graphs,
+                getPatternBoxesSnapshots(patternBoxes),
+                patternSettings,
+                getPatternBoxesSnapshots(tradingPatternBoxes),
+                tradingPatternSettings);
+    }
+
+    private Set<CoreDataSnapshot.PatternBoxSnapShot> getPatternBoxesSnapshots(Set<PatternBox> patternBoxes) {
+
+        Set<CoreDataSnapshot.PatternBoxSnapShot> patternBoxSnapShots = new HashSet<>();
+
+        for (PatternBox patternBox : patternBoxes) {
+            patternBoxSnapShots.add(new CoreDataSnapshot.PatternBoxSnapShot(patternBox.getPatterns()));
+        }
+        return patternBoxSnapShots;
+    }
+
+    private Set<PatternBox> getPatternBoxesFromSnapshot(Set<CoreDataSnapshot.PatternBoxSnapShot> patternBoxesSnapShots) {
+
+        Set<PatternBox> restoredPatternBoxes = new HashSet<>();
+
+        for (CoreDataSnapshot.PatternBoxSnapShot patternBoxSnapShot : patternBoxesSnapShots) {
+
+            if (hasValidPatterns(patternBoxSnapShot)) {
+                restoredPatternBoxes.add(new PatternBox(patternBoxSnapShot));
+            }
+
+        }
+        return restoredPatternBoxes;
+    }
+
+    private boolean hasValidPatterns(CoreDataSnapshot.PatternBoxSnapShot patternBoxSnapShot) {
+
+        if (patternBoxSnapShot == null || patternBoxSnapShot.patterns() == null) {
+            return false;
+        }
+
+        for (Map.Entry<Integer, List<Pattern>> entry : patternBoxSnapShot.patterns().entrySet()) {
+            if (entry.getValue() == null || entry.getValue().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean hasValidStructure() {
+        return this.graphs != null && this.patternBoxes != null && this.patternSettings != null
+                && this.tradingPatternBoxes != null && this.tradingPatternSettings != null;
     }
 
     public abstract void addPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe);
 
-    public abstract List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe);
+    public abstract void putPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe);
 
     public abstract void copy(@NonNull CoreData coreData);
 
     public abstract int getTradingPatternLength(Symbol symbol, Timeframe timeframe);
 
     public abstract boolean canProvideDataForTradingOn(Symbol symbol, Timeframe timeframe);
+
+    public abstract Set<Graph> getReadOnlyGraphs();
+
+    public abstract void addGraph(Graph graph);
+
+    public abstract Set<Graph> getUncomputedGraphs();
 
     public abstract int getGraphNumber();
 
@@ -57,6 +109,14 @@ public abstract class CoreData {
     public abstract boolean pushTradingPatternData();
 
     public abstract Graph getGraph(Symbol symbol, Timeframe timeframe);
+
+    public abstract List<Pattern> getPatterns();
+
+    public abstract List<Pattern> getTradingPatterns();
+
+    public abstract List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe);
+
+    public abstract List<Pattern> getTradingPatterns(Symbol symbol, Timeframe timeframe);
 
     public abstract List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe, int scope);
 
@@ -75,11 +135,11 @@ public abstract class CoreData {
     public abstract int getMaxTradingScope(Symbol symbol, Timeframe timeframe);
 
     //TODO à supprimer (toutes les classes en dessous de cette ligne)
-    public abstract Set<PatternBox> getPatternBoxes();
+    //public abstract Set<PatternBox> getPatternBoxes();
 
     public abstract void setPatternBoxesDeprecated(Set<PatternBox> patternBoxes);
 
     public abstract Set<PatternBox> getTradingPatternBoxes();
 
-    public abstract Set<Graph> getGraphs();
+
 }

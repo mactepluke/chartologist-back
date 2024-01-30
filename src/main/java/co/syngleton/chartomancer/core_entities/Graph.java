@@ -25,7 +25,11 @@ public final class Graph extends ChartObject {
                 "name=" + name +
                 ", symbol=" + getSymbol() +
                 ", timeframe=" + getTimeframe() +
-                ", candle#=" + floatCandles.size() + "}";
+                ", candle#=" + getFloatCandlesSize() + "}";
+    }
+
+    private int getFloatCandlesSize() {
+        return floatCandles == null ? 0 : floatCandles.size();
     }
 
     @Override

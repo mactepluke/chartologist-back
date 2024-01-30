@@ -2,8 +2,8 @@ package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
-import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.core_entities.*;
+import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.Triad;
@@ -173,6 +173,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
                 stopLoss = highestPrice;
             }
         }
+
         return new Triad<>(mostProfitableMoment, mostProfitablePrice, stopLoss);
     }
 

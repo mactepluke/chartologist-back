@@ -23,7 +23,7 @@ import static java.lang.Math.min;
 
 @Log4j2
 @Getter
-public class Trade extends ChartObject implements PrintableData {
+public final class Trade extends ChartObject implements PrintableData {
 
     private static final String OPEN_NAME = "Open";
     private static final String LAST_UPDATE_NAME = "Last update";

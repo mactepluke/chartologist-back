@@ -1,13 +1,11 @@
 package co.syngleton.chartomancer.core_entities;
 
 import co.syngleton.chartomancer.util.Check;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.*;
 
 @Log4j2
-@Getter
 public final class PatternBox extends ChartObject {
 
     private final Map<Integer, List<Pattern>> patterns;
@@ -17,9 +15,15 @@ public final class PatternBox extends ChartObject {
         this.patterns = splitPatternsByScope(patterns);
     }
 
-    public PatternBox(ChartObject chartObject, List<Pattern> patterns) {
-        super(chartObject);
-        this.patterns = splitPatternsByScope(patterns);
+    public PatternBox(CoreDataSnapshot.PatternBoxSnapShot patternBoxSnapShot) {
+        super(patternBoxSnapShot.patterns().isEmpty() ? null :
+                patternBoxSnapShot.patterns()
+                        .entrySet()
+                        .iterator()
+                        .next()
+                        .getValue()
+                        .get(0));
+        this.patterns = patternBoxSnapShot.patterns();
     }
 
     private static Map<Integer, List<Pattern>> splitPatternsByScope(List<Pattern> patterns) {
@@ -39,7 +43,11 @@ public final class PatternBox extends ChartObject {
     }
 
     private static int getPatternKey(Pattern pattern) {
-        return pattern instanceof ScopedPattern ? ((ScopedPattern) pattern).getScope() : pattern.getLength();
+        return pattern instanceof ScopedPattern scopedPattern ? scopedPattern.getScope() : pattern.getLength();
+    }
+
+    public Map<Integer, List<Pattern>> getPatterns() {
+        return Collections.unmodifiableMap(this.patterns);
     }
 
     public void addPatterns(List<Pattern> patterns) {
@@ -52,12 +60,14 @@ public final class PatternBox extends ChartObject {
         });
     }
 
-/*    public List<Pattern> getPatterns(int scope) {
-        return this.patterns.get(scope);
-    }*/
+    public void putPatterns(List<Pattern> patterns) {
+        this.patterns.clear();
+        this.addPatterns(patterns);
+    }
+
 
     public int getPatternsLength() {
-        return this.patterns == null && this.patterns.isEmpty() ? 0 :
+        return this.patterns == null || this.patterns.isEmpty() ? 0 :
                 this.patterns.entrySet().iterator().next().getValue().get(0).getLength();
     }
 

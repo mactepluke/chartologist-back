@@ -3,11 +3,11 @@ package co.syngleton.chartomancer.automation;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.DefaultCoreData;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.PurgeOption;
 import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.data.TestableCoreData;
 import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
 import lombok.extern.log4j.Log4j2;
@@ -76,7 +76,7 @@ class TradeGeneratorTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
-        coreData = new TestableCoreData();
+        coreData = DefaultCoreData.newInstance();
         dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILE_PATH);
         coreData.pushTradingPatternData();
         coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);

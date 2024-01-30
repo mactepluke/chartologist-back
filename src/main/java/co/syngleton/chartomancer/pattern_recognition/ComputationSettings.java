@@ -3,17 +3,14 @@ package co.syngleton.chartomancer.pattern_recognition;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.Pattern;
 import lombok.Getter;
-import lombok.ToString;
 
 import java.util.List;
 
-@ToString
 @Getter
 public final class ComputationSettings {
 
     private final Autoconfig autoconfig;
     private final ComputationType computationType;
-    @ToString.Exclude
     private final Graph graph;
     private final List<Pattern> patterns;
 
@@ -22,6 +19,20 @@ public final class ComputationSettings {
         this.computationType = builder.computationType;
         this.graph = builder.graph;
         this.patterns = builder.patterns;
+    }
+
+    @Override
+    public String toString() {
+        return "ComputationSettings{" +
+                "autoconfig=" + autoconfig +
+                ", computationType=" + computationType +
+                ", graph=" + graph +
+                ", patterns number=" + getPatternNumber() +
+                '}';
+    }
+
+    private int getPatternNumber() {
+        return patterns == null ? 0 : patterns.size();
     }
 
     public enum Autoconfig {

@@ -1,11 +1,12 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.DefaultCoreData;
 import co.syngleton.chartomancer.core_entities.Pattern;
 import co.syngleton.chartomancer.core_entities.PurgeOption;
 import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.data.MockData;
-import co.syngleton.chartomancer.data.TestableCoreData;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ class PatternServiceTests {
     PatternGenerator patternGenerator;
     @Autowired
     MockData mockData;
-    TestableCoreData coreData;
+    CoreData coreData;
     @Autowired
     DataProcessor dataProcessor;
     private List<Pattern> patterns;
@@ -42,9 +43,9 @@ class PatternServiceTests {
     void setUp() {
         log.info("*** STARTING PATTERN SERVICE TESTS ***");
 
-        coreData = new TestableCoreData();
+        coreData = DefaultCoreData.newInstance();
         coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
-        coreData.setGraphs(mockData.getTestGraphs());
+        mockData.getTestGraphs().forEach(graph -> coreData.addGraph(graph));
 
         testPatternSettingsBuilder = new PatternSettings.Builder()
                 .autoconfig(PatternSettings.Autoconfig.TEST)
@@ -83,9 +84,11 @@ class PatternServiceTests {
     void createAndComputePatternBoxes() {
 
         log.debug(coreData);
-        assertTrue(dataProcessor.createPatternBoxes(coreData, new PatternSettings.Builder().autoconfig(PatternSettings.Autoconfig.TEST)));
-        assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
+        assertTrue(dataProcessor.createPatternBoxes(coreData, new PatternSettings.Builder()
+                .patternType(PatternSettings.PatternType.PREDICTIVE)
+                .autoconfig(PatternSettings.Autoconfig.TEST)));
+        assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getNumberOfPatternSets());
         assertTrue(patternComputer.computeCoreData(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
-        assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getPatternBoxes().size());
+        assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getNumberOfPatternSets());
     }
 }

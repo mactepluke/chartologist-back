@@ -15,17 +15,26 @@ import java.util.stream.Collectors;
 @Setter
 public class DefaultCoreData extends CoreData {
 
-    public DefaultCoreData() {
+    private DefaultCoreData() {
         super();
     }
 
-    public DefaultCoreData(CoreDataSnapshot coreDataSnapshot) {
+    private DefaultCoreData(CoreDataSnapshot coreDataSnapshot) {
         super(coreDataSnapshot);
     }
 
-    @Override
-    public Set<PatternBox> getPatternBoxes() {
-        return this.patternBoxes;
+    /**
+     * This factory method is used instead of a constructor so the class cannot be extended outside its package,
+     * while still being extensible within it.
+     *
+     * @return a new instance of the class
+     */
+    public static DefaultCoreData newInstance() {
+        return new DefaultCoreData();
+    }
+
+    public static DefaultCoreData valueOf(CoreDataSnapshot coreDataSnapshot) {
+        return new DefaultCoreData(coreDataSnapshot);
     }
 
     @Override
@@ -39,8 +48,22 @@ public class DefaultCoreData extends CoreData {
     }
 
     @Override
-    public Set<Graph> getGraphs() {
-        return this.graphs;
+    public Set<Graph> getReadOnlyGraphs() {
+        return Collections.unmodifiableSet(this.graphs);
+    }
+
+    @Override
+    public void addGraph(Graph graph) {
+        if (graph != null && graph.doesNotMatchAnyChartObjectIn(this.graphs)) {
+            this.graphs.add(graph);
+        }
+    }
+
+    @Override
+    public Set<Graph> getUncomputedGraphs() {
+        return this.graphs.stream()
+                .filter(graph -> graph.doesNotMatchAnyChartObjectIn(patternBoxes))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
@@ -51,9 +74,10 @@ public class DefaultCoreData extends CoreData {
     }
 
     @Override
-    public synchronized List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe) {
-
-        return getPatternBox(symbol, timeframe).map(PatternBox::getListOfAllPatterns).orElse(Collections.emptyList());
+    public synchronized void putPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe) {
+        getPatternBox(symbol, timeframe).ifPresentOrElse(patternBox -> patternBox.putPatterns(patterns),
+                () -> patternBoxes.add(new PatternBox(patterns))
+        );
     }
 
     @Override
@@ -178,18 +202,55 @@ public class DefaultCoreData extends CoreData {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
+
+    @Override
+    public synchronized List<Pattern> getPatterns() {
+
+        List<Pattern> patterns = new ArrayList<>();
+
+        for (PatternBox patternBox : this.patternBoxes) {
+            patterns.addAll(patternBox.getListOfAllPatterns());
+        }
+        return Collections.unmodifiableList(patterns);
+    }
+
+    @Override
+    public synchronized List<Pattern> getTradingPatterns() {
+
+        List<Pattern> patterns = new ArrayList<>();
+
+        for (PatternBox patternBox : this.tradingPatternBoxes) {
+            patterns.addAll(patternBox.getListOfAllPatterns());
+        }
+        return Collections.unmodifiableList(patterns);
+    }
+
+    @Override
+    public synchronized List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe) {
+        return Collections.unmodifiableList(Objects.requireNonNull(this.getPatternBox(symbol, timeframe))
+                .map(PatternBox::getListOfAllPatterns)
+                .orElse(Collections.emptyList()));
+    }
+
+    @Override
+    public synchronized List<Pattern> getTradingPatterns(Symbol symbol, Timeframe timeframe) {
+        return Collections.unmodifiableList(Objects.requireNonNull(this.getTradingPatternBox(symbol, timeframe))
+                .map(PatternBox::getListOfAllPatterns)
+                .orElse(Collections.emptyList()));
+    }
+
     @Override
     public List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe, int scope) {
         return Collections.unmodifiableList(Objects.requireNonNull(this.getPatternBox(symbol, timeframe)
                 .map(patternBox -> patternBox.getPatterns().get(scope))
-                .orElse(null)));
+                .orElse(Collections.emptyList())));
     }
 
     @Override
     public List<Pattern> getTradingPatterns(Symbol symbol, Timeframe timeframe, int scope) {
         return Collections.unmodifiableList(Objects.requireNonNull(this.getTradingPatternBox(symbol, timeframe)
                 .map(patternBox -> patternBox.getPatterns().get(scope))
-                .orElse(null)));
+                .orElse(Collections.emptyList())));
     }
 
     @Override

@@ -194,75 +194,61 @@ final class Automation implements Runnable {
         double maxPricePrediction;
         double totalPriceVariation;
 
-        Set<PatternBox> availablePatternBoxes = null;
-
-        if (coreData != null) {
-            if (coreData.getPatternBoxes() != null) {
-                availablePatternBoxes = coreData.getPatternBoxes();
-            }
-            if (coreData.getTradingPatternBoxes() != null) {
-                availablePatternBoxes = coreData.getTradingPatternBoxes();
-            }
+        if (coreData == null || !coreData.hasValidStructure()) {
+            log.error("Cannot print price prediction summary: core data is broken.");
+            return;
         }
 
-        if (coreData != null && availablePatternBoxes != null) {
+        List<Pattern> tradingPatterns = coreData.getTradingPatterns();
 
-            for (PatternBox patternBox : availablePatternBoxes) {
+        positivePricePredictions = tradingPatterns.stream()
+                .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() > 0)
+                .count();
 
-                positivePricePredictions = patternBox.getListOfAllPatterns().stream()
-                        .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() > 0)
-                        .count();
+        negativePricePredictions = tradingPatterns.stream()
+                .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() < 0)
+                .count();
 
-                negativePricePredictions = patternBox.getListOfAllPatterns().stream()
-                        .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() < 0)
-                        .count();
+        zeroPricePredictions = tradingPatterns.stream()
+                .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() == 0)
+                .count();
 
-                zeroPricePredictions = patternBox.getListOfAllPatterns().stream()
-                        .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() == 0)
-                        .count();
+        totalPriceVariation = tradingPatterns.stream()
+                .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                .sum();
 
-                totalPriceVariation = patternBox.getListOfAllPatterns().stream()
-                        .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
-                        .sum();
+        minPricePrediction = tradingPatterns.stream()
+                .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                .min().orElse(0);
 
-                minPricePrediction = patternBox.getListOfAllPatterns().stream()
-                        .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
-                        .min().orElse(0);
+        maxPricePrediction = tradingPatterns.stream()
+                .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                .max().orElse(0);
 
-                maxPricePrediction = patternBox.getListOfAllPatterns().stream()
-                        .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
-                        .max().orElse(0);
-
-                log.info(NEW_LINE
-                                + "PATTERN_BOX ({}, {})" + NEW_LINE
-                                + "Positive price predictions: {}" + NEW_LINE
-                                + "Negative price predictions: {}" + NEW_LINE
-                                + "Zero-valued price predictions: {}" + NEW_LINE
-                                + "Minimum price predictions: {}" + NEW_LINE
-                                + "Maximum price predictions: {}" + NEW_LINE
-                                + "AVERAGE PRICE PREDICTION: {}" + NEW_LINE,
-                        patternBox.getSymbol(), patternBox.getTimeframe(),
-                        positivePricePredictions,
-                        negativePricePredictions,
-                        zeroPricePredictions,
-                        minPricePrediction,
-                        maxPricePrediction,
-                        totalPriceVariation / patternBox.getListOfAllPatterns().size());
-            }
-        } else {
-            log.error("Cannot print price prediction summary: core data is missing.");
-        }
+        log.info(NEW_LINE
+                        + "Positive price predictions: {}" + NEW_LINE
+                        + "Negative price predictions: {}" + NEW_LINE
+                        + "Zero-valued price predictions: {}" + NEW_LINE
+                        + "Minimum price predictions: {}" + NEW_LINE
+                        + "Maximum price predictions: {}" + NEW_LINE
+                        + "AVERAGE PRICE PREDICTION: {}" + NEW_LINE,
+                positivePricePredictions,
+                negativePricePredictions,
+                zeroPricePredictions,
+                minPricePrediction,
+                maxPricePrediction,
+                totalPriceVariation / tradingPatterns.size());
     }
 
 
     private void runBasicDummyTrades() {
         if (coreData == null
-                || !Check.isNotEmpty(coreData.getGraphs())
+                || !Check.isNotEmpty(coreData.getReadOnlyGraphs())
                 || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
             log.error(DATA_MISSING_ERROR);
         } else {
 
-            Optional<Graph> graph = coreData.getGraphs().stream().findAny();
+            Optional<Graph> graph = coreData.getReadOnlyGraphs().stream().findAny();
 
             graph.ifPresent(value -> reportLog = dtm.launchDummyTrades(value, coreData, true, reportLog));
         }
@@ -274,7 +260,7 @@ final class Automation implements Runnable {
 
     private void runRandomizedDummyTrades(CoreData coreData) {
         if (coreData == null
-                || !Check.isNotEmpty(coreData.getGraphs())
+                || !Check.isNotEmpty(coreData.getReadOnlyGraphs())
                 || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
             log.error(DATA_MISSING_ERROR);
         } else {
@@ -283,7 +269,7 @@ final class Automation implements Runnable {
 
             pb.start();
 
-            for (Graph graph : coreData.getGraphs()) {
+            for (Graph graph : coreData.getReadOnlyGraphs()) {
 
                 if (dummyTradesTimeframes.contains(graph.getTimeframe())) {
                     reportLog = dtm.launchDummyTrades(graph, coreData, true, reportLog);
@@ -305,7 +291,7 @@ final class Automation implements Runnable {
 
     private void runDeterministicDummyTrades(CoreData coreData) {
         if (coreData == null
-                || !Check.isNotEmpty(coreData.getGraphs())
+                || !Check.isNotEmpty(coreData.getReadOnlyGraphs())
                 || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
             log.error(DATA_MISSING_ERROR);
         } else {
@@ -314,7 +300,7 @@ final class Automation implements Runnable {
 
             pb.start();
 
-            for (Graph graph : coreData.getGraphs()) {
+            for (Graph graph : coreData.getReadOnlyGraphs()) {
 
                 if (dummyTradesTimeframes.contains(graph.getTimeframe())) {
                     reportLog = dtm.launchDummyTrades(graph, coreData, false, reportLog);
@@ -327,7 +313,7 @@ final class Automation implements Runnable {
     }
 
     private @NonNull CoreData cloneCoreDataWithDummyGraphs() {
-        CoreData dummyGraphsData = new DefaultCoreData();
+        CoreData dummyGraphsData = DefaultCoreData.newInstance();
 
         dummyGraphsData.copy(coreData);
         dummyGraphsData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);

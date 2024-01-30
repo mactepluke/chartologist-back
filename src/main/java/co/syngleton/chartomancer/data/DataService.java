@@ -5,11 +5,9 @@ import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.Pattern;
-import co.syngleton.chartomancer.core_entities.PatternBox;
 import co.syngleton.chartomancer.pattern_recognition.PatternGenerator;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
-import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -40,31 +37,31 @@ class DataService implements DataProcessor {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean createPatternBoxes(CoreData coreData, PatternSettings.Builder settingsInput) {
 
-        Set<PatternBox> patternBoxes = new HashSet<>();
-
-        if (coreData != null
-                && Check.isNotEmpty(coreData.getGraphs())
-        ) {
-            if (Check.isNotEmpty(coreData.getPatternBoxes())) {
-                patternBoxes = coreData.getPatternBoxes();
-            }
-            for (Graph graph : coreData.getGraphs()) {
-
-                if (graph.doesNotMatchAnyChartObjectIn(patternBoxes) && dataProperties.patternBoxesTimeframes().contains(graph.getTimeframe())) {
-
-                    log.debug(">>> Creating patterns for graph: " + graph.getTimeframe() + " " + graph.getSymbol());
-                    List<Pattern> patterns = patternGenerator.createPatterns(settingsInput.graph(graph));
-
-                    coreData.addPatterns(patterns, graph.getSymbol(), graph.getTimeframe());
-                    /*if (Check.isNotEmpty(patterns)) {
-                        patternBoxes.add(new PatternBox(patterns));
-                    }*/
-                }
-            }
-            //coreData.setPatternBoxes(patternBoxes);
-            updateCoreDataPatternSettings(coreData, settingsInput.build());
+        if (isBroken(coreData)) {
+            return false;
         }
-        return coreData != null && coreData.getNumberOfPatternSets() > 0;
+
+        for (Graph graph : coreData.getUncomputedGraphs()) {
+
+            if (dataProperties.patternBoxesTimeframes().contains(graph.getTimeframe())) {
+
+                log.debug(">>> Creating patterns for graph: " + graph.getTimeframe() + ", " + graph.getSymbol());
+                List<Pattern> patterns = patternGenerator.createPatterns(settingsInput.graph(graph));
+
+                coreData.addPatterns(patterns, graph.getSymbol(), graph.getTimeframe());
+            }
+        }
+        updateCoreDataPatternSettings(coreData, settingsInput.build());
+
+        return coreData.getNumberOfPatternSets() > 0;
+    }
+
+    private boolean isBroken(CoreData coreData) {
+        if (coreData == null || !coreData.hasValidStructure()) {
+            log.error("! Core data instance is null or broken !");
+            return true;
+        }
+        return false;
     }
 
     private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
@@ -81,29 +78,36 @@ class DataService implements DataProcessor {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean loadGraphs(CoreData coreData, String dataFolderName, List<String> dataFilesNames) {
 
-        Set<Graph> graphs = new HashSet<>();
-
-        if (coreData != null) {
-            for (String dataFileName : dataFilesNames) {
-
-                String dataFilePath = PATH_ROOT + PATH_DELIMITER + dataFolderName + PATH_DELIMITER + dataFileName;
-
-                log.info("Loading graph from: {}", dataFilePath);
-
-                Graph graph = graphGenerator.generateGraphFromHistoricalDataSource(dataFilePath);
-
-                if (graph != null && graph.doesNotMatchAnyChartObjectIn(coreData.getGraphs())) {
-                    graphs.add(graph);
-                }
-            }
-            coreData.getGraphs().addAll(graphs);
+        if (isBroken(coreData)) {
+            return false;
         }
-        return !graphs.isEmpty();
+
+        boolean successfulComplete = true;
+
+        for (String dataFileName : dataFilesNames) {
+
+            String dataFilePath = PATH_ROOT + PATH_DELIMITER + dataFolderName + PATH_DELIMITER + dataFileName;
+
+            log.info("Loading graph from: {}", dataFilePath);
+
+            Graph graph = graphGenerator.generateGraphFromHistoricalDataSource(dataFilePath);
+
+            if (graph == null) {
+                successfulComplete = false;
+            } else {
+                coreData.addGraph(graph);
+            }
+        }
+        return successfulComplete;
     }
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean loadCoreData(CoreData coreData, String dataSourceName) {
+
+        if (isBroken(coreData)) {
+            return false;
+        }
 
         log.info("Loading core data from: {}, of name: {}", dataProperties.source(), dataSourceName);
 
@@ -122,6 +126,10 @@ class DataService implements DataProcessor {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean saveCoreData(CoreData coreData, String dataSourceName) {
 
+        if (isBroken(coreData)) {
+            return false;
+        }
+
         log.info("Saving core data to: {}", dataSourceName);
         return coreDataDAO.saveCoreDataTo(coreData, dataSourceName);
     }
@@ -129,6 +137,11 @@ class DataService implements DataProcessor {
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean generateTradingData(CoreData coreData) {
+
+        if (isBroken(coreData)) {
+            return false;
+        }
+
         return coreData.pushTradingPatternData();
     }
 
@@ -136,7 +149,7 @@ class DataService implements DataProcessor {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean createGraphsForMissingTimeframes(CoreData coreData) {
 
-        if (coreData == null || Check.isEmpty(coreData.getGraphs())) {
+        if (isBroken(coreData)) {
             return false;
         }
 
@@ -151,7 +164,7 @@ class DataService implements DataProcessor {
                 Timeframe.DAY,
                 Timeframe.WEEK));
 
-        for (Graph graph : coreData.getGraphs()) {
+        for (Graph graph : coreData.getReadOnlyGraphs()) {
             if (lowestTimeframe == Timeframe.UNKNOWN || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds) {
                 lowestTimeframe = graph.getTimeframe();
                 lowestTimeframeGraph = graph;
@@ -163,7 +176,7 @@ class DataService implements DataProcessor {
             if (lowestTimeframe.durationInSeconds < timeframe.durationInSeconds) {
                 lowestTimeframeGraph = graphGenerator.upscaleToTimeFrame(lowestTimeframeGraph, timeframe);
                 lowestTimeframe = timeframe;
-                coreData.getGraphs().add(lowestTimeframeGraph);
+                coreData.addGraph(lowestTimeframeGraph);
             }
         }
         return true;

@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 @AllArgsConstructor
 class DataConfig {
     public static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive";
-    public static final String TEST_CORE_DATA_FILENAME = "TEST_coredata.ser";
+    public static final String TEST_CORE_DATA_FILE_PATH = "./core_data/TEST_coredata.ser";
     private static final String NEW_LINE = System.lineSeparator();
     private static final String DELIMITER = "/";
     private final DataProcessor dataProcessor;
@@ -31,7 +31,7 @@ class DataConfig {
     @Bean
     CoreData coreData() {
 
-        CoreData coreData = new DefaultCoreData();
+        CoreData coreData = DefaultCoreData.newInstance();
 
         logInitializationProperties();
         preLoadData(coreData);
@@ -63,8 +63,6 @@ class DataConfig {
                         "Purge computation data after trading data is generated: {}" + NEW_LINE +
                         "Pattern setting autoconfig: {}" + NEW_LINE +
                         "Computation settings autoconfig: {}" + NEW_LINE +
-                        "Computation type: {}" + NEW_LINE +
-                        "Computable pattern type: {}" + NEW_LINE +
                         "Atomic graph partition: {}" + NEW_LINE +
                         "Full scope prediction range: {}",
                 dataProperties.folderName(),
@@ -77,8 +75,6 @@ class DataConfig {
                 dataProperties.purgeAfterTradingDataGeneration(),
                 dataProperties.patternSettingsAutoconfig(),
                 dataProperties.computationSettingsAutoconfig(),
-                dataProperties.computationType(),
-                dataProperties.computablePatternType(),
                 dataProperties.atomicPartition(),
                 dataProperties.fullScope());
     }
@@ -183,7 +179,7 @@ class DataConfig {
                         && dataProcessor.saveCoreData(coreData, dataProperties.folderName() + DELIMITER + dataProperties.sourceName()));
         log.info("Saved test core data overriden with newly generated core data: {}",
                 dataProperties.overrideSavedTestCoreData()
-                        && dataProcessor.saveCoreData(coreData, TEST_CORE_DATA_FILENAME));
+                        && dataProcessor.saveCoreData(coreData, TEST_CORE_DATA_FILE_PATH));
     }
 
 }

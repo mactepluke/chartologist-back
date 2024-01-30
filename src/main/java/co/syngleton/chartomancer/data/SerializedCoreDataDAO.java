@@ -21,7 +21,7 @@ final class SerializedCoreDataDAO implements CoreDataDAO {
             e.printStackTrace();
             return null;
         }
-        return new DefaultCoreData(readData);
+        return DefaultCoreData.valueOf(readData);
     }
 
     @Override

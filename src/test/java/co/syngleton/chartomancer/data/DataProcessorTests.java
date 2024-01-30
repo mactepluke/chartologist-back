@@ -30,7 +30,7 @@ class DataProcessorTests {
     DataProcessor dataProcessor;
     @Autowired
     MockData mockData;
-    TestableCoreData coreData;
+    CoreData coreData;
     @Value("${data.folder_name}")
     private String testDataFolderName;
     private String getTestDataFolderPath;
@@ -41,8 +41,8 @@ class DataProcessorTests {
     void setUp() {
         log.info("*** STARTING DATA PROCESSOR TESTS ***");
 
-        coreData = new TestableCoreData();
-        coreData.setGraphs(mockData.getTestGraphs());
+        coreData = DefaultCoreData.newInstance();
+        mockData.getTestGraphs().forEach(graph -> coreData.addGraph(graph));
 
         List<Pattern> patterns = new ArrayList<>();
         BasicPattern basicPattern = new BasicPattern(
@@ -69,10 +69,10 @@ class DataProcessorTests {
     @Test
     @DisplayName("[UNIT] Loads all test files and creates their graphs")
     void loadGraphsTest() {
-        CoreData testCoreData = new DefaultCoreData();
+        CoreData testCoreData = DefaultCoreData.newInstance();
 
         assertTrue(dataProcessor.loadGraphs(testCoreData, getTestDataFolderPath, testDataFilesNames));
-        assertEquals(testDataFilesNames.size(), testCoreData.getGraphs().size());
+        assertEquals(testDataFilesNames.size(), testCoreData.getReadOnlyGraphs().size());
     }
 
     @Test
@@ -91,6 +91,6 @@ class DataProcessorTests {
     @DisplayName("[UNIT] Creates graphs for missing timeframes")
     void createGraphsForMissingTimeframesTest() {
         assertTrue(dataProcessor.createGraphsForMissingTimeframes(coreData));
-        assertEquals(mockData.getNumberOfDifferentMockTimeframes() + 2, coreData.getGraphs().size());
+        assertEquals(mockData.getNumberOfDifferentMockTimeframes() + 2, coreData.getReadOnlyGraphs().size());
     }
 }
