@@ -53,31 +53,54 @@ record AnalyzerImpl(Smoothing matchScoreSmoothing,
     @Override
     public int calculateMatchScore(List<IntCandle> intCandles, List<IntCandle> intCandlesToMatch) {
 
-        int length = intCandles.size();
-        double matchScore = 0;
-        double patternCandlesSurface = 0;
-
-        if (length != intCandlesToMatch.size()) {
-            log.error("Pattern size does not match graph sample size.");
+        if (areNotSameSize(intCandles, intCandlesToMatch)) {
             return 0;
         }
 
-        for (var i = 0; i < length; i++) {
+        double surfaceMatch = calculateSurfaceMatch(intCandles, intCandlesToMatch);
+        int candlesSpan = calculateSurfaceSpan(intCandles, intCandlesToMatch);
 
-            IntCandle candle = intCandles.get(i);
-            IntCandle candleToMatch = intCandlesToMatch.get(i);
+        return filterMatchScore(Calc.positivePercentage(surfaceMatch, candlesSpan));
+    }
 
-            patternCandlesSurface = patternCandlesSurface + smooth(calculateCandleSurface(candle), i);
+    private boolean areNotSameSize(List<IntCandle> intCandles1, List<IntCandle> intCandles2) {
+        return intCandles1.size() != intCandles2.size();
+    }
 
-            if (haveSameColor(candle, candleToMatch)) {
+    double calculateSurfaceMatch(List<IntCandle> intCandles1, List<IntCandle> intCandles2) {
+        double surfaceMatch = 0;
 
-                double candleSurfaceOverlap = (double) calculateBodyOverlap(candle, candleToMatch) + calculateWickOverlap(candle, candleToMatch);
+        for (var i = 0; i < intCandles1.size(); i++) {
 
-                matchScore = matchScore +
-                        smooth(candleSurfaceOverlap, i);
-            }
+            IntCandle candle = intCandles1.get(i);
+            IntCandle candleToMatch = intCandles2.get(i);
+
+            int candleSurfaceOverlap = calculateCandleOverlap(candle, candleToMatch);
+            surfaceMatch += smooth(candleSurfaceOverlap, i);
         }
-        return filterMatchScore(Calc.positivePercentage(matchScore, patternCandlesSurface));
+
+        return surfaceMatch;
+    }
+
+    int calculateCandleOverlap(IntCandle candle, IntCandle candleToMatch) {
+        return calculateSameSideWickOverlap(candle, candleToMatch) + calculateSameColorBodyOverlap(candle, candleToMatch);
+    }
+
+    int calculateSurfaceSpan(List<IntCandle> intCandles1, List<IntCandle> intCandles2) {
+
+        if (areNotSameSize(intCandles1, intCandles2)) {
+            return 0;
+        }
+
+        int span = 0;
+
+        for (var i = 0; i < intCandles1.size(); i++) {
+            int lowest = min(intCandles1.get(i).low(), intCandles2.get(i).low());
+            int highest = max(intCandles1.get(i).high(), intCandles2.get(i).high());
+            span += smooth(highest - lowest, i);
+        }
+
+        return span;
     }
 
     private int filterMatchScore(int matchScore) {
@@ -92,14 +115,17 @@ record AnalyzerImpl(Smoothing matchScoreSmoothing,
         return matchScore;
     }
 
-    private double smooth(double value, int step) {
+    private int smooth(int value, int step) {
 
         switch (matchScoreSmoothing) {
+            case LOGARITHMIC -> {
+                return (int) round(value * Math.log((double) 2 + step));
+            }
             case LINEAR -> {
                 return value * (1 + step);
             }
             case EXPONENTIAL -> {
-                return value * Math.exp(step);
+                return (int) round(value * Math.exp(step));
             }
             default -> {
                 return value;
@@ -109,21 +135,35 @@ record AnalyzerImpl(Smoothing matchScoreSmoothing,
 
     int calculateCandleSurface(IntCandle intCandle) {
 
-        return abs(intCandle.open() - intCandle.close())
-                + (intCandle.open() > intCandle.close() ?
-                intCandle.close() - intCandle.low() + intCandle.high() - intCandle.open()
-                : intCandle.open() - intCandle.low() + intCandle.high() - intCandle.close());
+        int[] candleValues = {intCandle.open(), intCandle.close(), intCandle.high(), intCandle.low()};
+        Arrays.sort(candleValues);
+
+        return candleValues[3] - candleValues[0];
     }
 
     boolean haveSameColor(IntCandle intCandle, IntCandle intCandleToMatch) {
+        return (isEmptyBodied(intCandle) || isEmptyBodied(intCandleToMatch) || isGreen(intCandle) == isGreen(intCandleToMatch));
+    }
 
-        return (intCandle.open() < intCandle.close()
-                && intCandleToMatch.open() < intCandleToMatch.close())
-                || (intCandle.open() > intCandle.close()
-                && intCandleToMatch.open() > intCandleToMatch.close());
+    private boolean isGreen(IntCandle intCandle) {
+        return intCandle.open() <= intCandle.close();
+    }
+
+    private boolean isEmptyBodied(IntCandle intCandle) {
+        return intCandle.open() == intCandle.close();
+    }
+
+    int calculateSameColorBodyOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
+
+        if (!haveSameColor(intCandle, intCandleToMatch)) {
+            return 0;
+        }
+
+        return calculateBodyOverlap(intCandle, intCandleToMatch);
     }
 
     int calculateBodyOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
+
         return overlapAmount(
                 intCandle.open(),
                 intCandle.close(),
@@ -131,43 +171,17 @@ record AnalyzerImpl(Smoothing matchScoreSmoothing,
                 intCandleToMatch.close());
     }
 
-    int calculateWickOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
+    int calculateSameSideWickOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
 
-        if (isRedCandle(intCandle)) {
-            return calculateRedCandleWickOverlap(intCandle, intCandleToMatch);
-        } else {
-            return calculateGreenCandleWickOverlap(intCandle, intCandleToMatch);
-        }
-    }
+        int[] intCandleValues = {intCandle.open(), intCandle.close(), intCandle.high(), intCandle.low()};
+        int[] intCandleToMatchValues = {intCandleToMatch.open(), intCandleToMatch.close(), intCandleToMatch.high(), intCandleToMatch.low()};
 
-    boolean isRedCandle(IntCandle intCandle) {
-        return intCandle.open() > intCandle.close();
-    }
+        Arrays.sort(intCandleValues);
+        Arrays.sort(intCandleToMatchValues);
 
-    int calculateRedCandleWickOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
-        return overlapAmount(
-                intCandle.high(),
-                intCandle.open(),
-                intCandleToMatch.high(),
-                intCandleToMatch.open())
-                + overlapAmount(
-                intCandle.close(),
-                intCandle.low(),
-                intCandleToMatch.close(),
-                intCandleToMatch.low());
-    }
+        return overlapAmount(intCandleValues[0], intCandleValues[1], intCandleToMatchValues[0], intCandleToMatchValues[1])
+                + overlapAmount(intCandleValues[2], intCandleValues[3], intCandleToMatchValues[2], intCandleToMatchValues[3]);
 
-    int calculateGreenCandleWickOverlap(IntCandle intCandle, IntCandle intCandleToMatch) {
-        return overlapAmount(
-                intCandle.low(),
-                intCandle.open(),
-                intCandleToMatch.low(),
-                intCandleToMatch.open())
-                + overlapAmount(
-                intCandle.close(),
-                intCandle.high(),
-                intCandleToMatch.close(),
-                intCandleToMatch.high());
     }
 
     int overlapAmount(int aStart, int aEnd, int bStart, int bEnd) {
