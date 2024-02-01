@@ -3,14 +3,11 @@ package co.syngleton.chartomancer.analytics;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.core_entities.FloatCandle;
 import co.syngleton.chartomancer.core_entities.IntCandle;
-import co.syngleton.chartomancer.data.DataConfigTest;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,9 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Log4j2
-@AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
 class AnalyserImplTests {
 
@@ -35,7 +30,7 @@ class AnalyserImplTests {
 
     @BeforeAll
     void setUp() {
-        log.info("*** STARTING ANALYZER TESTS ***");
+        log.info("*** STARTING ANALYZER IMPL TESTS ***");
         LocalDateTime candleDate = LocalDateTime.now();
         List<FloatCandle> floatCandles;
 
@@ -69,7 +64,7 @@ class AnalyserImplTests {
 
     @AfterAll
     void tearDown() {
-        log.info("*** ENDING ANALYZER TESTS ***");
+        log.info("*** ENDING ANALYZER IMPL TESTS ***");
     }
 
 

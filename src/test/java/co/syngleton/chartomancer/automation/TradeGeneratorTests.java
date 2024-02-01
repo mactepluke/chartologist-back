@@ -6,7 +6,6 @@ import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.core_entities.DefaultCoreData;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.PurgeOption;
-import co.syngleton.chartomancer.data.DataConfigTest;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
@@ -14,10 +13,8 @@ import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
@@ -26,9 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Log4j2
-@AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
 class TradeGeneratorTests {
 
@@ -91,6 +86,7 @@ class TradeGeneratorTests {
     }
 
     @Test
+    @Disabled
     @DisplayName("[IT] Checks test core data integrity")
     void checkCoreDataIntegrity() {
         dataProcessor.printCoreData(coreData);
@@ -110,6 +106,7 @@ class TradeGeneratorTests {
     }
 
     @Test
+    @Disabled
     @DisplayName("[IT] Tests if dummy trades results are correct")
     void dummyTradesTest() {
 

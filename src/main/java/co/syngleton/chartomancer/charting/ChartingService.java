@@ -1,14 +1,13 @@
 package co.syngleton.chartomancer.charting;
 
+import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.core_entities.FloatCandle;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.IntCandle;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.util.Check;
-import co.syngleton.chartomancer.util.Pair;
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +33,10 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
 
         Graph graph = historicalDataDAO.generateGraphFromSource(source);
 
+        if (graphIsInvalid(graph)) {
+            return null;
+        }
+
         if (chartingProperties.repairMissingCandles()) {
             graph = repairMissingCandles(graph);
         }
@@ -43,7 +46,29 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
         return graph;
     }
 
-    private @NonNull Graph repairMissingCandles(@NonNull Graph graph) {
+    private boolean graphIsInvalid(Graph graph) {
+
+        if (graph == null || Check.isEmpty(graph.getFloatCandles())) {
+            log.error("Graph is null or empty.");
+            return true;
+        }
+
+        if (graph.getTimeframe() == Timeframe.UNKNOWN || graph.getTimeframe() == null) {
+            log.warn("Graph has unknown or null timeframe.");
+        }
+
+        if (graph.getSymbol() == Symbol.UNDEFINED || graph.getSymbol() == null) {
+            log.warn("Graph has undefined or null symbol.");
+        }
+
+        return false;
+    }
+
+    Graph repairMissingCandles(Graph graph) {
+
+        if (graphIsInvalid(graph)) {
+            return null;
+        }
 
         log.debug("Repairing missing candles...");
 
@@ -61,15 +86,16 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
                             (graph.getFloatCandles().get(i + j).dateTime().toEpochSecond(ZoneOffset.UTC) + graph.getTimeframe().durationInSeconds))
             ) {
 
-                FloatCandle missingCandle = new FloatCandle(
-                        LocalDateTime.ofEpochSecond(graph.getFloatCandles().get(i).dateTime().toEpochSecond(
-                                ZoneOffset.UTC) + (j + 1) * graph.getTimeframe().durationInSeconds, 0, ZoneOffset.UTC),
-                        graph.getFloatCandles().get(i).close(),
-                        graph.getFloatCandles().get(i).high(),
-                        graph.getFloatCandles().get(i).low(),
-                        graph.getFloatCandles().get(i).close(),
-                        graph.getFloatCandles().get(i).volume()
-                );
+                LocalDateTime newCandleDateTime = LocalDateTime.ofEpochSecond(graph.getFloatCandles().get(i).dateTime().toEpochSecond(
+                        ZoneOffset.UTC) + (j + 1) * graph.getTimeframe().durationInSeconds, 0, ZoneOffset.UTC);
+
+                float newCandleOpen = graph.getFloatCandles().get(i).close();
+                float newCandleClose = graph.getFloatCandles().get(i + j + 1).open();
+                float newCandleHigh = max(newCandleOpen, newCandleClose);
+                float newCandleLow = min(newCandleOpen, newCandleClose);
+                float newCandleVolume = (graph.getFloatCandles().get(i).volume() + graph.getFloatCandles().get(i + j + 1).volume()) / 2;
+
+                FloatCandle missingCandle = new FloatCandle(newCandleDateTime, newCandleOpen, newCandleHigh, newCandleLow, newCandleClose, newCandleVolume);
                 repairedFloatCandles.add(missingCandle);
 
                 j++;
@@ -91,7 +117,10 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
         int span = (int) (timeframe.durationInSeconds / graph.getTimeframe().durationInSeconds);
 
         for (int i = 0; i < graph.getFloatCandles().size() - span + 1; i = i + span) {
-            newFloatCandles.add(createUpscaleCandles(graph, span, i));
+            FloatCandle newFloatCandle = createUpscaleCandle(graph, span, i);
+            if (newFloatCandle != null) {
+                newFloatCandles.add(createUpscaleCandle(graph, span, i));
+            }
         }
         return new Graph("Upscale-" + graph.getName(), graph.getSymbol(), timeframe, newFloatCandles);
     }
@@ -104,8 +133,18 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
                 && timeframe.durationInSeconds > graph.getTimeframe().durationInSeconds;
     }
 
-    private FloatCandle createUpscaleCandles(Graph graph, int span, int step) {
+    FloatCandle createUpscaleCandle(Graph graph, int span, int step) {
+
+        if (graphIsInvalid(graph)) {
+            return null;
+        }
+
+        if (graph.getFloatCandles().size() < step + span) {
+            return null;
+        }
+
         LocalDateTime dateTime = graph.getFloatCandles().get(step).dateTime();
+
         float open = graph.getFloatCandles().get(step).open();
         float close = graph.getFloatCandles().get(step + span - 1).close();
         float high = open;
@@ -123,42 +162,58 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
     @Override
     public List<IntCandle> rescale(List<FloatCandle> floatCandles, int granularity) {
 
-        Pair<Float, Float> extremes = getLowestAndHighest(floatCandles);
+        List<Float> extremes = getLowestAndHighestCandleValuesAndVolumes(floatCandles);
 
         List<IntCandle> intCandles = new ArrayList<>();
 
         for (FloatCandle floatCandle : floatCandles) {
-            intCandles.add(rescaleToIntCandle(floatCandle, granularity, extremes.first(), extremes.second()));
+            intCandles.add(
+                    rescaleToIntCandle(floatCandle,
+                            granularity,
+                            extremes.get(0),
+                            extremes.get(1),
+                            extremes.get(2),
+                            extremes.get(3))
+            );
         }
         return intCandles;
     }
 
-    private Pair<Float, Float> getLowestAndHighest(List<FloatCandle> floatCandles) {
+    List<Float> getLowestAndHighestCandleValuesAndVolumes(List<FloatCandle> floatCandles) {
 
         float lowest = floatCandles.get(0).low();
-        float highest = 0;
+        float highest = floatCandles.get(0).high();
+        float lowestVolume = floatCandles.get(0).volume();
+        float highestVolume = floatCandles.get(0).volume();
 
         for (FloatCandle floatCandle : floatCandles) {
             lowest = Math.min(lowest, floatCandle.low());
             highest = Math.max(highest, floatCandle.high());
+            lowestVolume = Math.min(lowestVolume, floatCandle.volume());
+            highestVolume = Math.max(highestVolume, floatCandle.volume());
         }
-        return new Pair<>(lowest, highest);
+        return List.of(lowest, highest, lowestVolume, highestVolume);
     }
 
-    private IntCandle rescaleToIntCandle(FloatCandle floatCandle, int granularity, float lowest, float highest) {
+    IntCandle rescaleToIntCandle(FloatCandle floatCandle,
+                                 int granularity,
+                                 float lowest,
+                                 float highest,
+                                 float lowestVolume,
+                                 float highestVolume) {
 
         int open = rescaleValue(floatCandle.open(), granularity, lowest, highest);
         int high = rescaleValue(floatCandle.high(), granularity, lowest, highest);
         int low = rescaleValue(floatCandle.low(), granularity, lowest, highest);
         int close = rescaleValue(floatCandle.close(), granularity, lowest, highest);
-        int volume = round(floatCandle.volume() / ((highest - lowest) / granularity));
+        int volume = rescaleValue(floatCandle.volume(), granularity, lowestVolume, highestVolume);
 
         return new IntCandle(LocalDateTime.now(), open, high, low, close, volume);
     }
 
     private int rescaleValue(float value, int granularity, float lowest, float highest) {
 
-        float divider = (highest - lowest) / granularity;
+        float divider = highest == lowest ? 1 : (highest - lowest) / granularity;
         return streamline(round((value - lowest) / divider), 0, granularity);
     }
 

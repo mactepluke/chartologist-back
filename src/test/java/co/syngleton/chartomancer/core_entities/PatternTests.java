@@ -2,13 +2,10 @@ package co.syngleton.chartomancer.core_entities;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.data.DataConfigTest;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @Log4j2
-@AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = DataConfigTest.class)
 @ActiveProfiles("test")
 class PatternTests {
 
@@ -49,8 +44,6 @@ class PatternTests {
         log.debug("Patterns: {}", patternBox.getPatterns());
 
         assertEquals(scopes, patternBox.getPatterns().size());
-
-
     }
 
 
