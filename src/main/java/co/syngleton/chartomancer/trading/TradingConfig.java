@@ -21,4 +21,11 @@ class TradingConfig {
         );
     }
 
+    @Bean
+    TradingAdvisor tradingAdvisor() {
+        return TradingAdvisor.getNewInstance(tradingProperties.rewardToRiskRatio(),
+                tradingProperties.riskPercentage(),
+                tradingProperties.slTpStrategy());
+    }
+
 }

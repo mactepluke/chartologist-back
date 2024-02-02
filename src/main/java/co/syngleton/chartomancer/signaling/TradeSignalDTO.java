@@ -2,7 +2,6 @@ package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.trading.Trade;
-import co.syngleton.chartomancer.trading.TradeStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -37,7 +36,7 @@ public class TradeSignalDTO {
 
 
     public TradeSignalDTO(Trade trade) {
-        this.blank = trade.getStatus() == TradeStatus.BLANK;
+        this.blank = trade.getStatus() == Trade.TradeStatus.BLANK;
         this.timeframe = trade.getTimeframe();
         this.size = trade.getSize();
         this.side = trade.isSide() ? "LONG" : "SHORT";

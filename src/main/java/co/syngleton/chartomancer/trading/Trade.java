@@ -10,7 +10,6 @@ import co.syngleton.chartomancer.util.datatabletool.PrintableData;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.Contract;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -55,13 +54,15 @@ public final class Trade extends ChartObject implements PrintableData {
     private static final long MAX_TRADE_DURATION_IN_SECONDS = Timeframe.WEEK.durationInSeconds * 4;
     private static final int MAX_LEVERAGE = 20;
 
+    private final transient Accountable account;
     private final String platform;
-    private final double accountBalanceAtOpen;
     private final double size;
     private final boolean side;
     private final double openingPrice;
-    private final LocalDateTime openDateTime;
     private final LocalDateTime expectedClose;
+    private final double feePercentage;
+    private double accountBalanceAtOpen;
+    private LocalDateTime openDateTime;
     private LocalDateTime lastUpdate;
     private LocalDateTime expiry;
     private LocalDateTime closeDateTime;
@@ -69,51 +70,44 @@ public final class Trade extends ChartObject implements PrintableData {
     private double closingPrice;
     private double takeProfit;
     private double stopLoss;
-    private double feePercentage;
-    private boolean maker;
 
     private Trade() {
         super(null);
         platform = "Blank trade";
-        accountBalanceAtOpen = 0;
+        account = null;
         size = 0;
         side = false;
         openingPrice = 0;
         openDateTime = null;
         expectedClose = null;
+        feePercentage = 0;
         status = TradeStatus.BLANK;
     }
 
-    /**
-     * Creates a fully parameterized trade
-     *
-     * @param platform      name of the exchange or the dummy graph to trade against
-     * @param timeframe
-     * @param symbol
-     * @param account       account from which to read the balance
-     * @param openDateTime
-     * @param size          this is the token quantity (not the price of the tokens!)
-     * @param expectedClose
-     * @param side          long if true, short if false
-     * @param openingPrice
-     * @param takeProfit
-     * @param stopLoss
-     */
-    public Trade(String platform, Timeframe timeframe, Symbol symbol, @NonNull Accountable account, LocalDateTime openDateTime, double size, LocalDateTime expectedClose, boolean side, double openingPrice, double takeProfit, double stopLoss, double feePercentage, boolean maker) {
+    private Trade(String platform,
+                  Timeframe timeframe,
+                  Symbol symbol,
+                  @NonNull
+                  Accountable account,
+                  double size,
+                  LocalDateTime expectedClose,
+                  boolean side,
+                  double openingPrice,
+                  double takeProfit,
+                  double stopLoss,
+                  double feePercentage) {
 
         super(symbol, timeframe);
 
-        this.maker = maker;
-        this.status = (this.maker) ? TradeStatus.LIMIT_ORDER : TradeStatus.OPENED;
+        this.status = TradeStatus.LIMIT_ORDER;
         this.openingPrice = openingPrice;
         this.side = side;
+        this.account = account;
 
         setStopLoss(stopLoss);
         setTakeProfit(takeProfit);
 
         this.platform = platform == null ? "unknown" : platform;
-        this.accountBalanceAtOpen = Format.roundTwoDigits(account.getBalance());
-        this.openDateTime = openDateTime == null ? LocalDateTime.now() : openDateTime;
         this.expectedClose = expectedClose == null ? LocalDateTime.now().plusSeconds(timeframe.durationInSeconds * timeframe.scope) : expectedClose;
         this.expiry = LocalDateTime.now().plusSeconds(MAX_TRADE_DURATION_IN_SECONDS);
         this.closeDateTime = null;
@@ -121,22 +115,67 @@ public final class Trade extends ChartObject implements PrintableData {
         this.size = Format.roundNDigits(size, 3);
         this.feePercentage = feePercentage;
 
-        if (getMaxLoss() > accountBalanceAtOpen) {
-            log.debug("------------------>> maxloss={}, account balance at open ={}", getMaxLoss(), accountBalanceAtOpen);
-            this.status = TradeStatus.UNFUNDED;
-        }
 
         if (getTakeProfit() == openingPrice || getStopLoss() == openingPrice || getExpectedProfit() < 0) {
-            log.debug("take profit={}, stop loss={}, expected profit={}", getTakeProfit(), getStopLoss(), getExpectedProfit());
             this.status = TradeStatus.BLANK;
         }
 
         this.lastUpdate = LocalDateTime.now();
     }
 
-    @Contract(" -> new")
-    public static @NonNull Trade blank() {
+    public static Trade blank() {
         return new Trade();
+    }
+
+    public static Trade withSettings(
+            String platform,
+            Timeframe timeframe,
+            Symbol symbol,
+            @NonNull
+            Accountable account,
+            double size,
+            LocalDateTime expectedClose,
+            boolean side,
+            double openingPrice,
+            double takeProfit,
+            double stopLoss,
+            double feePercentage
+    ) {
+        return new Trade(platform, timeframe, symbol, account, size, expectedClose, side, openingPrice, takeProfit, stopLoss, feePercentage);
+    }
+
+    public Trade open() {
+        open(LocalDateTime.now());
+        return this;
+    }
+
+    public Trade open(LocalDateTime openDateTime) {
+
+        this.lastUpdate = LocalDateTime.now();
+
+        if (account == null) {
+            this.status = TradeStatus.BLANK;
+
+            return this;
+        }
+
+        this.accountBalanceAtOpen = Format.roundTwoDigits(account.getBalance());
+
+        if (getMaxLoss() > accountBalanceAtOpen) {
+            this.status = TradeStatus.UNFUNDED;
+
+            return this;
+        }
+
+        if (status == TradeStatus.LIMIT_ORDER) {
+            this.openDateTime = openDateTime;
+            this.status = TradeStatus.OPENED;
+
+            return this;
+        }
+        log.warn("Cannot open trade because trade is: {}", this.status);
+
+        return this;
     }
 
     public boolean isOpen() {
@@ -215,7 +254,8 @@ public final class Trade extends ChartObject implements PrintableData {
 
     @Override
     public String toString() {
-        return "Trade{" + OPEN_NAME + "=" + Format.toFrenchDateTime(openDateTime) + ", " + LAST_UPDATE_NAME + "=" + Format.toFrenchDateTime(lastUpdate) + ", " + PLATFORM_NAME + "=" + getPlatform() + ", " + SYMBOL_NAME + "=" + getSymbol() + ", " + TIMEFRAME_NAME + "=" + getTimeframe() + ", " + ACCOUNT_BALANCE_NAME + "=" + accountBalanceAtOpen + ", " + SIZE_NAME + "=" + size + ", " + EXPECTED_CLOSE_NAME + "=" + Format.toFrenchDateTime(expectedClose) + ", " + EXPIRY_NAME + "=" + Format.toFrenchDateTime(expiry) + ", " + CLOSE_NAME + "=" + Format.toFrenchDateTime(closeDateTime) + ", " + STATUS_NAME + "=" + status + ", " + SIDE_NAME + "=" + (side ? "LONG" : "SHORT") + ", " + OPENING_PRICE_NAME + "=" + openingPrice + ", " + CLOSING_PRICE_NAME + "=" + closingPrice + ", " + TP_NAME + "=" + takeProfit + ", " + SL_NAME + stopLoss + ", " + LEVERAGE_NAME + getLeverage() + ", " + TP_PRICE_PER_NAME + "=" + this.getTakeProfitPricePercentage() + ", " + SL_PRICE_PER_NAME + "=" + this.getStopLossPricePercentage() + ", " + EXPECTED_PROFIT_NAME + "=" + this.getExpectedProfit() + ", " + RISK_PER_NAME + "=" + this.getRiskPercentage() + ", " + RR_RATIO_NAME + "=" + this.getRewardToRiskRatio() + ", " + PNL_NAME + "=" + this.getPnL() + ", " + FEE_PERCENTAGE_NAME + "=" + feePercentage + ", " + FEE_AMOUNT_NAME + "=" + this.getFeeAmount() + ", " + ORDER_TYPE_NAME + "=" + (maker ? "MAKER" : "TAKER") + "}";
+        return "Trade{" + OPEN_NAME + "=" +
+                Format.toFrenchDateTime(openDateTime) + ", " + LAST_UPDATE_NAME + "=" + Format.toFrenchDateTime(lastUpdate) + ", " + PLATFORM_NAME + "=" + getPlatform() + ", " + SYMBOL_NAME + "=" + getSymbol() + ", " + TIMEFRAME_NAME + "=" + getTimeframe() + ", " + ACCOUNT_BALANCE_NAME + "=" + accountBalanceAtOpen + ", " + SIZE_NAME + "=" + size + ", " + EXPECTED_CLOSE_NAME + "=" + Format.toFrenchDateTime(expectedClose) + ", " + EXPIRY_NAME + "=" + Format.toFrenchDateTime(expiry) + ", " + CLOSE_NAME + "=" + Format.toFrenchDateTime(closeDateTime) + ", " + STATUS_NAME + "=" + status + ", " + SIDE_NAME + "=" + (side ? "LONG" : "SHORT") + ", " + OPENING_PRICE_NAME + "=" + openingPrice + ", " + CLOSING_PRICE_NAME + "=" + closingPrice + ", " + TP_NAME + "=" + takeProfit + ", " + SL_NAME + stopLoss + ", " + LEVERAGE_NAME + getLeverage() + ", " + TP_PRICE_PER_NAME + "=" + this.getTakeProfitPricePercentage() + ", " + SL_PRICE_PER_NAME + "=" + this.getStopLossPricePercentage() + ", " + EXPECTED_PROFIT_NAME + "=" + this.getExpectedProfit() + ", " + RISK_PER_NAME + "=" + this.getRiskPercentage() + ", " + RR_RATIO_NAME + "=" + this.getRewardToRiskRatio() + ", " + PNL_NAME + "=" + this.getPnL() + ", " + FEE_PERCENTAGE_NAME + "=" + feePercentage + ", " + FEE_AMOUNT_NAME + "=" + this.getFeeAmount() + "}";
     }
 
     public float getLeverage() {
@@ -255,13 +295,12 @@ public final class Trade extends ChartObject implements PrintableData {
 
     @Override
     public List<Serializable> toRow() {
-        return new ArrayList<>(List.of(Format.toFrenchDateTime(openDateTime), Format.toFrenchDateTime(lastUpdate), platform, getSymbol(), getTimeframe(), accountBalanceAtOpen, size, Format.toFrenchDateTime(expectedClose), Format.toFrenchDateTime(expiry), Format.toFrenchDateTime(closeDateTime), status, (side ? "LONG" : "SHORT"), openingPrice, closingPrice, takeProfit, stopLoss, getLeverage(), getTakeProfitPricePercentage(), getStopLossPricePercentage(), getExpectedProfit(), getRiskPercentage(), getRewardToRiskRatio(), getPnL(), feePercentage, getFeeAmount(), (maker ? "MAKER" : "TAKER")));
-
+        return new ArrayList<>(List.of(Format.toFrenchDateTime(openDateTime), Format.toFrenchDateTime(lastUpdate), platform, getSymbol(), getTimeframe(), accountBalanceAtOpen, size, Format.toFrenchDateTime(expectedClose), Format.toFrenchDateTime(expiry), Format.toFrenchDateTime(closeDateTime), status, (side ? "LONG" : "SHORT"), openingPrice, closingPrice, takeProfit, stopLoss, getLeverage(), getTakeProfitPricePercentage(), getStopLossPricePercentage(), getExpectedProfit(), getRiskPercentage(), getRewardToRiskRatio(), getPnL(), feePercentage, getFeeAmount()));
 
     }
 
     public List<String> extractCsvHeader() {
-        return new ArrayList<>(List.of(OPEN_NAME, LAST_UPDATE_NAME, PLATFORM_NAME, SYMBOL_NAME, TIMEFRAME_NAME, ACCOUNT_BALANCE_NAME, SIZE_NAME, EXPECTED_CLOSE_NAME, EXPIRY_NAME, CLOSE_NAME, STATUS_NAME, SIDE_NAME, OPENING_PRICE_NAME, CLOSING_PRICE_NAME, TP_NAME, SL_NAME, LEVERAGE_NAME, TP_PRICE_PER_NAME, SL_PRICE_PER_NAME, EXPECTED_PROFIT_NAME, RISK_PER_NAME, RR_RATIO_NAME, PNL_NAME, FEE_PERCENTAGE_NAME, FEE_AMOUNT_NAME, ORDER_TYPE_NAME));
+        return new ArrayList<>(List.of(OPEN_NAME, LAST_UPDATE_NAME, PLATFORM_NAME, SYMBOL_NAME, TIMEFRAME_NAME, ACCOUNT_BALANCE_NAME, SIZE_NAME, EXPECTED_CLOSE_NAME, EXPIRY_NAME, CLOSE_NAME, STATUS_NAME, SIDE_NAME, OPENING_PRICE_NAME, CLOSING_PRICE_NAME, TP_NAME, SL_NAME, LEVERAGE_NAME, TP_PRICE_PER_NAME, SL_PRICE_PER_NAME, EXPECTED_PROFIT_NAME, RISK_PER_NAME, RR_RATIO_NAME, PNL_NAME, FEE_PERCENTAGE_NAME, FEE_AMOUNT_NAME));
     }
 
     public void hitStopLoss(LocalDateTime closeDateTime) {
@@ -337,4 +376,17 @@ public final class Trade extends ChartObject implements PrintableData {
         }
         return pnl;
     }
+
+    public enum TradeStatus {
+        LIMIT_ORDER,
+        OPENED,
+        STOP_LOSS_HIT,
+        TAKE_PROFIT_HIT,
+        CANCELED,
+        CLOSED_MANUALLY,
+        EXPIRED,
+        BLANK,
+        UNFUNDED
+    }
+
 }

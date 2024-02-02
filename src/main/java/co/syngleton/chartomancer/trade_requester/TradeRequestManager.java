@@ -71,7 +71,7 @@ class TradeRequestManager implements PassiveTradeRequester {
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.credit(accountBalance);
 
-        return tradeGenerator.generateOptimalTrade(tradingAccount,
+        return tradeGenerator.generateOptimalTakerTrade(tradingAccount,
                 graph,
                 coreData,
                 graph.getFloatCandles().size() - 1);

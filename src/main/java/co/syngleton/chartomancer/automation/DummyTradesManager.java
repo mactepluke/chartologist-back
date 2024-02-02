@@ -6,7 +6,10 @@ import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
-import co.syngleton.chartomancer.trading.*;
+import co.syngleton.chartomancer.trading.Trade;
+import co.syngleton.chartomancer.trading.TradeGenerator;
+import co.syngleton.chartomancer.trading.TradeSimulator;
+import co.syngleton.chartomancer.trading.TradingAccount;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
@@ -137,11 +140,11 @@ final class DummyTradesManager {
 
             Trade trade = generateAndProcessTrade(graph, account, maxScope, tradeOpenCandle);
 
-            if (trade != null && trade.getStatus() == TradeStatus.BLANK) {
+            if (trade != null && trade.getStatus() == Trade.TradeStatus.BLANK) {
                 blankTradesCount++;
             }
 
-            if (trade != null && trade.getStatus() == TradeStatus.UNFUNDED) {
+            if (trade != null && trade.getStatus() == Trade.TradeStatus.UNFUNDED) {
                 liquidated = true;
             }
 
@@ -171,10 +174,10 @@ final class DummyTradesManager {
             Trade trade = generateAndProcessTrade(graph, account, maxScope, tradeOpenCandle);
 
             if (trade != null) {
-                if (trade.getStatus() == TradeStatus.BLANK) {
+                if (trade.getStatus() == Trade.TradeStatus.BLANK) {
                     blankTradesCount++;
                     tradeOpenCandle++;
-                } else if (trade.getStatus() == TradeStatus.UNFUNDED) {
+                } else if (trade.getStatus() == Trade.TradeStatus.UNFUNDED) {
                     liquidated = true;
                 } else {
                     tradeOpenCandle = tradeOpenCandle + (round((trade.getCloseDateTime().toEpochSecond(ZoneOffset.UTC) - trade.getOpenDateTime().toEpochSecond(ZoneOffset.UTC))
@@ -187,7 +190,7 @@ final class DummyTradesManager {
 
     private Trade generateAndProcessTrade(@NonNull Graph graph, TradingAccount account, int maxScope, int tradeOpenCandle) {
 
-        Trade trade = tradeGenerator.generateOptimalTradeWithDefaultSettings(
+        Trade trade = tradeGenerator.generateOptimalTakerTradeWithDefaultSettings(
                 account,
                 graph,
                 coreData,

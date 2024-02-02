@@ -285,8 +285,8 @@ public class DefaultCoreData extends CoreData {
         }
 
         switch (option) {
-            case GRAPHS -> this.graphs = new HashSet<>();
-            case PATTERNS -> this.patternBoxes = new HashSet<>();
+            case GRAPHS -> this.graphs.clear();
+            case PATTERNS -> this.patternBoxes.clear();
             case GRAPHS_AND_PATTERNS -> this.purgeNonTrading();
             default -> {
                 return false;
@@ -296,8 +296,8 @@ public class DefaultCoreData extends CoreData {
     }
 
     private void purgeNonTrading() {
-        graphs = new HashSet<>();
-        patternBoxes = new HashSet<>();
+        this.graphs.clear();
+        this.patternBoxes.clear();
     }
 
     @Override
