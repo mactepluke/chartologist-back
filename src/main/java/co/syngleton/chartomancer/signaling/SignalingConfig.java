@@ -5,7 +5,7 @@ import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.trade_requester.PassiveTradeRequester;
 import co.syngleton.chartomancer.trading.Trade;
 import co.syngleton.chartomancer.trading.TradingAccount;
-import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
+import co.syngleton.chartomancer.util.csvwritertool.CSVWriter;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +49,7 @@ class SignalingConfig {
     private synchronized void updateSignalsHistory(Trade trade, Timeframe timeframe) {
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.addTrade(trade);
-        DataTableTool.writeDataTableToFile(SIGNALS_HISTORY_FOLDER + SIGNALS_FILE_NAME + "_" + timeframe, tradingAccount);
+        CSVWriter.writeCSVDataToFile(SIGNALS_HISTORY_FOLDER + SIGNALS_FILE_NAME + "_" + timeframe, tradingAccount);
     }
 
 }

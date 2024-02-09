@@ -32,7 +32,9 @@ final class PatternFactory {
             case PREDICTIVE -> {
                 return generatePredictivePatterns(patternSettings);
             }
-
+            case MULTI_PREDICTIVE -> {
+                return generateMultiPredictivePatterns(patternSettings);
+            }
             default -> {
                 log.error("Undefined pattern type.");
                 return Collections.emptyList();
@@ -107,7 +109,14 @@ final class PatternFactory {
         List<Pattern> basicPatterns;
         basicPatterns = generateBasicPatterns(patternSettings);
 
-        return convertPatterns(basicPatterns, patternSettings);
+        return convertFromBasicToPredictivePatterns(basicPatterns, patternSettings);
+    }
+
+    List<Pattern> generateMultiPredictivePatterns(PatternSettings patternSettings) {
+        List<Pattern> basicPatterns;
+        basicPatterns = generateBasicPatterns(patternSettings);
+
+        return convertFromBasicToMultiPredictivePatterns(basicPatterns, patternSettings);
     }
 
     private List<Pattern> generateBasicPatterns(PatternSettings patternSettings) {
@@ -126,10 +135,8 @@ final class PatternFactory {
                     BasicPattern basicPattern = new BasicPattern(
                             pixelatedChunk,
                             patternSettings.getGranularity(),
-                            patternSettings.getLength(),
                             patternSettings.getGraph().getSymbol(),
-                            patternSettings.getGraph().getTimeframe(),
-                            graphChunk.get(0).dateTime()
+                            patternSettings.getGraph().getTimeframe()
                     );
                     patterns.add(basicPattern);
                 }
@@ -168,35 +175,41 @@ final class PatternFactory {
                 && patternSettings.getGraph().getFloatCandles().size() / patternSettings.getLength() > pfp.minPatternsPerGraph();
     }
 
-    private List<Pattern> convertPatterns(List<Pattern> patterns, PatternSettings patternSettings) {
-        List<Pattern> predictivePatterns = new ArrayList<>();
-
-        if (!patterns.isEmpty()) {
-
-            if (patterns.get(0) instanceof BasicPattern) {
-                return convertFromBasicToPredictivePatterns(patterns, patternSettings);
-            } else {
-                log.error("Could not convert patterns because of unrecognized pattern type");
-            }
-        }
-        return predictivePatterns;
-    }
 
     private List<Pattern> convertFromBasicToPredictivePatterns(List<Pattern> basicPatterns, PatternSettings patternSettings) {
+
+        checkBasicPatternsIntegrity(basicPatterns);
 
         List<Pattern> predictivePatterns = new ArrayList<>();
 
         for (Pattern pattern : basicPatterns) {
             if (patternSettings.isFullScope()) {
                 for (int scope = 1; scope < patternSettings.getScope(); scope++) {
-                    PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern, scope);
-                    predictivePatterns.add(predictivePattern);
+                    predictivePatterns.add(new ComputablePattern(pattern, scope));
                 }
             }
-            PredictivePattern predictivePattern = new PredictivePattern((BasicPattern) pattern, patternSettings.getScope());
-            predictivePatterns.add(predictivePattern);
+            predictivePatterns.add(new ComputablePattern(pattern, patternSettings.getScope()));
         }
         return predictivePatterns;
+    }
+
+    private List<Pattern> convertFromBasicToMultiPredictivePatterns(List<Pattern> basicPatterns, PatternSettings patternSettings) {
+
+        checkBasicPatternsIntegrity(basicPatterns);
+
+        List<Pattern> multiPredictivePatterns = new ArrayList<>();
+
+        for (Pattern pattern : basicPatterns) {
+            multiPredictivePatterns.add(new MultiComputablePattern(pattern, patternSettings.getScope()));
+        }
+        return multiPredictivePatterns;
+    }
+
+    private void checkBasicPatternsIntegrity(List<Pattern> patterns) {
+        if (patterns == null || patterns.isEmpty() || !(patterns.get(0) instanceof BasicPattern)) {
+            log.error("Invalid basic patterns");
+            throw new IllegalArgumentException("Invalid basic patterns");
+        }
     }
 
 }

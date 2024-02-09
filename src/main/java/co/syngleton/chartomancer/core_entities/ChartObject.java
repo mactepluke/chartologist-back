@@ -25,7 +25,7 @@ public abstract class ChartObject implements Serializable {
         this.timeframe = chartObject == null ? Timeframe.UNKNOWN : chartObject.getTimeframe();
     }
 
-    public boolean matches(ChartObject chartObject) {
+    public final boolean matches(ChartObject chartObject) {
         return chartObject != null
                 && chartObject.timeframe != null
                 && chartObject.timeframe == this.timeframe
@@ -33,7 +33,7 @@ public abstract class ChartObject implements Serializable {
                 && chartObject.symbol == this.symbol;
     }
 
-    public <T> boolean doesNotMatchAnyChartObjectIn(Collection<T> chartObjectCollection) {
+    public final <T> boolean doesNotMatchAnyChartObjectIn(Collection<T> chartObjectCollection) {
         if (Check.isNotEmpty(chartObjectCollection)) {
             for (T collectionObject : chartObjectCollection) {
                 if ((this.matches((ChartObject) collectionObject))) {
@@ -44,7 +44,7 @@ public abstract class ChartObject implements Serializable {
         return true;
     }
 
-    public <T> T getFirstMatchingChartObjectIn(Collection<T> chartObjectCollection) {
+    public final <T> T getFirstMatchingChartObjectIn(Collection<T> chartObjectCollection) {
         if (Check.isNotEmpty(chartObjectCollection)) {
             for (T collectionObject : chartObjectCollection) {
                 if ((this.matches((ChartObject) collectionObject))) {

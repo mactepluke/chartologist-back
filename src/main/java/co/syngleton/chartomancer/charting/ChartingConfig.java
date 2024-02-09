@@ -20,14 +20,14 @@ class ChartingConfig {
         };
     }
 
-    private HistoricalDataCsvReader getHistoricalDataDAOCsvReader() throws ConfigurationException {
+    private AbstractHistoricalDataCsvReader getHistoricalDataDAOCsvReader() throws ConfigurationException {
         return switch (chartingProperties.csvReader()) {
             case CRYPTO_DATA_DOWNLOAD -> getCryptoDataDownloadCsvReader();
             case UNKNOWN -> throw new ConfigurationException("Unknown CSV reader: " + chartingProperties.csvReader());
         };
     }
 
-    private HistoricalDataCsvReader getCryptoDataDownloadCsvReader() {
+    private AbstractHistoricalDataCsvReader getCryptoDataDownloadCsvReader() {
         return new CryptoDataDownloadCsvReader();
     }
 }

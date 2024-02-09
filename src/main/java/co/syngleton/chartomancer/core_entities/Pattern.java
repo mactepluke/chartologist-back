@@ -12,19 +12,20 @@ import java.util.List;
 @Getter
 public abstract class Pattern extends ChartObject {
     private final int granularity;
-    private final int length;
     @ToString.Exclude
     private final List<IntCandle> intCandles;
 
-    protected Pattern(int granularity,
-                      int length,
-                      Symbol symbol,
-                      Timeframe timeframe,
-                      List<IntCandle> intCandles
+    Pattern(int granularity,
+            Symbol symbol,
+            Timeframe timeframe,
+            List<IntCandle> intCandles
     ) {
         super(symbol, timeframe);
         this.granularity = granularity;
-        this.length = length;
         this.intCandles = Collections.unmodifiableList(intCandles);
+    }
+
+    public int getLength() {
+        return intCandles.size();
     }
 }

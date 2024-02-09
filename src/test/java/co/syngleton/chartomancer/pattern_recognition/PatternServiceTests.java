@@ -1,52 +1,57 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
+import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.configuration.GlobalTestConfig;
+import co.syngleton.chartomancer.configuration.MockData;
+import co.syngleton.chartomancer.configuration.MockDataConfig;
 import co.syngleton.chartomancer.core_entities.*;
-import co.syngleton.chartomancer.data.DataConfigTest;
-import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.data.MockData;
 import lombok.extern.log4j.Log4j2;
+import me.tongfei.progressbar.ProgressBar;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = DataConfigTest.class)
+@ContextConfiguration(classes = {GlobalTestConfig.class, MockDataConfig.class})
 @ActiveProfiles("test")
 class PatternServiceTests {
 
     @Autowired
     PatternService patternService;
     @Autowired
-    CandleRescaler candleRescaler;
-    @Autowired
     MockData mockData;
+    @MockBean(name = "analyzer")
+    Analyzer analyzer;
+    @MockBean(name = "candleRescaler")
+    CandleRescaler candleRescaler;
+
     CoreData coreData;
-    @Autowired
-    DataProcessor dataProcessor;
+
     private List<Pattern> patterns;
     private PatternSettings.Builder testPatternSettingsBuilder;
-    private LocalDateTime candleDate;
 
     @BeforeAll
     void setUp() {
         log.info("*** STARTING PATTERN SERVICE TESTS ***");
 
-        candleDate = LocalDateTime.now();
         coreData = DefaultCoreData.newInstance();
         coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
         mockData.getTestGraphs().forEach(graph -> coreData.addGraph(graph));
@@ -74,7 +79,7 @@ class PatternServiceTests {
     }
 
     @Test
-    @DisplayName("[UNIT] Create light predictive patterns from mock graph")
+    @DisplayName("[UNIT] Create predictive patterns from mock graph")
     void createPredictivePatternsTest() {
 
         patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.PREDICTIVE));
@@ -84,49 +89,47 @@ class PatternServiceTests {
     }
 
     @Test
-    @DisplayName("[IT] Creates and computes pattern boxes from mock graphs")
-    void createAndComputePatternBoxes() {
+    @DisplayName("[UNIT] Create predictive patterns from mock graph")
+    void createMultiPredictivePatternsTest() {
 
-        log.debug(coreData);
-        assertTrue(dataProcessor.createPatternBoxes(coreData, new PatternSettings.Builder()
-                .patternType(PatternSettings.PatternType.PREDICTIVE)
-                .autoconfig(PatternSettings.Autoconfig.TEST)));
-        assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getNumberOfPatternSets());
-        assertTrue(patternService.computeCoreData(coreData, new ComputationSettings.Builder().autoconfig(ComputationSettings.Autoconfig.TEST)));
-        assertEquals(mockData.getNumberOfDifferentMockTimeframes(), coreData.getNumberOfPatternSets());
+        patterns = patternService.createPatterns(testPatternSettingsBuilder.patternType(PatternSettings.PatternType.MULTI_PREDICTIVE));
+
+        assertFalse(patterns.isEmpty());
+        assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
     }
 
+    //TODO Find why this test gives incorrect results and implement the same test for MultiPredictive patterns
     @Test
-    @DisplayName("[IT] Computes Light Predictive patterns")
-    void computesLightPredictivePatternTest() {
+    @DisplayName("[UNIT] Computes basic iteration predictive patterns")
+    void computesBasicIterationPredictivePatternsTest() {
 
-        List<FloatCandle> floatCandles;
-        List<IntCandle> intCandles;
+        int scope = 10;
 
-        FloatCandle floatCandle1 = new FloatCandle(candleDate, 20, 90, 10, 80, 20);
-        FloatCandle floatCandle2 = new FloatCandle(candleDate, 40, 100, 40, 60, 20);
-
-        floatCandles = new ArrayList<>(List.of(floatCandle1, floatCandle2));
-
-        Graph graph = new Graph("Computer test graph", Symbol.UNDEFINED, Timeframe.HOUR, floatCandles);
+        ComputationSettings computationSettings = new ComputationSettings.Builder()
+                .graph(mockData.getMockGraphDay1())
+                .autoconfig(ComputationSettings.Autoconfig.TEST)
+                .build();
 
 
-        intCandles = candleRescaler.rescale(new ArrayList<>(List.of(floatCandle1)), 100);
+        ComputablePattern testPattern = new ComputablePattern(new BasicPattern(
+                mockData.getIntCandles(),
+                100,
+                Symbol.UNDEFINED,
+                Timeframe.UNKNOWN),
+                scope);
 
-        BasicPattern basicPattern = new BasicPattern(intCandles, 100, 1, Symbol.UNDEFINED, Timeframe.HOUR, candleDate);
-        PredictivePattern lightPredictivePattern = new PredictivePattern(basicPattern, 1);
 
-        List<Pattern> patterns = new ArrayList<>(List.of(lightPredictivePattern));
+        when(analyzer.calculatePriceVariation(any(), anyInt())).thenReturn(8f);
+        when(analyzer.filterPriceVariation(anyFloat())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(analyzer.calculateMatchScore(any(), any())).thenReturn(50);
+        when(candleRescaler.rescale(any(), anyInt())).thenReturn(Collections.emptyList());
 
-        ComputationSettings.Builder computationBuilder = new ComputationSettings.Builder();
+        Pattern pattern = patternService.computeBasicIterationPattern(
+                testPattern,
+                computationSettings,
+                new ProgressBar("Test", 100)
+        );
 
-        patternService.computePatterns(computationBuilder
-                .patterns(patterns)
-                .graph(graph)
-                .autoconfig(ComputationSettings.Autoconfig.TEST));
-
-        PredictivePattern resultPattern = (PredictivePattern) patterns.get(0);
-
-        assertEquals(25, resultPattern.getPriceVariationPrediction());
+        assertEquals(8, Math.round(((ComputablePattern) pattern).getPriceVariationPrediction()));
     }
 }

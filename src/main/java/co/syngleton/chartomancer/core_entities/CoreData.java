@@ -4,142 +4,66 @@ import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import lombok.NonNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
-public abstract class CoreData {
+public interface CoreData {
+    CoreDataSnapshot getSnapshot();
 
-    static final String NEW_LINE = System.lineSeparator();
-    Set<Graph> graphs;
-    Set<PatternBox> patternBoxes;
-    Map<String, String> patternSettings;
-    Set<PatternBox> tradingPatternBoxes;
-    Map<String, String> tradingPatternSettings;
+    boolean hasInvalidStructure();
 
-    CoreData() {
-        this.graphs = new HashSet<>();
-        this.patternBoxes = new HashSet<>();
-        this.patternSettings = new HashMap<>();
-        this.tradingPatternBoxes = new HashSet<>();
-        this.tradingPatternSettings = new HashMap<>();
-    }
+    void addPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe);
 
-    CoreData(CoreDataSnapshot coreDataSnapshot) {
-        this.graphs = coreDataSnapshot.graphs();
-        this.patternBoxes = getPatternBoxesFromSnapshot(coreDataSnapshot.patternBoxes());
-        this.patternSettings = coreDataSnapshot.patternSettings();
-        this.tradingPatternBoxes = getPatternBoxesFromSnapshot(coreDataSnapshot.tradingPatternBoxes());
-        this.tradingPatternSettings = coreDataSnapshot.tradingPatternSettings();
-    }
+    void putPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe);
 
-    public CoreDataSnapshot getSnapshot() {
-        return new CoreDataSnapshot(graphs,
-                getPatternBoxesSnapshots(patternBoxes),
-                patternSettings,
-                getPatternBoxesSnapshots(tradingPatternBoxes),
-                tradingPatternSettings);
-    }
+    void copy(@NonNull CoreData coreData);
 
-    private Set<CoreDataSnapshot.PatternBoxSnapShot> getPatternBoxesSnapshots(Set<PatternBox> patternBoxes) {
+    int getTradingPatternLength(Symbol symbol, Timeframe timeframe);
 
-        Set<CoreDataSnapshot.PatternBoxSnapShot> patternBoxSnapShots = new HashSet<>();
+    boolean canProvideDataForTradingOn(Symbol symbol, Timeframe timeframe);
 
-        for (PatternBox patternBox : patternBoxes) {
-            patternBoxSnapShots.add(new CoreDataSnapshot.PatternBoxSnapShot(patternBox.getPatterns()));
-        }
-        return patternBoxSnapShots;
-    }
+    Set<Graph> getReadOnlyGraphs();
 
-    private Set<PatternBox> getPatternBoxesFromSnapshot(Set<CoreDataSnapshot.PatternBoxSnapShot> patternBoxesSnapShots) {
+    void addGraph(Graph graph);
 
-        Set<PatternBox> restoredPatternBoxes = new HashSet<>();
+    Set<Graph> getUncomputedGraphs();
 
-        for (CoreDataSnapshot.PatternBoxSnapShot patternBoxSnapShot : patternBoxesSnapShots) {
+    int getGraphNumber();
 
-            if (hasValidPatterns(patternBoxSnapShot)) {
-                restoredPatternBoxes.add(new PatternBox(patternBoxSnapShot));
-            }
+    int getNumberOfPatternSets();
 
-        }
-        return restoredPatternBoxes;
-    }
+    int getNumberOfTradingPatternSets();
 
-    private boolean hasValidPatterns(CoreDataSnapshot.PatternBoxSnapShot patternBoxSnapShot) {
+    boolean purgeUselessData(PurgeOption option);
 
-        if (patternBoxSnapShot == null || patternBoxSnapShot.patterns() == null) {
-            return false;
-        }
+    boolean pushTradingPatternData();
 
-        for (Map.Entry<Integer, List<Pattern>> entry : patternBoxSnapShot.patterns().entrySet()) {
-            if (entry.getValue() == null || entry.getValue().isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
+    Graph getGraph(Symbol symbol, Timeframe timeframe);
 
-    public boolean hasValidStructure() {
-        return this.graphs != null && this.patternBoxes != null && this.patternSettings != null
-                && this.tradingPatternBoxes != null && this.tradingPatternSettings != null;
-    }
+    List<Pattern> getPatterns();
 
-    public abstract void addPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe);
+    List<Pattern> getTradingPatterns();
 
-    public abstract void putPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe);
+    List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe);
 
-    public abstract void copy(@NonNull CoreData coreData);
+    List<Pattern> getTradingPatterns(Symbol symbol, Timeframe timeframe);
 
-    public abstract int getTradingPatternLength(Symbol symbol, Timeframe timeframe);
+    List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe, int scope);
 
-    public abstract boolean canProvideDataForTradingOn(Symbol symbol, Timeframe timeframe);
+    List<Pattern> getTradingPatterns(Symbol symbol, Timeframe timeframe, int scope);
 
-    public abstract Set<Graph> getReadOnlyGraphs();
+    Set<Integer> getPatternScopes(Symbol symbol, Timeframe timeframe);
 
-    public abstract void addGraph(Graph graph);
+    Set<Integer> getTradingPatternScopes(Symbol symbol, Timeframe timeframe);
 
-    public abstract Set<Graph> getUncomputedGraphs();
+    void setPatternSetting(String key, String value);
 
-    public abstract int getGraphNumber();
+    Set<Timeframe> getTradingTimeframes();
 
-    public abstract int getNumberOfPatternSets();
+    String getPatternSetting(String key);
 
-    public abstract int getNumberOfTradingPatternSets();
+    String getTradingPatternSetting(String key);
 
-    public abstract boolean purgeUselessData(PurgeOption option);
-
-    public abstract boolean pushTradingPatternData();
-
-    public abstract Graph getGraph(Symbol symbol, Timeframe timeframe);
-
-    public abstract List<Pattern> getPatterns();
-
-    public abstract List<Pattern> getTradingPatterns();
-
-    public abstract List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe);
-
-    public abstract List<Pattern> getTradingPatterns(Symbol symbol, Timeframe timeframe);
-
-    public abstract List<Pattern> getPatterns(Symbol symbol, Timeframe timeframe, int scope);
-
-    public abstract List<Pattern> getTradingPatterns(Symbol symbol, Timeframe timeframe, int scope);
-
-    public abstract void setPatternSetting(String key, String value);
-
-    public abstract void setTradingPatternSetting(String key, String value);
-
-    public abstract Set<Timeframe> getTradingTimeframes();
-
-    public abstract String getPatternSetting(String key);
-
-    public abstract String getTradingPatternSetting(String key);
-
-    public abstract int getMaxTradingScope(Symbol symbol, Timeframe timeframe);
-
-    //TODO à supprimer (toutes les classes en dessous de cette ligne)
-    //public abstract Set<PatternBox> getPatternBoxes();
-
-    public abstract void setPatternBoxesDeprecated(Set<PatternBox> patternBoxes);
-
-    public abstract Set<PatternBox> getTradingPatternBoxes();
-
+    int getMaxTradingScope(Symbol symbol, Timeframe timeframe);
 
 }

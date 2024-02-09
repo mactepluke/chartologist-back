@@ -6,7 +6,7 @@ import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
 import java.util.List;
 
 public interface DataProcessor {
-    boolean createPatternBoxes(CoreData coreData, PatternSettings.Builder settingsInput);
+    boolean createPatternsForCoreData(CoreData coreData, PatternSettings.Builder settingsInput);
 
     boolean loadGraphs(CoreData coreData, String dataFolderName, List<String> dataFilesNames);
 

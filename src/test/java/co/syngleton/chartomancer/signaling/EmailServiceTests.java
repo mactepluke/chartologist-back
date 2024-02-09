@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.signaling;
 
-import co.syngleton.chartomancer.data.DataConfigTest;
+import co.syngleton.chartomancer.configuration.GlobalTestConfig;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import java.util.Set;
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = DataConfigTest.class)
+@ContextConfiguration(classes = GlobalTestConfig.class)
 @ActiveProfiles("test")
 class EmailServiceTests {
 

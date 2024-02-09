@@ -3,18 +3,19 @@ package co.syngleton.chartomancer.trading;
 import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.core_entities.*;
+import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.Contract;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import static java.lang.Math.abs;
 
@@ -54,7 +55,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
             return null;
         }
 
-        final float expectedPriceVariation = findMostProfitablePriceVariation(graph, coreData, tradeOpenCandle, -1);
+        final float expectedPriceVariation = findMostProfitablePriceVariation(graph, coreData, tradeOpenCandle);
 
         if (expectedPriceVariation == 0) {
             return Trade.blank();
@@ -96,7 +97,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
     private boolean tradingInputDataAreInvalid(Account tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
         return graph == null
                 || coreData == null
-                || !Check.isNotEmpty(coreData.getTradingPatternBoxes())
+                || coreData.hasInvalidStructure()
                 || tradeOpenCandle < 0
                 || graph.getFloatCandles().size() <= tradeOpenCandle
                 || graph.getFloatCandles().get(tradeOpenCandle) == null
@@ -104,47 +105,25 @@ class TradingService implements TradeGenerator, TradeSimulator {
                 || tradingAccount.getBalance() <= 0;
     }
 
-    @Contract("_, _, _, _ -> new")
-    private @NonNull Float findMostProfitablePriceVariation(@NonNull Graph graph, @NonNull CoreData coreData, int tradeOpenCandle, int maxDuration) {
+    private @NonNull Float findMostProfitablePriceVariation(@NonNull Graph graph, @NonNull CoreData coreData, int tradeOpenCandle) {
 
-        float mostProfitablePrice = 0;
-        float highestPrice = 0;
-        float lowestPrice = 0;
+        Set<Integer> scopes = coreData.getTradingPatternScopes(graph.getSymbol(), graph.getTimeframe());
+        List<Float> priceVariations = new ArrayList<>();
 
-        PatternBox patternBox = graph.getFirstMatchingChartObjectIn(coreData.getTradingPatternBoxes());
-
-        if (patternBox != null && Check.isNotEmpty(patternBox.getPatterns())) {
-
-            for (Map.Entry<Integer, List<Pattern>> entry : patternBox.getPatterns().entrySet()) {
-
-                float priceVariationForScope = predictPriceVariationForScope(graph, patternBox, tradeOpenCandle, entry.getKey());
-
-                if (highestPrice == 0) {
-                    highestPrice = priceVariationForScope;
-                }
-
-                if (lowestPrice == 0) {
-                    lowestPrice = priceVariationForScope;
-                }
-
-                if (entry.getKey() < maxDuration || maxDuration == -1) {
-
-                    if (priceVariationForScope > highestPrice) {
-                        highestPrice = priceVariationForScope;
-                    }
-
-                    if (priceVariationForScope < lowestPrice) {
-                        lowestPrice = priceVariationForScope;
-                    }
-                }
-            }
-            if (abs(highestPrice) > abs(lowestPrice)) {
-                mostProfitablePrice = highestPrice;
-            } else {
-                mostProfitablePrice = lowestPrice;
-            }
+        for (int scope : scopes) {
+            priceVariations.add(predictPriceVariationForScope(graph, coreData, tradeOpenCandle, scope));
         }
-        return filterPriceVariation(mostProfitablePrice);
+        return filterPriceVariation(getMostExtremeValue(priceVariations));
+    }
+
+    private float getMostExtremeValue(@NonNull List<Float> values) {
+
+        values.sort(Float::compareTo);
+
+        if (Check.isEmpty(values)) {
+            return 0f;
+        }
+        return Math.max(abs(values.get(0)), abs(values.get(values.size() - 1)));
     }
 
     private float filterPriceVariation(float priceVariation) {
@@ -170,33 +149,35 @@ class TradingService implements TradeGenerator, TradeSimulator {
         return Format.roundTwoDigits(graph.getFloatCandles().get(tradeOpenCandle).close());
     }
 
-    private float predictPriceVariationForScope(Graph graph, @NonNull PatternBox patternBox, int tradeOpenCandle, int scope) {
+    private float predictPriceVariationForScope(@NonNull Graph graph, @NonNull CoreData coreData, int tradeOpenCandle, int scope) {
 
-        List<Pattern> patterns = patternBox.getPatterns().get(scope);
+        final List<Pattern> patterns = coreData.getTradingPatterns(graph.getSymbol(), graph.getTimeframe(), scope);
+
+        if (Check.isEmpty(patterns) || patterns.get(0).getLength() >= tradeOpenCandle) {
+            return 0;
+        }
+
+        float divider = 1;
+        final List<FloatCandle> floatCandles = graph.getFloatCandles().subList(tradeOpenCandle - patterns.get(0).getLength(), tradeOpenCandle);
+        final List<IntCandle> intCandles = candleRescaler.rescale(floatCandles, patterns.get(0).getGranularity());
+
         float pricePrediction = 0;
 
-        if (Check.isNotEmpty(patterns)
-                && patterns.get(0).getLength() < tradeOpenCandle) {
+        for (Pattern pattern : patterns) {
 
-            float divider = 1;
-            List<FloatCandle> floatCandles = graph.getFloatCandles().subList(tradeOpenCandle - patterns.get(0).getLength(), tradeOpenCandle);
-            List<IntCandle> intCandles = candleRescaler.rescale(floatCandles, patterns.get(0).getGranularity());
+            float patternPricePrediction = ((PredictivePattern) pattern).getPriceVariationPrediction();
+            float price = tradingAnalyzer.filterPriceVariation(patternPricePrediction);
 
-            for (Pattern pattern : patterns) {
+            if (price != 0) {
 
-                float patternPricePrediction = ((TradingPattern) pattern).getPriceVariationPrediction();
+                int matchScore = tradingAnalyzer.calculateMatchScore(pattern.getIntCandles(), intCandles);
 
-                float price = tradingAnalyzer.filterPriceVariation(patternPricePrediction);
-
-                if (price != 0) {
-                    int matchScore = tradingAnalyzer.calculateMatchScore(pattern.getIntCandles(), intCandles);
-
-                    pricePrediction = pricePrediction + price * (matchScore / 100f);
-                    divider = divider + matchScore / 100f;
-                }
+                pricePrediction += Calc.xPercentOfY(matchScore, price);
+                divider += Calc.xPercentOfY(matchScore, divider);
             }
-            pricePrediction = pricePrediction / divider;
         }
+        pricePrediction /= divider;
+
         return pricePrediction;
     }
 

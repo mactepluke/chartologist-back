@@ -1,13 +1,16 @@
 package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.charting.CandleRescaler;
-import co.syngleton.chartomancer.core_entities.FloatCandle;
+import co.syngleton.chartomancer.configuration.GlobalTestConfig;
+import co.syngleton.chartomancer.configuration.MockData;
+import co.syngleton.chartomancer.configuration.MockDataConfig;
 import co.syngleton.chartomancer.core_entities.IntCandle;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,12 +22,15 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Log4j2
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ContextConfiguration(classes = {GlobalTestConfig.class, MockDataConfig.class})
 @ActiveProfiles("test")
 class AnalyserImplTests {
 
-    private static final int GRANULARITY = 100;
     @Autowired
     CandleRescaler candleRescaler;
+    @Autowired
+    MockData mockData;
+
     private AnalyzerImpl defaultAnalyzer;
     private List<IntCandle> intCandles;
 
@@ -32,32 +38,7 @@ class AnalyserImplTests {
     void setUp() {
         log.info("*** STARTING ANALYZER IMPL TESTS ***");
         LocalDateTime candleDate = LocalDateTime.now();
-        List<FloatCandle> floatCandles;
-
-        FloatCandle floatCandle0 = new FloatCandle(candleDate, 20, 100, 0, 80, 20);
-        FloatCandle floatCandle1 = new FloatCandle(candleDate, 20, 90, 10, 80, 20);
-        FloatCandle floatCandle2 = new FloatCandle(candleDate, 40, 100, 40, 60, 20);
-        FloatCandle floatCandle3 = new FloatCandle(candleDate, 50, 60, 20, 40, 30);
-        FloatCandle floatCandle4 = new FloatCandle(candleDate, 80, 80, 50, 70, 15);
-        FloatCandle floatCandle5 = new FloatCandle(candleDate, 0, 0, 0, 0, 0);
-        FloatCandle floatCandle6 = new FloatCandle(candleDate, 45, 75, 30, 48, 25);
-        FloatCandle floatCandle7 = new FloatCandle(candleDate, 50, 65, 35, 60, 20);
-        FloatCandle floatCandle8 = new FloatCandle(candleDate, 80, 100, 60, 70, 10);
-        FloatCandle floatCandle9 = new FloatCandle(candleDate, 20, 80, 0, 40, 10);
-
-        floatCandles = new ArrayList<>(
-                List.of(floatCandle0,
-                        floatCandle1,
-                        floatCandle2,
-                        floatCandle3,
-                        floatCandle4,
-                        floatCandle5,
-                        floatCandle6,
-                        floatCandle7,
-                        floatCandle8,
-                        floatCandle9)
-        );
-        intCandles = candleRescaler.rescale(floatCandles, GRANULARITY);
+        this.intCandles = mockData.getIntCandles();
 
         this.defaultAnalyzer = new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
     }

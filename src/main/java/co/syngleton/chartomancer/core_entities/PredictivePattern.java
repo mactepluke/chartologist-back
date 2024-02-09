@@ -1,33 +1,47 @@
 package co.syngleton.chartomancer.core_entities;
 
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.util.Format;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Getter
-public final class PredictivePattern extends Pattern implements ComputablePattern {
+public class PredictivePattern extends Pattern {
 
     private final int scope;
-    private final LocalDateTime startDate;
-    @Setter
-    private float priceVariationPrediction = 0;
+    protected float priceVariationPrediction = 0;
 
-    public PredictivePattern(BasicPattern pattern, int scope) {
+    PredictivePattern(
+            int granularity,
+            Symbol symbol,
+            Timeframe timeframe,
+            List<IntCandle> candles,
+            int scope
+    ) {
+        super(
+                granularity,
+                symbol,
+                timeframe,
+                candles
+        );
+        this.scope = scope;
+        this.priceVariationPrediction = Format.roundTwoDigits(priceVariationPrediction);
+    }
+
+    public PredictivePattern(PredictivePattern pattern) {
         super(
                 pattern.getGranularity(),
-                pattern.getLength(),
                 pattern.getSymbol(),
                 pattern.getTimeframe(),
                 pattern.getIntCandles()
         );
-        this.startDate = pattern.getStartDate();
-        this.scope = Format.streamline(scope, 1, this.getLength());
+        this.scope = pattern.getScope();
+        this.priceVariationPrediction = Format.roundTwoDigits(pattern.getPriceVariationPrediction());
     }
-
 }

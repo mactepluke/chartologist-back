@@ -35,7 +35,7 @@ class DataService implements DataProcessor {
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public boolean createPatternBoxes(CoreData coreData, PatternSettings.Builder settingsInput) {
+    public boolean createPatternsForCoreData(CoreData coreData, PatternSettings.Builder settingsInput) {
 
         if (isBroken(coreData)) {
             return false;
@@ -57,7 +57,7 @@ class DataService implements DataProcessor {
     }
 
     private boolean isBroken(CoreData coreData) {
-        if (coreData == null || !coreData.hasValidStructure()) {
+        if (coreData == null || coreData.hasInvalidStructure()) {
             log.error("! Core data instance is null or broken !");
             return true;
         }

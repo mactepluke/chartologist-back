@@ -103,4 +103,8 @@ public final class Calc {
         }
         return result;
     }
+
+    public static float xPercentOfY(float x, float y) {
+        return y * (x / 100.f);
+    }
 }

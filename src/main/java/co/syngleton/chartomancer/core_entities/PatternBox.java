@@ -43,14 +43,14 @@ public final class PatternBox extends ChartObject {
     }
 
     private static int getPatternKey(Pattern pattern) {
-        return pattern instanceof ScopedPattern scopedPattern ? scopedPattern.getScope() : pattern.getLength();
+        return pattern instanceof PredictivePattern predictivePattern ? predictivePattern.getScope() : pattern.getLength();
     }
 
-    public Map<Integer, List<Pattern>> getPatterns() {
+    Map<Integer, List<Pattern>> getPatterns() {
         return Collections.unmodifiableMap(this.patterns);
     }
 
-    public void addPatterns(List<Pattern> patterns) {
+    void addPatterns(List<Pattern> patterns) {
         splitPatternsByScope(patterns).forEach((scope, patternsList) -> {
             if (this.patterns.containsKey(scope)) {
                 this.patterns.get(scope).addAll(patternsList);
@@ -60,18 +60,18 @@ public final class PatternBox extends ChartObject {
         });
     }
 
-    public void putPatterns(List<Pattern> patterns) {
+    void putPatterns(List<Pattern> patterns) {
         this.patterns.clear();
         this.addPatterns(patterns);
     }
 
 
-    public int getPatternsLength() {
+    int getPatternsLength() {
         return this.patterns == null || this.patterns.isEmpty() ? 0 :
                 this.patterns.entrySet().iterator().next().getValue().get(0).getLength();
     }
 
-    public List<Pattern> getListOfAllPatterns() {
+    List<Pattern> getListOfAllPatterns() {
 
         List<Pattern> allPatterns = new ArrayList<>();
 
@@ -82,7 +82,7 @@ public final class PatternBox extends ChartObject {
         return allPatterns;
     }
 
-    public int getMaxScope() {
+    int getMaxScope() {
 
         int maxScope = 0;
         List<Pattern> listOfAllPatterns = this.getListOfAllPatterns();
@@ -90,13 +90,13 @@ public final class PatternBox extends ChartObject {
         if (Check.isNotEmpty(listOfAllPatterns)) {
 
             for (Pattern pattern : listOfAllPatterns) {
-                maxScope = Math.max(maxScope, ((ScopedPattern) pattern).getScope());
+                maxScope = Math.max(maxScope, ((PredictivePattern) pattern).getScope());
             }
         }
         return maxScope;
     }
 
-    public int getPatternLength() {
+    int getPatternLength() {
 
         int length = 0;
         List<Pattern> listOfAllPatterns = this.getListOfAllPatterns();
@@ -106,6 +106,10 @@ public final class PatternBox extends ChartObject {
         }
 
         return length;
+    }
+
+    Set<Integer> getScopes() {
+        return this.patterns.keySet();
     }
 
     @Override

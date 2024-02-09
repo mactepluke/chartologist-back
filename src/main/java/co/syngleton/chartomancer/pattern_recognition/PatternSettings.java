@@ -48,7 +48,8 @@ public final class PatternSettings {
     public enum PatternType {
         BASIC,
         PREDICTIVE,
-        TRADING
+        TRADING,
+        MULTI_PREDICTIVE
     }
 
     public static class Builder {

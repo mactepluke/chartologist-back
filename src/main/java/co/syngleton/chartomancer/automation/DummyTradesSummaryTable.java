@@ -1,13 +1,13 @@
 package co.syngleton.chartomancer.automation;
 
-import co.syngleton.chartomancer.util.datatabletool.PrintableData;
-import co.syngleton.chartomancer.util.datatabletool.PrintableDataTable;
+import co.syngleton.chartomancer.util.csvwritertool.CSVData;
+import co.syngleton.chartomancer.util.csvwritertool.CSVRow;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class DummyTradesSummaryTable implements PrintableDataTable {
+public final class DummyTradesSummaryTable implements CSVData {
     private static final String DUMMY_TRADES_DATE_TIME = "Dummy Trades Date Time";
     private static final String DATA_SER_VERSION_DATE = "Data.ser version date";
     private static final String CSV_TRADES_HISTORY_FILE_NAME = "CSV Trades History file name";
@@ -65,7 +65,7 @@ public final class DummyTradesSummaryTable implements PrintableDataTable {
     private static final String TOTAL_DURATION_DAYS = "Total Duration (in days)";
     private static final String ANNUALIZED_RETURN_PERCENTAGE = "Annualized Return %";
 
-    private final List<PrintableData> dummyTradesSummary;
+    private final List<CSVRow> dummyTradesSummary;
 
     @Getter
     private final String fileName;
@@ -138,7 +138,7 @@ public final class DummyTradesSummaryTable implements PrintableDataTable {
     }
 
     @Override
-    public List<PrintableData> getPrintableData() {
+    public List<CSVRow> getCSVData() {
         return dummyTradesSummary;
     }
 

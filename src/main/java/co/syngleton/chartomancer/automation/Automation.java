@@ -6,8 +6,7 @@ import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
 import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
-import co.syngleton.chartomancer.util.Check;
-import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
+import co.syngleton.chartomancer.util.csvwritertool.CSVWriter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import me.tongfei.progressbar.ProgressBar;
@@ -194,7 +193,7 @@ final class Automation implements Runnable {
         double maxPricePrediction;
         double totalPriceVariation;
 
-        if (coreData == null || !coreData.hasValidStructure()) {
+        if (coreData == null || coreData.hasInvalidStructure()) {
             log.error("Cannot print price prediction summary: core data is broken.");
             return;
         }
@@ -202,27 +201,27 @@ final class Automation implements Runnable {
         List<Pattern> tradingPatterns = coreData.getTradingPatterns();
 
         positivePricePredictions = tradingPatterns.stream()
-                .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() > 0)
+                .filter(pattern -> ((PredictivePattern) pattern).getPriceVariationPrediction() > 0)
                 .count();
 
         negativePricePredictions = tradingPatterns.stream()
-                .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() < 0)
+                .filter(pattern -> ((PredictivePattern) pattern).getPriceVariationPrediction() < 0)
                 .count();
 
         zeroPricePredictions = tradingPatterns.stream()
-                .filter(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction() == 0)
+                .filter(pattern -> ((PredictivePattern) pattern).getPriceVariationPrediction() == 0)
                 .count();
 
         totalPriceVariation = tradingPatterns.stream()
-                .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                .mapToDouble(pattern -> ((PredictivePattern) pattern).getPriceVariationPrediction())
                 .sum();
 
         minPricePrediction = tradingPatterns.stream()
-                .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                .mapToDouble(pattern -> ((PredictivePattern) pattern).getPriceVariationPrediction())
                 .min().orElse(0);
 
         maxPricePrediction = tradingPatterns.stream()
-                .mapToDouble(pattern -> ((ScopedPattern) pattern).getPriceVariationPrediction())
+                .mapToDouble(pattern -> ((PredictivePattern) pattern).getPriceVariationPrediction())
                 .max().orElse(0);
 
         log.info(NEW_LINE
@@ -242,9 +241,7 @@ final class Automation implements Runnable {
 
 
     private void runBasicDummyTrades() {
-        if (coreData == null
-                || !Check.isNotEmpty(coreData.getReadOnlyGraphs())
-                || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
+        if (coreData.hasInvalidStructure()) {
             log.error(DATA_MISSING_ERROR);
         } else {
 
@@ -259,9 +256,7 @@ final class Automation implements Runnable {
     }
 
     private void runRandomizedDummyTrades(CoreData coreData) {
-        if (coreData == null
-                || !Check.isNotEmpty(coreData.getReadOnlyGraphs())
-                || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
+        if (coreData.hasInvalidStructure()) {
             log.error(DATA_MISSING_ERROR);
         } else {
 
@@ -290,9 +285,7 @@ final class Automation implements Runnable {
     }
 
     private void runDeterministicDummyTrades(CoreData coreData) {
-        if (coreData == null
-                || !Check.isNotEmpty(coreData.getReadOnlyGraphs())
-                || !Check.isNotEmpty(coreData.getTradingPatternBoxes())) {
+        if (coreData.hasInvalidStructure()) {
             log.error(DATA_MISSING_ERROR);
         } else {
 
@@ -326,7 +319,7 @@ final class Automation implements Runnable {
     //TODO Vérifier pourquoi la mise à jour du fichier dummy_trades_summary.csv ne fonctionne pas
     private synchronized void writeDummyTradesReports() {
         log.info(reportLog);
-        DataTableTool.writeDataTableToFile(DUMMY_TRADES_FOLDER_PATH + DUMMY_TRADES_SUMMARY_FILE_NAME, dummyTradesSummaryTable);
+        CSVWriter.writeCSVDataToFile(DUMMY_TRADES_FOLDER_PATH + DUMMY_TRADES_SUMMARY_FILE_NAME, dummyTradesSummaryTable);
         reportLog = "";
     }
 

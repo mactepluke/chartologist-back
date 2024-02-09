@@ -138,7 +138,7 @@ class DataConfig {
             patternSettingsInput = patternSettingsInput.atomizePartition();
         }
 
-        if (dataProcessor.createPatternBoxes(coreData, patternSettingsInput)) {
+        if (dataProcessor.createPatternsForCoreData(coreData, patternSettingsInput)) {
             log.info("Created {} pattern box(es)", coreData.getNumberOfPatternSets());
         } else {
             log.error("Application could not initialize its data: no pattern boxes could be created.");

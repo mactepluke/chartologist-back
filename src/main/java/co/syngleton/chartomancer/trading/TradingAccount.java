@@ -3,8 +3,8 @@ package co.syngleton.chartomancer.trading;
 import co.syngleton.chartomancer.core_entities.Account;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
-import co.syngleton.chartomancer.util.datatabletool.PrintableData;
-import co.syngleton.chartomancer.util.datatabletool.PrintableDataTable;
+import co.syngleton.chartomancer.util.csvwritertool.CSVData;
+import co.syngleton.chartomancer.util.csvwritertool.CSVRow;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +15,7 @@ import java.util.OptionalDouble;
 
 import static java.lang.Math.abs;
 
-public class TradingAccount implements PrintableDataTable, Account {
+public class TradingAccount implements CSVData, Account {
 
     private static final String DEFAULT_CURRENCY = "$";
     private static final String NEW_LINE = System.lineSeparator();
@@ -74,7 +74,7 @@ public class TradingAccount implements PrintableDataTable, Account {
     }
 
     @Override
-    public List<PrintableData> getPrintableData() {
+    public List<CSVRow> getCSVData() {
         return new ArrayList<>(trades);
     }
 

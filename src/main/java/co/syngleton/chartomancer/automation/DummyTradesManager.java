@@ -12,7 +12,7 @@ import co.syngleton.chartomancer.trading.TradeSimulator;
 import co.syngleton.chartomancer.trading.TradingAccount;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
-import co.syngleton.chartomancer.util.datatabletool.DataTableTool;
+import co.syngleton.chartomancer.util.csvwritertool.CSVWriter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.Contract;
@@ -122,7 +122,7 @@ final class DummyTradesManager {
             ));
 
             if (writeReports) {
-                DataTableTool.writeDataTableToFile(dummyTradesFolderPath + fileName, account);
+                CSVWriter.writeCSVDataToFile(dummyTradesFolderPath + fileName, account);
             }
         }
         return reportLog;
@@ -331,8 +331,8 @@ final class DummyTradesManager {
 
 
     private void addDummyTradeEntry(DummyTradesSummaryEntry dummyTradesSummaryEntry) {
-        this.dummyTradesSummaryTable.getPrintableData().add(dummyTradesSummaryEntry);
-        log.debug(" ------> DUMMY TRADE SUMMARY TABLE: {}", DataTableTool.generatePrintableHeaderAndData(dummyTradesSummaryTable));
+        this.dummyTradesSummaryTable.getCSVData().add(dummyTradesSummaryEntry);
+        log.debug(" ------> DUMMY TRADE SUMMARY TABLE: {}", CSVWriter.generateWritableHeaderAndData(dummyTradesSummaryTable));
     }
 
 }

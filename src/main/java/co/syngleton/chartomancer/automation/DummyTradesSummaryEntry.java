@@ -3,7 +3,7 @@ package co.syngleton.chartomancer.automation;
 import co.syngleton.chartomancer.analytics.Smoothing;
 import co.syngleton.chartomancer.trading.ProfitFactor;
 import co.syngleton.chartomancer.trading.SL_TP_Strategy;
-import co.syngleton.chartomancer.util.datatabletool.PrintableData;
+import co.syngleton.chartomancer.util.csvwritertool.CSVRow;
 import lombok.NonNull;
 import org.jetbrains.annotations.Contract;
 
@@ -66,7 +66,7 @@ public record DummyTradesSummaryEntry(String dummyTradesDateTime,
                                       double profitFactor,
                                       ProfitFactor profitFactorQualification,
                                       double totalDuration,
-                                      double annualizedReturnPercentage) implements PrintableData {
+                                      double annualizedReturnPercentage) implements CSVRow {
 
     @Contract(" -> new")
     @Override

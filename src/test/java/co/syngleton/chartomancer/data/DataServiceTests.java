@@ -1,5 +1,8 @@
 package co.syngleton.chartomancer.data;
 
+import co.syngleton.chartomancer.configuration.GlobalTestConfig;
+import co.syngleton.chartomancer.configuration.MockData;
+import co.syngleton.chartomancer.configuration.MockDataConfig;
 import co.syngleton.chartomancer.core_entities.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -10,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = DataConfigTest.class)
+@ContextConfiguration(classes = {GlobalTestConfig.class, MockDataConfig.class})
 @ActiveProfiles("test")
 class DataServiceTests {
 
@@ -48,11 +50,9 @@ class DataServiceTests {
         BasicPattern basicPattern = new BasicPattern(
                 new ArrayList<>(),
                 10,
-                10,
                 mockData.getMockGraphDay1().getSymbol(),
-                mockData.getMockGraphDay1().getTimeframe(),
-                LocalDateTime.now());
-        patterns.add(new PredictivePattern(basicPattern, 5));
+                mockData.getMockGraphDay1().getTimeframe());
+        patterns.add(new ComputablePattern(basicPattern, 5));
 
         coreData.addPatterns(patterns, mockData.getMockGraphDay1().getSymbol(), mockData.getMockGraphDay1().getTimeframe());
 

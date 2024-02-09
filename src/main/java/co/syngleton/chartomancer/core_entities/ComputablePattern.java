@@ -1,14 +1,26 @@
 package co.syngleton.chartomancer.core_entities;
 
-import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-public interface ComputablePattern extends ScopedPattern {
-    int getLength();
+@Getter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class ComputablePattern extends PredictivePattern {
 
-    int getGranularity();
+    public ComputablePattern(Pattern pattern, int scope) {
+        super(
+                pattern.getGranularity(),
+                pattern.getSymbol(),
+                pattern.getTimeframe(),
+                pattern.getIntCandles(),
+                scope
+        );
+    }
 
-    void setPriceVariationPrediction(float priceVariationPrediction);
-
-    List<IntCandle> getIntCandles();
+    public void setPriceVariationPrediction(float priceVariationPrediction) {
+        this.priceVariationPrediction = priceVariationPrediction;
+    }
 
 }

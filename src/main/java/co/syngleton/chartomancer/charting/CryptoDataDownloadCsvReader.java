@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-final class CryptoDataDownloadCsvReader extends HistoricalDataCsvReader {
+final class CryptoDataDownloadCsvReader extends AbstractHistoricalDataCsvReader {
     private static final String CRYPTO_DATA_DOWNLOAD_USD_BTC = "unix,date,symbol,open,high,low,close,Volume USD,Volume BTC";
     private static final String CRYPTO_DATA_DOWNLOAD_USD_ETH = "unix,date,symbol,open,high,low,close,Volume USD,Volume ETH";
     private static final String CRYPTO_DATA_DOWNLOAD_BTC_USD = "unix,date,symbol,open,high,low,close,Volume BTC,Volume USD";

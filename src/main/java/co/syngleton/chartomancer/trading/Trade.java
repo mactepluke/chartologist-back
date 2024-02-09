@@ -6,7 +6,7 @@ import co.syngleton.chartomancer.core_entities.Accountable;
 import co.syngleton.chartomancer.core_entities.ChartObject;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
-import co.syngleton.chartomancer.util.datatabletool.PrintableData;
+import co.syngleton.chartomancer.util.csvwritertool.CSVRow;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -22,7 +22,7 @@ import static java.lang.Math.min;
 
 @Log4j2
 @Getter
-public final class Trade extends ChartObject implements PrintableData {
+public final class Trade extends ChartObject implements CSVRow {
 
     private static final String OPEN_NAME = "Open";
     private static final String LAST_UPDATE_NAME = "Last update";
@@ -49,7 +49,6 @@ public final class Trade extends ChartObject implements PrintableData {
     private static final String PNL_NAME = "PnL";
     private static final String FEE_PERCENTAGE_NAME = "Fee %";
     private static final String FEE_AMOUNT_NAME = "Fee Amount";
-    private static final String ORDER_TYPE_NAME = "Order Type";
 
     private static final long MAX_TRADE_DURATION_IN_SECONDS = Timeframe.WEEK.durationInSeconds * 4;
     private static final int MAX_LEVERAGE = 20;
@@ -244,12 +243,6 @@ public final class Trade extends ChartObject implements PrintableData {
             endTime = closeDateTime;
         }
         return endTime.toEpochSecond(ZoneOffset.UTC) - openDateTime.toEpochSecond(ZoneOffset.UTC);
-    }
-
-    public void orderLimitHit() {
-        if (status == TradeStatus.LIMIT_ORDER) {
-            status = TradeStatus.OPENED;
-        }
     }
 
     @Override
