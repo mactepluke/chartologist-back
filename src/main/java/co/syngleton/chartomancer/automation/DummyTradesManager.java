@@ -332,7 +332,6 @@ final class DummyTradesManager {
 
     private void addDummyTradeEntry(DummyTradesSummaryEntry dummyTradesSummaryEntry) {
         this.dummyTradesSummaryTable.getCSVData().add(dummyTradesSummaryEntry);
-        log.debug(" ------> DUMMY TRADE SUMMARY TABLE: {}", CSVWriter.generateWritableHeaderAndData(dummyTradesSummaryTable));
     }
 
 }

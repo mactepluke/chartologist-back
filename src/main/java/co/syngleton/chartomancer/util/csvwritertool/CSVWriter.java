@@ -1,8 +1,11 @@
 package co.syngleton.chartomancer.util.csvwritertool;
 
+import lombok.extern.log4j.Log4j2;
+
 import java.io.*;
 import java.util.List;
 
+@Log4j2
 public final class CSVWriter {
 
     private static final String NEW_LINE = System.lineSeparator();
@@ -19,35 +22,26 @@ public final class CSVWriter {
      * @param filePath
      * @param table
      */
-    public static boolean writeCSVDataToFile(String filePath, CSVData table) {
+    public static void writeCSVDataToFile(String filePath, CSVData table) {
 
-        BufferedReader reader = getReaderIfFileExists(filePath, table);
+        String header = getHeaderIfFileExists(filePath, table);
 
-        if (reader == null) {
+        if (header == null) {
             createInNewFile(filePath, table);
-            return true;
+            return;
         }
 
-        String line = readLineAndAppendNewLine(reader);
-
-        if (line == null) {
-            return false;
-        }
-
-        String header = generatePrintableHeader(table);
-
-        if (line.equals(header)) {
+        if (header.equals(generatePrintableHeader(table))) {
             appendToExistingFile(filePath, table);
-            return true;
+            return;
         }
-
-        return false;
+        throw new UncheckedIOException("CSV File is empty or has the wrong header.", new IOException());
     }
 
-    private static BufferedReader getReaderIfFileExists(String filePath, CSVData table) {
+    private static String getHeaderIfFileExists(String filePath, CSVData table) {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath + table.getSuffix()))) {
-            return reader;
+            return reader.readLine() + NEW_LINE;
 
         } catch (IOException e) {
             return null;
@@ -59,17 +53,7 @@ public final class CSVWriter {
         writeToFile(filePath + table.getSuffix(), generateWritableHeaderAndData(table));
     }
 
-    private static String readLineAndAppendNewLine(BufferedReader reader) {
-
-        try {
-            return reader.readLine() + NEW_LINE;
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
     private static void appendToExistingFile(String filePath, CSVData table) {
-
         writeToFile(filePath + table.getSuffix(), generatePrintableData(table));
     }
 

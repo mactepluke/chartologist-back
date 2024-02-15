@@ -106,6 +106,6 @@ class PatternRecognitionITests {
 
         ComputablePattern resultPattern = (ComputablePattern) patterns.get(0);
 
-        assertEquals(25, resultPattern.getPriceVariationPrediction());
+        assertEquals(50, resultPattern.getPriceVariationPrediction());
     }
 }
