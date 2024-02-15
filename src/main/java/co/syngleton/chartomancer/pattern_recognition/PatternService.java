@@ -15,7 +15,6 @@ import me.tongfei.progressbar.ProgressBar;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -159,20 +158,20 @@ final class PatternService implements PatternGenerator, PatternComputer {
 
         int computations = computationSettings.getGraph().getFloatCandles().size() - pattern.getLength() - pattern.getScope() + 1;
 
-        float divider = 1;
+        float divider = 0;
 
         for (var i = 0; i < computations; i++) {
 
             priceVariation = analyzer.calculatePriceVariation(getFollowingFloatCandles(pattern, computationSettings, i), pattern.getScope());
             priceVariation = analyzer.filterPriceVariation(priceVariation);
 
-            if (priceVariation != 0) {
+            //    if (priceVariation != 0) {
 
-                List<IntCandle> intCandlesToMatch = candleRescaler.rescale(getCandlesToMatch(pattern, computationSettings, i), pattern.getGranularity());
-                matchScore = analyzer.calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
-                pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + Calc.xPercentOfY(matchScore, priceVariation));
-                divider = incrementDivider(divider, matchScore);
-            }
+            List<IntCandle> intCandlesToMatch = candleRescaler.rescale(getCandlesToMatch(pattern, computationSettings, i), pattern.getGranularity());
+            matchScore = analyzer.calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
+            pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + Calc.xPercentOfY(matchScore, priceVariation));
+            divider = incrementDivider(divider, matchScore);
+            //    }
         }
         adjustPriceVariationPrediction(pattern, divider);
         incrementProgressBar(pb);
@@ -180,12 +179,11 @@ final class PatternService implements PatternGenerator, PatternComputer {
         return pattern;
     }
 
-    private Pattern computeBasicIterationPattern(MultiComputablePattern pattern, ComputationSettings computationSettings, ProgressBar pb) {
+    Pattern computeBasicIterationPattern(MultiComputablePattern pattern, ComputationSettings computationSettings, ProgressBar pb) {
 
         int computations = computationSettings.getGraph().getFloatCandles().size() - pattern.getLength() - pattern.getScope() + 1;
 
         float[] dividers = new float[pattern.getScope()];
-        Arrays.fill(dividers, 1);
 
         for (var i = 0; i < computations; i++) {
 
@@ -198,10 +196,9 @@ final class PatternService implements PatternGenerator, PatternComputer {
                 float priceVariation = analyzer.calculatePriceVariation(followingCandles, candleIndex);
                 priceVariation = analyzer.filterPriceVariation(priceVariation);
 
-                if (priceVariation != 0) {
-                    pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + Calc.xPercentOfY(matchScore, priceVariation));
-                    dividers[candleIndex - 1] = incrementDivider(dividers[candleIndex - 1], matchScore);
-                }
+//                if (priceVariation != 0) {
+                pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + Calc.xPercentOfY(matchScore, priceVariation));
+//                }
             }
         }
         adjustPriceVariationPrediction(pattern, dividers);
@@ -223,6 +220,9 @@ final class PatternService implements PatternGenerator, PatternComputer {
     }
 
     private void adjustPriceVariationPrediction(ComputablePattern pattern, float divider) {
+        if (divider < 1) {
+            divider = 1;
+        }
         pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() / divider);
     }
 

@@ -98,7 +98,6 @@ class PatternServiceTests {
         assertEquals(mockData.getTestGraphLength() / testPatternSettingsBuilder.build().getLength(), patterns.size());
     }
 
-    //TODO Find why this test gives incorrect results and implement the same test for MultiPredictive patterns
     @Test
     @DisplayName("[UNIT] Computes basic iteration predictive patterns")
     void computesBasicIterationPredictivePatternsTest() {
@@ -131,5 +130,46 @@ class PatternServiceTests {
         );
 
         assertEquals(8, Math.round(((ComputablePattern) pattern).getPriceVariationPrediction()));
+    }
+
+    @Test
+    @DisplayName("[UNIT] Computes basic iteration multi-predictive patterns")
+    void computesBasicIterationMultiPredictivePatternsTest() {
+
+        int scope = 10;
+
+        ComputationSettings computationSettings = new ComputationSettings.Builder()
+                .graph(mockData.getMockGraphDay1())
+                .autoconfig(ComputationSettings.Autoconfig.TEST)
+                .build();
+
+
+        MultiComputablePattern testPattern = new MultiComputablePattern(new BasicPattern(
+                mockData.getIntCandles(),
+                100,
+                Symbol.UNDEFINED,
+                Timeframe.UNKNOWN),
+                scope);
+
+        when(analyzer.calculatePriceVariation(any(), anyInt())).thenReturn(8f);
+        when(analyzer.filterPriceVariation(anyFloat())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(analyzer.calculateMatchScore(any(), any())).thenReturn(50);
+        when(candleRescaler.rescale(any(), anyInt())).thenReturn(Collections.emptyList());
+
+        log.debug("Test Pattern: {}", testPattern);
+
+        Pattern pattern = patternService.computeBasicIterationPattern(
+                testPattern,
+                computationSettings,
+                new ProgressBar("Test", 100)
+        );
+
+
+        log.debug("Pattern: {}", pattern);
+
+        assertEquals(8, Math.round(((MultiComputablePattern) pattern).getPriceVariationPrediction()));
+        for (int i = 1; i <= scope; i++) {
+            assertEquals(8, Math.round(((MultiComputablePattern) pattern).getPriceVariationPrediction(i)));
+        }
     }
 }
