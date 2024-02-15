@@ -1,6 +1,7 @@
 package co.syngleton.chartomancer.util.csvwritertool;
 
 import java.util.List;
+import java.util.Objects;
 
 public interface CSVData {
 
@@ -11,15 +12,38 @@ public interface CSVData {
      * @param table is the PrintableDataTable to check for integrity.
      * @return true if the table can be used to generate data, or false if it is empty or broken.
      */
-    static boolean checkIntegrity(CSVData table) {
+    static void checkIntegrity(CSVData table) {
 
-        return table != null
-                && table.getSeparator() != '\u0000'
-                && table.getCSVData() != null
-                && table.getHeader() != null
-                && !table.getHeader().isEmpty()
-                && !table.getCSVData().isEmpty()
-                && table.getCSVData().get(0).toRow().size() == table.getHeader().size();
+        Objects.requireNonNull(table);
+
+        final boolean separatorIsNotSet = table.getSeparator() == '\u0000';
+        final boolean csvDataIsNotSet = table.getCSVData() == null;
+        final boolean headerIsNotSet = table.getHeader() == null;
+        final boolean headerIsEmpty = table.getHeader().isEmpty();
+        final boolean csvDataIsEmpty = table.getCSVData().isEmpty();
+        final boolean csvDataSizeIsNotEqualToHeaderSize = table.getCSVData().get(0).toRow().size() != table.getHeader().size();
+
+        if (separatorIsNotSet
+                || csvDataIsNotSet
+                || headerIsNotSet
+                || headerIsEmpty
+                || csvDataIsEmpty
+                || csvDataSizeIsNotEqualToHeaderSize) {
+            throw new IllegalArgumentException(
+                    "The table is not set properly:" + System.lineSeparator()
+                            + "Separator is not set: " + separatorIsNotSet + System.lineSeparator()
+                            + "CSV data is not set: " + csvDataIsNotSet + System.lineSeparator()
+                            + "Header is not set: " + headerIsNotSet + System.lineSeparator()
+                            + "Header is empty: " + headerIsEmpty + System.lineSeparator()
+                            + "CSV data is empty: " + csvDataIsEmpty + System.lineSeparator()
+                            + "CSV data size is not equal to header size: " + csvDataSizeIsNotEqualToHeaderSize + System.lineSeparator()
+                            + "Separator: " + table.getSeparator() + System.lineSeparator()
+                            + "Header: " + table.getHeader() + System.lineSeparator()
+                            + "CSV data: " + table.getCSVData() + System.lineSeparator()
+            );
+        }
+
+
     }
 
     /**

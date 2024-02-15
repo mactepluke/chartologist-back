@@ -56,7 +56,7 @@ public final class Trade extends ChartObject implements CSVRow {
     private final transient Accountable account;
     private final String platform;
     private final double size;
-    private final boolean side;
+    private final boolean sideLong;
     private final double openingPrice;
     private final LocalDateTime expectedClose;
     private final double feePercentage;
@@ -75,7 +75,7 @@ public final class Trade extends ChartObject implements CSVRow {
         platform = "Blank trade";
         account = null;
         size = 0;
-        side = false;
+        sideLong = false;
         openingPrice = 0;
         openDateTime = null;
         expectedClose = null;
@@ -90,7 +90,7 @@ public final class Trade extends ChartObject implements CSVRow {
                   Accountable account,
                   double size,
                   LocalDateTime expectedClose,
-                  boolean side,
+                  boolean sideLong,
                   double openingPrice,
                   double takeProfit,
                   double stopLoss,
@@ -100,7 +100,7 @@ public final class Trade extends ChartObject implements CSVRow {
 
         this.status = TradeStatus.LIMIT_ORDER;
         this.openingPrice = openingPrice;
-        this.side = side;
+        this.sideLong = sideLong;
         this.account = account;
 
         setStopLoss(stopLoss);
@@ -189,11 +189,11 @@ public final class Trade extends ChartObject implements CSVRow {
         if (status == TradeStatus.OPENED || status == TradeStatus.LIMIT_ORDER) {
             stopLoss = Format.roundTwoDigits(stopLoss);
 
-            if (this.side && stopLoss > this.openingPrice) {
+            if (this.sideLong && stopLoss > this.openingPrice) {
                 stopLoss = 0;
             }
 
-            if (!this.side && stopLoss < this.openingPrice) {
+            if (!this.sideLong && stopLoss < this.openingPrice) {
                 stopLoss = 0;
             }
 
@@ -211,11 +211,11 @@ public final class Trade extends ChartObject implements CSVRow {
         if (status == TradeStatus.OPENED || status == TradeStatus.LIMIT_ORDER) {
             takeProfit = Format.roundTwoDigits(takeProfit);
 
-            if (this.side && takeProfit < this.openingPrice) {
+            if (this.sideLong && takeProfit < this.openingPrice) {
                 takeProfit = 0;
             }
 
-            if (!this.side && takeProfit > this.openingPrice) {
+            if (!this.sideLong && takeProfit > this.openingPrice) {
                 takeProfit = 0;
             }
 
@@ -230,7 +230,7 @@ public final class Trade extends ChartObject implements CSVRow {
     }
 
     public double getFeeAmount() {
-        return abs((size * openingPrice * feePercentage) / 100);
+        return Format.roundTwoDigits(abs((size * openingPrice * feePercentage) / 100));
     }
 
     public long getTradeDurationInSeconds() {
@@ -248,7 +248,7 @@ public final class Trade extends ChartObject implements CSVRow {
     @Override
     public String toString() {
         return "Trade{" + OPEN_NAME + "=" +
-                Format.toFrenchDateTime(openDateTime) + ", " + LAST_UPDATE_NAME + "=" + Format.toFrenchDateTime(lastUpdate) + ", " + PLATFORM_NAME + "=" + getPlatform() + ", " + SYMBOL_NAME + "=" + getSymbol() + ", " + TIMEFRAME_NAME + "=" + getTimeframe() + ", " + ACCOUNT_BALANCE_NAME + "=" + accountBalanceAtOpen + ", " + SIZE_NAME + "=" + size + ", " + EXPECTED_CLOSE_NAME + "=" + Format.toFrenchDateTime(expectedClose) + ", " + EXPIRY_NAME + "=" + Format.toFrenchDateTime(expiry) + ", " + CLOSE_NAME + "=" + Format.toFrenchDateTime(closeDateTime) + ", " + STATUS_NAME + "=" + status + ", " + SIDE_NAME + "=" + (side ? "LONG" : "SHORT") + ", " + OPENING_PRICE_NAME + "=" + openingPrice + ", " + CLOSING_PRICE_NAME + "=" + closingPrice + ", " + TP_NAME + "=" + takeProfit + ", " + SL_NAME + stopLoss + ", " + LEVERAGE_NAME + getLeverage() + ", " + TP_PRICE_PER_NAME + "=" + this.getTakeProfitPricePercentage() + ", " + SL_PRICE_PER_NAME + "=" + this.getStopLossPricePercentage() + ", " + EXPECTED_PROFIT_NAME + "=" + this.getExpectedProfit() + ", " + RISK_PER_NAME + "=" + this.getRiskPercentage() + ", " + RR_RATIO_NAME + "=" + this.getRewardToRiskRatio() + ", " + PNL_NAME + "=" + this.getPnL() + ", " + FEE_PERCENTAGE_NAME + "=" + feePercentage + ", " + FEE_AMOUNT_NAME + "=" + this.getFeeAmount() + "}";
+                Format.toFrenchDateTime(openDateTime) + ", " + LAST_UPDATE_NAME + "=" + Format.toFrenchDateTime(lastUpdate) + ", " + PLATFORM_NAME + "=" + getPlatform() + ", " + SYMBOL_NAME + "=" + getSymbol() + ", " + TIMEFRAME_NAME + "=" + getTimeframe() + ", " + ACCOUNT_BALANCE_NAME + "=" + accountBalanceAtOpen + ", " + SIZE_NAME + "=" + size + ", " + EXPECTED_CLOSE_NAME + "=" + Format.toFrenchDateTime(expectedClose) + ", " + EXPIRY_NAME + "=" + Format.toFrenchDateTime(expiry) + ", " + CLOSE_NAME + "=" + Format.toFrenchDateTime(closeDateTime) + ", " + STATUS_NAME + "=" + status + ", " + SIDE_NAME + "=" + (sideLong ? "LONG" : "SHORT") + ", " + OPENING_PRICE_NAME + "=" + openingPrice + ", " + CLOSING_PRICE_NAME + "=" + closingPrice + ", " + TP_NAME + "=" + takeProfit + ", " + SL_NAME + stopLoss + ", " + LEVERAGE_NAME + getLeverage() + ", " + TP_PRICE_PER_NAME + "=" + this.getTakeProfitPricePercentage() + ", " + SL_PRICE_PER_NAME + "=" + this.getStopLossPricePercentage() + ", " + EXPECTED_PROFIT_NAME + "=" + this.getExpectedProfit() + ", " + RISK_PER_NAME + "=" + this.getRiskPercentage() + ", " + RR_RATIO_NAME + "=" + this.getRewardToRiskRatio() + ", " + PNL_NAME + "=" + this.getPnL() + ", " + FEE_PERCENTAGE_NAME + "=" + feePercentage + ", " + FEE_AMOUNT_NAME + "=" + this.getFeeAmount() + "}";
     }
 
     public float getLeverage() {
@@ -288,12 +288,62 @@ public final class Trade extends ChartObject implements CSVRow {
 
     @Override
     public List<Serializable> toRow() {
-        return new ArrayList<>(List.of(Format.toFrenchDateTime(openDateTime), Format.toFrenchDateTime(lastUpdate), platform, getSymbol(), getTimeframe(), accountBalanceAtOpen, size, Format.toFrenchDateTime(expectedClose), Format.toFrenchDateTime(expiry), Format.toFrenchDateTime(closeDateTime), status, (side ? "LONG" : "SHORT"), openingPrice, closingPrice, takeProfit, stopLoss, getLeverage(), getTakeProfitPricePercentage(), getStopLossPricePercentage(), getExpectedProfit(), getRiskPercentage(), getRewardToRiskRatio(), getPnL(), feePercentage, getFeeAmount()));
+        return new ArrayList<>(List.of(
+                Format.toFrenchDateTime(openDateTime),
+                Format.toFrenchDateTime(lastUpdate),
+                platform,
+                getSymbol(),
+                getTimeframe(),
+                accountBalanceAtOpen,
+                size,
+                Format.toFrenchDateTime(expectedClose),
+                Format.toFrenchDateTime(expiry),
+                Format.toFrenchDateTime(closeDateTime),
+                status,
+                (sideLong ? "LONG" : "SHORT"),
+                openingPrice,
+                closingPrice,
+                takeProfit,
+                stopLoss,
+                getLeverage(),
+                getTakeProfitPricePercentage(),
+                getStopLossPricePercentage(),
+                getExpectedProfit(),
+                getRiskPercentage(),
+                getRewardToRiskRatio(),
+                getPnL(),
+                feePercentage,
+                getFeeAmount()));
 
     }
 
     public List<String> extractCsvHeader() {
-        return new ArrayList<>(List.of(OPEN_NAME, LAST_UPDATE_NAME, PLATFORM_NAME, SYMBOL_NAME, TIMEFRAME_NAME, ACCOUNT_BALANCE_NAME, SIZE_NAME, EXPECTED_CLOSE_NAME, EXPIRY_NAME, CLOSE_NAME, STATUS_NAME, SIDE_NAME, OPENING_PRICE_NAME, CLOSING_PRICE_NAME, TP_NAME, SL_NAME, LEVERAGE_NAME, TP_PRICE_PER_NAME, SL_PRICE_PER_NAME, EXPECTED_PROFIT_NAME, RISK_PER_NAME, RR_RATIO_NAME, PNL_NAME, FEE_PERCENTAGE_NAME, FEE_AMOUNT_NAME));
+        return new ArrayList<>(List.of(
+                OPEN_NAME,
+                LAST_UPDATE_NAME,
+                PLATFORM_NAME,
+                SYMBOL_NAME,
+                TIMEFRAME_NAME,
+                ACCOUNT_BALANCE_NAME,
+                SIZE_NAME,
+                EXPECTED_CLOSE_NAME,
+                EXPIRY_NAME,
+                CLOSE_NAME,
+                STATUS_NAME,
+                SIDE_NAME,
+                OPENING_PRICE_NAME,
+                CLOSING_PRICE_NAME,
+                TP_NAME,
+                SL_NAME,
+                LEVERAGE_NAME,
+                TP_PRICE_PER_NAME,
+                SL_PRICE_PER_NAME,
+                EXPECTED_PROFIT_NAME,
+                RISK_PER_NAME,
+                RR_RATIO_NAME,
+                PNL_NAME,
+                FEE_PERCENTAGE_NAME,
+                FEE_AMOUNT_NAME));
     }
 
     public void hitStopLoss(LocalDateTime closeDateTime) {
@@ -360,7 +410,7 @@ public final class Trade extends ChartObject implements CSVRow {
 
         if (status != TradeStatus.OPENED && status != TradeStatus.LIMIT_ORDER && status != TradeStatus.BLANK && status != TradeStatus.UNFUNDED && status != TradeStatus.CANCELED) {
 
-            pnl = side ? closingPrice - openingPrice : openingPrice - closingPrice;
+            pnl = sideLong ? closingPrice - openingPrice : openingPrice - closingPrice;
             pnl = Format.roundTwoDigits(pnl * size - getFeeAmount());
 
             if (accountBalanceAtOpen + pnl < 0) {

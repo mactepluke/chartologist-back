@@ -112,11 +112,11 @@ public class TradingAccount implements CSVData, Account {
     }
 
     public double getLongPnl() {
-        return Format.roundTwoDigits(trades.stream().filter(Trade::isSide).mapToDouble(Trade::getPnL).sum());
+        return Format.roundTwoDigits(trades.stream().filter(Trade::isSideLong).mapToDouble(Trade::getPnL).sum());
     }
 
     public double getShortPnl() {
-        return Format.roundTwoDigits(trades.stream().filter(trade -> !trade.isSide()).mapToDouble(Trade::getPnL).sum());
+        return Format.roundTwoDigits(trades.stream().filter(trade -> !trade.isSideLong()).mapToDouble(Trade::getPnL).sum());
     }
 
     public double getTotalReturnPercentage() {
@@ -124,11 +124,11 @@ public class TradingAccount implements CSVData, Account {
     }
 
     public double getLongReturnPercentage() {
-        return Format.roundTwoDigits(trades.stream().filter(Trade::isSide).mapToDouble(Trade::getReturnPercentage).sum());
+        return Format.roundTwoDigits(trades.stream().filter(Trade::isSideLong).mapToDouble(Trade::getReturnPercentage).sum());
     }
 
     public double getShortReturnPercentage() {
-        return Format.roundTwoDigits(trades.stream().filter(trade -> !trade.isSide()).mapToDouble(Trade::getReturnPercentage).sum());
+        return Format.roundTwoDigits(trades.stream().filter(trade -> !trade.isSideLong()).mapToDouble(Trade::getReturnPercentage).sum());
     }
 
     public double getAverageReturnPercentagePerTrade() {
@@ -148,11 +148,11 @@ public class TradingAccount implements CSVData, Account {
     }
 
     public long getNumberOfLongs() {
-        return trades.stream().filter(Trade::isSide).count();
+        return trades.stream().filter(Trade::isSideLong).count();
     }
 
     public long getNumberOfShorts() {
-        return trades.stream().filter(trade -> !trade.isSide()).count();
+        return trades.stream().filter(trade -> !trade.isSideLong()).count();
     }
 
     public double getTotalBattingAveragePercentage() {
@@ -160,11 +160,11 @@ public class TradingAccount implements CSVData, Account {
     }
 
     public double getLongBattingAveragePercentage() {
-        return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0 && trade.isSide()).count() / (double) getNumberOfLongs()) * 100;
+        return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0 && trade.isSideLong()).count() / (double) getNumberOfLongs()) * 100;
     }
 
     public double getShortBattingAveragePercentage() {
-        return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0 && !trade.isSide()).count() / (double) getNumberOfShorts()) * 100;
+        return Format.roundTwoDigits(trades.stream().filter(trade -> trade.getPnL() > 0 && !trade.isSideLong()).count() / (double) getNumberOfShorts()) * 100;
     }
 
     public double getTotalWinToLossRatio() {
@@ -173,13 +173,13 @@ public class TradingAccount implements CSVData, Account {
     }
 
     public double getLongWinToLossRatio() {
-        return Format.roundTwoDigits((double) trades.stream().filter(trade -> trade.getPnL() > 0 && trade.isSide()).count()
-                / trades.stream().filter(trade -> trade.getPnL() < 0 && trade.isSide()).count());
+        return Format.roundTwoDigits((double) trades.stream().filter(trade -> trade.getPnL() > 0 && trade.isSideLong()).count()
+                / trades.stream().filter(trade -> trade.getPnL() < 0 && trade.isSideLong()).count());
     }
 
     public double getShortWinToLossRatio() {
-        return Format.roundTwoDigits((double) trades.stream().filter(trade -> trade.getPnL() > 0 && !trade.isSide()).count()
-                / trades.stream().filter(trade -> trade.getPnL() < 0 && !trade.isSide()).count());
+        return Format.roundTwoDigits((double) trades.stream().filter(trade -> trade.getPnL() > 0 && !trade.isSideLong()).count()
+                / trades.stream().filter(trade -> trade.getPnL() < 0 && !trade.isSideLong()).count());
     }
 
     public double getTotalAveragePnL() {
@@ -198,7 +198,7 @@ public class TradingAccount implements CSVData, Account {
 
         double average = 0;
 
-        OptionalDouble result = trades.stream().filter(Trade::isSide).mapToDouble(Trade::getPnL).average();
+        OptionalDouble result = trades.stream().filter(Trade::isSideLong).mapToDouble(Trade::getPnL).average();
         if (result.isPresent()) {
             average = result.getAsDouble();
         }
@@ -210,7 +210,7 @@ public class TradingAccount implements CSVData, Account {
 
         double average = 0;
 
-        OptionalDouble result = trades.stream().filter(trade -> !trade.isSide()).mapToDouble(Trade::getPnL).average();
+        OptionalDouble result = trades.stream().filter(trade -> !trade.isSideLong()).mapToDouble(Trade::getPnL).average();
         if (result.isPresent()) {
             average = result.getAsDouble();
         }

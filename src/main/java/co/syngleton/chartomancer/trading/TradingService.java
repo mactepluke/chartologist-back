@@ -170,14 +170,13 @@ class TradingService implements TradeGenerator, TradeSimulator {
 
             if (price != 0) {
 
-                int matchScore = tradingAnalyzer.calculateMatchScore(pattern.getIntCandles(), intCandles);
+                final int matchScore = tradingAnalyzer.calculateMatchScore(pattern.getIntCandles(), intCandles);
 
                 pricePrediction += Calc.xPercentOfY(matchScore, price);
-                divider += Calc.xPercentOfY(matchScore, divider);
+                divider += matchScore / 100f;
             }
         }
         pricePrediction /= divider;
-
         return pricePrediction;
     }
 
@@ -192,7 +191,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
             trade.setExpiry(candles.get(candles.size() - 1).dateTime());
 
             for (FloatCandle candle : candles) {
-                if (trade.isSide()) {
+                if (trade.isSideLong()) {
                     completeLongTradeOnLimitsHit(candle, trade, account);
                 } else {
                     completeShortTradeOnLimitsHit(candle, trade, account);

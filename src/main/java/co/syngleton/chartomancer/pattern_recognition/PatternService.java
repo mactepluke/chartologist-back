@@ -165,13 +165,10 @@ final class PatternService implements PatternGenerator, PatternComputer {
             priceVariation = analyzer.calculatePriceVariation(getFollowingFloatCandles(pattern, computationSettings, i), pattern.getScope());
             priceVariation = analyzer.filterPriceVariation(priceVariation);
 
-            //    if (priceVariation != 0) {
-
             List<IntCandle> intCandlesToMatch = candleRescaler.rescale(getCandlesToMatch(pattern, computationSettings, i), pattern.getGranularity());
             matchScore = analyzer.calculateMatchScore(pattern.getIntCandles(), intCandlesToMatch);
             pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + Calc.xPercentOfY(matchScore, priceVariation));
             divider = incrementDivider(divider, matchScore);
-            //    }
         }
         adjustPriceVariationPrediction(pattern, divider);
         incrementProgressBar(pb);
@@ -196,9 +193,8 @@ final class PatternService implements PatternGenerator, PatternComputer {
                 float priceVariation = analyzer.calculatePriceVariation(followingCandles, candleIndex);
                 priceVariation = analyzer.filterPriceVariation(priceVariation);
 
-//                if (priceVariation != 0) {
-                pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction() + Calc.xPercentOfY(matchScore, priceVariation));
-//                }
+                pattern.setPriceVariationPrediction(pattern.getPriceVariationPrediction(candleIndex) + Calc.xPercentOfY(matchScore, priceVariation), candleIndex);
+                dividers[candleIndex - 1] = incrementDivider(dividers[candleIndex - 1], matchScore);
             }
         }
         adjustPriceVariationPrediction(pattern, dividers);

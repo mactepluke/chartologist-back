@@ -6,7 +6,6 @@ import java.util.List;
 public final class CSVWriter {
 
     private static final String NEW_LINE = System.lineSeparator();
-    private static final String FAILED_INTEGRITY_CHECK_MESSAGE = "COULD NOT GENERATE DATA: table did not pass integrity check.";
 
     private CSVWriter() throws IllegalAccessException {
         throw new IllegalAccessException();
@@ -78,16 +77,13 @@ public final class CSVWriter {
 
         StringBuilder printableTableBuilder = new StringBuilder();
 
-        if (CSVData.checkIntegrity(table)) {
+        CSVData.checkIntegrity(table);
 
-            printableTableBuilder
-                    .append(generatePrintableHeader(table))
-                    .append(generatePrintableData(table));
+        printableTableBuilder
+                .append(generatePrintableHeader(table))
+                .append(generatePrintableData(table));
 
-            return printableTableBuilder.toString();
-        }
-
-        return FAILED_INTEGRITY_CHECK_MESSAGE;
+        return printableTableBuilder.toString();
     }
 
     private static String generatePrintableHeader(CSVData table) {

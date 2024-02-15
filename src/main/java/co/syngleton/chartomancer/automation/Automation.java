@@ -316,7 +316,6 @@ final class Automation implements Runnable {
         return dummyGraphsData;
     }
 
-    //TODO Vérifier pourquoi la mise à jour du fichier dummy_trades_summary.csv ne fonctionne pas
     private synchronized void writeDummyTradesReports() {
         log.info(reportLog);
         CSVWriter.writeCSVDataToFile(DUMMY_TRADES_FOLDER_PATH + DUMMY_TRADES_SUMMARY_FILE_NAME, dummyTradesSummaryTable);

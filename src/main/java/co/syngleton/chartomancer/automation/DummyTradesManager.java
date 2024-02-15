@@ -269,7 +269,7 @@ final class DummyTradesManager {
                 account.getShortPnl(),
                 account.getTotalWinToLossRatio(),
                 account.getLongWinToLossRatio(),
-                account.getLongWinToLossRatio(),
+                account.getShortWinToLossRatio(),
                 account.getTotalAveragePnL(),
                 account.getLongAveragePnL(),
                 account.getShortAveragePnL(),

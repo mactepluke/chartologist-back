@@ -39,7 +39,7 @@ public class TradeSignalDTO {
         this.blank = trade.getStatus() == Trade.TradeStatus.BLANK;
         this.timeframe = trade.getTimeframe();
         this.size = trade.getSize();
-        this.side = trade.isSide() ? "LONG" : "SHORT";
+        this.side = trade.isSideLong() ? "LONG" : "SHORT";
         this.openingPrice = trade.getOpeningPrice();
         this.expectedClose = trade.getExpectedClose();
         this.takeProfit = trade.getTakeProfit();
