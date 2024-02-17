@@ -21,10 +21,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        <!-- <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency> -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-rest</artifactId>
@@ -37,34 +33,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web-services</artifactId>
-        </dependency>
-        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -139,14 +113,6 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
             <version>4.0.3</version>
         </dependency>
-        <!--        <dependency>
-                    <groupId>org.springframework.session</groupId>
-                    <artifactId>spring-session-core</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.session</groupId>
-                    <artifactId>spring-session-jdbc</artifactId>
-                </dependency>-->
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -160,6 +126,7 @@
         </dependencies>
     </dependencyManagement>
     <build>
+        <finalName>sycm-back-server</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
