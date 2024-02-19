@@ -43,16 +43,13 @@ class TradingService implements TradeGenerator, TradeSimulator {
      * @param tradeOpenCandle
      * @return
      */
-    @Override
-    public Trade generateOptimalTakerTradeWithDefaultSettings(Account tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
-        return generateOptimalTakerTrade(tradingAccount, graph, coreData, tradeOpenCandle);
-    }
+
 
     @Override
     public Trade generateOptimalTakerTrade(Account tradingAccount, Graph graph, CoreData coreData, int tradeOpenCandle) {
 
         if (tradingInputDataAreInvalid(tradingAccount, graph, coreData, tradeOpenCandle)) {
-            return null;
+            throw new IllegalArgumentException("Trading parameters are invalid.");
         }
 
         final float expectedPriceVariation = findMostProfitablePriceVariation(graph, coreData, tradeOpenCandle);
@@ -68,6 +65,7 @@ class TradingService implements TradeGenerator, TradeSimulator {
         if (advice.stopLoss() == openingPrice || advice.takeProfit() == openingPrice) {
             return Trade.blank();
         }
+
 
         int maxScope = coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()) - 1;
 
@@ -177,33 +175,60 @@ class TradingService implements TradeGenerator, TradeSimulator {
             }
         }
         pricePrediction /= divider;
+
         return pricePrediction;
     }
 
     @Override
-    public void processTradeOnCompletedCandles(Trade trade, TradingAccount account, List<FloatCandle> candles) {
+    public Trade generateAndProcessTrade(CoreData coreData, @NonNull Graph graph, TradingAccount account, int tradeOpenCandle) {
 
-        if (trade != null
-                && account != null
-                && Check.isNotEmpty(candles)
-                && trade.isOpen()
-        ) {
-            trade.setExpiry(candles.get(candles.size() - 1).dateTime());
+        Trade trade = generateOptimalTakerTrade(
+                account,
+                graph,
+                coreData,
+                tradeOpenCandle
+        );
 
-            for (FloatCandle candle : candles) {
-                if (trade.isSideLong()) {
-                    completeLongTradeOnLimitsHit(candle, trade, account);
-                } else {
-                    completeShortTradeOnLimitsHit(candle, trade, account);
-                }
-                if (!trade.isOpen()) {
-                    break;
-                }
+        if (trade != null && trade.isOpen()) {
+
+            processTradeOnCompletedCandles(
+                    trade,
+                    account,
+                    graph.getFloatCandles().subList(tradeOpenCandle, tradeOpenCandle + coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()))
+            );
+        }
+        return trade;
+    }
+
+    private void processTradeOnCompletedCandles(Trade trade, TradingAccount account, List<FloatCandle> candles) {
+
+        checkParamsAreValid(trade, account, candles);
+
+        trade.setExpiry(candles.get(candles.size() - 1).dateTime());
+
+        for (FloatCandle candle : candles) {
+            if (trade.isSideLong()) {
+                completeLongTradeOnLimitsHit(candle, trade, account);
+            } else {
+                completeShortTradeOnLimitsHit(candle, trade, account);
             }
-            if (trade.isOpen()) {
-                completeExpiredTrade(candles, trade, account);
+            if (!trade.isOpen()) {
+                break;
             }
-            account.addTrade(trade);
+        }
+        if (trade.isOpen()) {
+            completeExpiredTrade(candles, trade, account);
+        }
+        account.addTrade(trade);
+    }
+
+    private void checkParamsAreValid(Trade trade, TradingAccount account, List<FloatCandle> candles) {
+
+        if (trade == null
+                || account == null
+                || !Check.isNotEmpty(candles)
+                || !trade.isOpen()) {
+            throw new IllegalArgumentException("Trading parameters are invalid.");
         }
     }
 

@@ -21,7 +21,7 @@ public interface CSVData {
         final boolean headerIsNotSet = table.getHeader() == null;
         final boolean headerIsEmpty = table.getHeader().isEmpty();
         final boolean csvDataIsEmpty = table.getCSVData().isEmpty();
-        final boolean csvDataSizeIsNotEqualToHeaderSize = table.getCSVData().get(0).toRow().size() != table.getHeader().size();
+        final boolean csvDataSizeIsNotEqualToHeaderSize = !csvDataIsEmpty && table.getCSVData().get(0).toRow().size() != table.getHeader().size();
 
         if (separatorIsNotSet
                 || csvDataIsNotSet

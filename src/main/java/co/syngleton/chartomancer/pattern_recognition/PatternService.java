@@ -62,7 +62,7 @@ final class PatternService implements PatternGenerator, PatternComputer {
                 successfulComplete = false;
             }
 
-            coreData.putPatterns(computedPatterns, graph.getSymbol(), graph.getTimeframe());
+            coreData.putPatterns(computedPatterns);
             updateCoreDataComputationSettings(coreData, settingsInput.build());
 
         }

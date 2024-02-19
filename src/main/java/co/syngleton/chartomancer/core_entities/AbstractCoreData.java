@@ -4,6 +4,7 @@ import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
 import co.syngleton.chartomancer.util.Check;
+import lombok.NonNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -106,15 +107,21 @@ abstract class AbstractCoreData implements CoreData {
     }
 
     @Override
-    public synchronized void addPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe) {
-        getPatternBox(symbol, timeframe).ifPresentOrElse(patternBox -> patternBox.addPatterns(patterns),
+    public synchronized void addPatterns(@NonNull List<Pattern> patterns) {
+        if (patterns.isEmpty()) {
+            return;
+        }
+        getPatternBox(patterns.get(0).getSymbol(), patterns.get(0).getTimeframe()).ifPresentOrElse(patternBox -> patternBox.addPatterns(patterns),
                 () -> patternBoxes.add(new PatternBox(patterns))
         );
     }
 
     @Override
-    public synchronized void putPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe) {
-        getPatternBox(symbol, timeframe).ifPresentOrElse(patternBox -> patternBox.putPatterns(patterns),
+    public synchronized void putPatterns(List<Pattern> patterns) {
+        if (patterns.isEmpty()) {
+            return;
+        }
+        getPatternBox(patterns.get(0).getSymbol(), patterns.get(0).getTimeframe()).ifPresentOrElse(patternBox -> patternBox.putPatterns(patterns),
                 () -> patternBoxes.add(new PatternBox(patterns))
         );
     }
@@ -148,7 +155,9 @@ abstract class AbstractCoreData implements CoreData {
 
         Set<PatternBox> tradingData = new HashSet<>();
 
-        if (this.patternBoxes == null || this.patternBoxes.isEmpty()) {
+        Objects.requireNonNull(this.patternBoxes);
+
+        if (this.patternBoxes.isEmpty()) {
             return false;
         }
 

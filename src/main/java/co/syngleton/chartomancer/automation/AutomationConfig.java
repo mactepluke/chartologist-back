@@ -3,7 +3,6 @@ package co.syngleton.chartomancer.automation;
 import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
-import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
@@ -15,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 @AllArgsConstructor
 class AutomationConfig {
     private final CoreData coreData;
-    private final TradeGenerator tradeGenerator;
     private final TradeSimulator tradeSimulator;
     private final DataProcessor dataProcessor;
     private final PatternComputer patternComputer;
@@ -26,11 +24,33 @@ class AutomationConfig {
         if (automationProperties.launchAutomation()) {
             log.info("Launching automation...");
 
-            Thread automation = new Thread(new Automation(
+            Automation automation = new Automation(
                     coreData,
                     dataProcessor,
                     patternComputer,
-                    tradeGenerator,
+                    tradeSimulator,
+                    automationProperties.printCoreData(),
+                    automationProperties.printPricePredictionSummary(),
+                    automationProperties.runBasicDummyTrades(),
+                    automationProperties.runRandomizedDummyTrades(),
+                    automationProperties.runRandomizedDummyTradesOnDummyGraphs(),
+                    automationProperties.runDeterministicDummyTradesOnDummyGraphs(),
+                    automationProperties.dummyTradesInitialBalance(),
+                    automationProperties.dummyTradesMinimumBalance(),
+                    automationProperties.dummyTradesExpectedBalanceX(),
+                    automationProperties.dummyTradesMaxTrades(),
+                    automationProperties.dummyTradesTimeframes(),
+                    automationProperties.writeDummyTradesReports(),
+                    automationProperties.dummyGraphsDataFolderName(),
+                    automationProperties.dummyGraphsDataFilesNames(),
+                    automationProperties.printTasksHistory());
+
+            automation.launch();
+
+            /*Thread automation = new Thread(new Automation(
+                    coreData,
+                    dataProcessor,
+                    patternComputer,
                     tradeSimulator,
                     automationProperties.printCoreData(),
                     automationProperties.printPricePredictionSummary(),
@@ -47,7 +67,7 @@ class AutomationConfig {
                     automationProperties.dummyGraphsDataFolderName(),
                     automationProperties.dummyGraphsDataFilesNames(),
                     automationProperties.printTasksHistory()));
-            automation.start();
+            automation.start();*/
         }
     }
 }

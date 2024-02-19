@@ -3,8 +3,9 @@ package co.syngleton.chartomancer.automation;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.core_entities.*;
 import co.syngleton.chartomancer.data.DataProcessor;
+import co.syngleton.chartomancer.dummy_trading.DummyTradesSummaryTable;
+import co.syngleton.chartomancer.dummy_trading.DummyTradingService;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
-import co.syngleton.chartomancer.trading.TradeGenerator;
 import co.syngleton.chartomancer.trading.TradeSimulator;
 import co.syngleton.chartomancer.util.csvwritertool.CSVWriter;
 import lombok.NonNull;
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Log4j2
-final class Automation implements Runnable {
+final class Automation {
     private static final String NEW_LINE = System.lineSeparator();
     private static final String DUMMY_TRADES_FOLDER_PATH = "./trades_history/";
     private static final String DUMMY_TRADES_SUMMARY_FILE_NAME = "dummy_trades_summary";
@@ -37,14 +38,13 @@ final class Automation implements Runnable {
     private final CoreData coreData;
     private final DataProcessor dataProcessor;
     private final PatternComputer patternComputer;
-    private final DummyTradesManager dtm;
+    private final DummyTradingService dtm;
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private String reportLog;
 
     public Automation(CoreData coreData,
                       DataProcessor dataProcessor,
                       PatternComputer patternComputer,
-                      TradeGenerator tradeGenerator,
                       TradeSimulator tradeSimulator,
                       boolean printCoreData,
                       boolean printPricePredictionSummary,
@@ -92,22 +92,18 @@ final class Automation implements Runnable {
 
         dummyTradesSummaryTable = new DummyTradesSummaryTable(DUMMY_TRADES_SUMMARY_FILE_NAME);
 
-        dtm = new DummyTradesManager(initialBalance,
+        dtm = new DummyTradingService(initialBalance,
                 minimumBalance,
                 expectedBalanceX,
                 maxTrades,
-                tradeGenerator,
                 tradeSimulator,
-                coreData,
                 writeDummyTradesReports,
                 dummyTradesSummaryTable,
-                DUMMY_TRADES_FOLDER_PATH,
-                dataProcessor);
+                DUMMY_TRADES_FOLDER_PATH);
         tasksHistory = new ArrayList<>();
     }
 
-    @Override
-    public void run() {
+    public void launch() {
         log.info("*** AUTOMATION LAUNCHED ***");
 
         StopWatch stopWatch = new StopWatch();
@@ -133,7 +129,7 @@ final class Automation implements Runnable {
         );
 
         if (printCoreData) {
-            printCoreData();
+            log.info(this.coreData);
             tasksHistory.add("PRINTED CORE DATA");
         }
         if (printPricePredictionSummary) {
@@ -178,10 +174,6 @@ final class Automation implements Runnable {
         }
 
         log.info("*** Automation Tasks History ***" + NEW_LINE + "{}", tasks.toString());
-    }
-
-    private void printCoreData() {
-        dataProcessor.printCoreData(coreData);
     }
 
     private void printPricePredictionSummary() {

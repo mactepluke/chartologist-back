@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.signaling;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.configuration.GlobalTestConfig;
+import co.syngleton.chartomancer.configuration.MockConfig;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.external_api_requesting.DataRequestingService;
 import lombok.extern.log4j.Log4j2;
@@ -23,7 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
 @SpringBootTest
 @Log4j2
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = GlobalTestConfig.class)
+@ContextConfiguration(classes = MockConfig.class)
 @ActiveProfiles("test")
 class CryptoCompareApiTests {
 

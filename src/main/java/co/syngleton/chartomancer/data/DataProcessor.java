@@ -17,6 +17,4 @@ public interface DataProcessor {
     boolean generateTradingData(CoreData coreData);
 
     boolean createGraphsForMissingTimeframes(CoreData coreData);
-
-    void printCoreData(CoreData coreData);
 }

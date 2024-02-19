@@ -8,7 +8,6 @@ import co.syngleton.chartomancer.core_entities.Pattern;
 import co.syngleton.chartomancer.pattern_recognition.PatternGenerator;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
-import co.syngleton.chartomancer.util.Format;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -48,7 +47,7 @@ class DataService implements DataProcessor {
                 log.debug(">>> Creating patterns for graph: " + graph.getTimeframe() + ", " + graph.getSymbol());
                 List<Pattern> patterns = patternGenerator.createPatterns(settingsInput.graph(graph));
 
-                coreData.addPatterns(patterns, graph.getSymbol(), graph.getTimeframe());
+                coreData.addPatterns(patterns);
             }
         }
         updateCoreDataPatternSettings(coreData, settingsInput.build());
@@ -180,29 +179,6 @@ class DataService implements DataProcessor {
             }
         }
         return true;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public void printCoreData(CoreData coreData) {
-
-        if (coreData != null) {
-            log.info(coreData + generateMemoryUsageToPrint());
-        } else {
-            log.info("Cannot print core data: object is empty.");
-        }
-    }
-
-    private @NonNull String generateMemoryUsageToPrint() {
-
-        return NEW_LINE +
-                "Current heap size (MB): " +
-                Format.roundAccordingly((float) Runtime.getRuntime().totalMemory() / 1000000) +
-                NEW_LINE + "Max heap size (MB): "
-                + Format.roundAccordingly((float) Runtime.getRuntime().maxMemory() / 1000000) +
-                NEW_LINE + "Free heap size (MB): "
-                + Format.roundAccordingly((float) Runtime.getRuntime().freeMemory() / 1000000) +
-                NEW_LINE;
     }
 
 }

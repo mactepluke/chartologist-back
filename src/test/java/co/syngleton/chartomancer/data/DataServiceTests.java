@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.configuration.GlobalTestConfig;
+import co.syngleton.chartomancer.configuration.MockConfig;
 import co.syngleton.chartomancer.configuration.MockData;
 import co.syngleton.chartomancer.configuration.MockDataConfig;
 import co.syngleton.chartomancer.core_entities.*;
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = {GlobalTestConfig.class, MockDataConfig.class})
+@ContextConfiguration(classes = {MockConfig.class, MockDataConfig.class})
 @ActiveProfiles("test")
 class DataServiceTests {
 
@@ -54,7 +54,7 @@ class DataServiceTests {
                 mockData.getMockGraphDay1().getTimeframe());
         patterns.add(new ComputablePattern(basicPattern, 5));
 
-        coreData.addPatterns(patterns, mockData.getMockGraphDay1().getSymbol(), mockData.getMockGraphDay1().getTimeframe());
+        coreData.addPatterns(patterns);
 
         getTestDataFolderPath = "src/test/resources/" + testDataFolderName;
     }

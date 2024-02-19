@@ -4,7 +4,7 @@ import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.configuration.GlobalTestConfig;
+import co.syngleton.chartomancer.configuration.MockConfig;
 import co.syngleton.chartomancer.configuration.MockData;
 import co.syngleton.chartomancer.configuration.MockDataConfig;
 import co.syngleton.chartomancer.core_entities.*;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 @Log4j2
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = {GlobalTestConfig.class, MockDataConfig.class})
+@ContextConfiguration(classes = {MockConfig.class, MockDataConfig.class})
 @ActiveProfiles("test")
 class PatternServiceTests {
 

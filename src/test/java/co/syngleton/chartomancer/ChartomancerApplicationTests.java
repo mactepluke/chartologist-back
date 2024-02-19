@@ -1,6 +1,6 @@
 package co.syngleton.chartomancer;
 
-import co.syngleton.chartomancer.configuration.GlobalTestConfig;
+import co.syngleton.chartomancer.configuration.MockConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,7 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
-@ContextConfiguration(classes = GlobalTestConfig.class)
+@ContextConfiguration(classes = MockConfig.class)
 @ActiveProfiles("test")
 class ChartomancerApplicationTests {
 

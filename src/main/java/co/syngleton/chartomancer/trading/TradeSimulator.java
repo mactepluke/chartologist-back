@@ -1,9 +1,23 @@
 package co.syngleton.chartomancer.trading;
 
-import co.syngleton.chartomancer.core_entities.FloatCandle;
+import co.syngleton.chartomancer.analytics.Analyzer;
+import co.syngleton.chartomancer.core_entities.Account;
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.Graph;
+import lombok.NonNull;
 
-import java.util.List;
+public interface TradeSimulator extends TradeGenerator {
+    Trade generateAndProcessTrade(CoreData coreData, @NonNull Graph graph, TradingAccount account, int tradeOpenCandle);
 
-public interface TradeSimulator {
-    void processTradeOnCompletedCandles(Trade trade, TradingAccount account, List<FloatCandle> candles);
+    @Override
+    Trade generateOptimalTakerTrade(Account tradingAccount,
+                                    Graph graph,
+                                    CoreData coreData,
+                                    int tradeOpenCandle);
+
+    @Override
+    Analyzer getTradingAnalyzer();
+
+    @Override
+    TradingProperties getTradingProperties();
 }

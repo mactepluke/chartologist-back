@@ -1,0 +1,303 @@
+package co.syngleton.chartomancer.dummy_trading;
+
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.Graph;
+import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
+import co.syngleton.chartomancer.trading.Trade;
+import co.syngleton.chartomancer.trading.TradeSimulator;
+import co.syngleton.chartomancer.trading.TradingAccount;
+import co.syngleton.chartomancer.util.Calc;
+import co.syngleton.chartomancer.util.Format;
+import co.syngleton.chartomancer.util.csvwritertool.CSVWriter;
+import lombok.NonNull;
+import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.Contract;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static java.lang.Math.round;
+
+@Log4j2
+public final class DummyTradingService {
+    private static final String NEW_LINE = System.lineSeparator();
+    private static final int MAX_BLANK_TRADE_MULTIPLIER = 1;
+    private final double initialBalance;
+    private final double minimumBalance;
+    private final int expectedBalanceX;
+    private final int maxTrades;
+    private final TradeSimulator tradeSimulator;
+    private final DummyTradesSummaryTable dummyTradesSummaryTable;
+    private final boolean writeReports;
+    private final String dummyTradesFolderPath;
+
+    public DummyTradingService(double initialBalance,
+                               double minimumBalance,
+                               int expectedBalanceX,
+                               int maxTrades,
+                               TradeSimulator tradeSimulator,
+                               boolean writeReports,
+                               DummyTradesSummaryTable dummyTradesSummaryTable,
+                               String dummyTradesFolderPath) {
+        this.initialBalance = initialBalance;
+        this.minimumBalance = minimumBalance;
+        this.expectedBalanceX = expectedBalanceX;
+        this.maxTrades = maxTrades;
+        this.tradeSimulator = tradeSimulator;
+        this.writeReports = writeReports;
+        this.dummyTradesSummaryTable = dummyTradesSummaryTable;
+        this.dummyTradesFolderPath = dummyTradesFolderPath;
+    }
+
+    public String launchDummyTrades(@NonNull Graph graph, @NonNull CoreData coreData, boolean randomized, String reportLog) {
+
+        TradingAccount account = new TradingAccount();
+
+        account.credit(initialBalance);
+        account.setName("Dummy Trade Account_randomized=" + randomized + "_" + graph.getSymbol() + "_" + graph.getTimeframe());
+
+        if (coreData.canProvideDataForTradingOn(graph.getSymbol(), graph.getTimeframe())) {
+
+            reportLog = reportLog + "*** TRADING WITH ACCOUNT:  " + account.getName() + " ***" + NEW_LINE;
+
+            int blankTradesCount;
+
+            blankTradesCount = randomized ? generateAndProcessRandomTrades(graph, coreData, account)
+                    : generateAndProcessDeterministicTrades(graph, coreData, account);
+
+
+            String result = checkAccount(account);
+
+            long longCount = account.getNumberOfLongs();
+            long shortCount = account.getNumberOfShorts();
+            float usefulToUselessTradesRatio = blankTradesCount == 0 ? -1 : Format.roundTwoDigits((longCount + shortCount) / (float) blankTradesCount);
+            var totalDurationInSeconds = getDummyTradesDurationInSeconds(account, blankTradesCount, graph.getTimeframe());
+            double totalDuration = Format.roundTwoDigits(totalDurationInSeconds / (double) Timeframe.DAY.durationInSeconds);
+            double annualizedReturnPercentage = Format.roundTwoDigits(
+                    (356 * Timeframe.DAY.durationInSeconds * Calc.relativePercentage(account.getTotalPnl(), initialBalance)) / (double) totalDurationInSeconds);
+
+            reportLog = reportLog + generateTradesReport(account,
+                    result,
+                    longCount,
+                    shortCount,
+                    blankTradesCount,
+                    usefulToUselessTradesRatio,
+                    totalDuration,
+                    annualizedReturnPercentage);
+
+            String fileName = Format.toFileNameCompatibleDateTime(LocalDateTime.now()) + "_" + account.getName() + "_" + graph.getName() + "_" + "_" + result;
+
+            addDummyTradeEntry(getNewTradesSummaryEntry(
+                    coreData,
+                    account,
+                    fileName,
+                    graph.getSymbol(),
+                    graph.getTimeframe(),
+                    coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()),
+                    coreData.getTradingPatternLength(graph.getSymbol(), graph.getTimeframe()),
+                    result,
+                    longCount,
+                    shortCount,
+                    blankTradesCount,
+                    usefulToUselessTradesRatio,
+                    totalDuration,
+                    annualizedReturnPercentage
+            ));
+
+            if (writeReports && account.getNumberOfTrades() > 0) {
+                CSVWriter.writeCSVDataToFile(dummyTradesFolderPath + fileName, account);
+            }
+        }
+        return reportLog;
+    }
+
+    private int generateAndProcessRandomTrades(@NonNull Graph graph, CoreData coreData, TradingAccount account) {
+
+        int blankTradesCount = 0;
+        int tradeOpenCandle;
+        int bound = graph.getFloatCandles().size() - coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()) - coreData.getTradingPatternLength(graph.getSymbol(), graph.getTimeframe()) - 1;
+        boolean liquidated = false;
+
+        do {
+            tradeOpenCandle = ThreadLocalRandom.current().nextInt(Math.max(bound, 1)) + coreData.getTradingPatternLength(graph.getSymbol(), graph.getTimeframe());
+
+            Trade trade = tradeSimulator.generateAndProcessTrade(coreData, graph, account, tradeOpenCandle);
+
+            if (trade != null && trade.getStatus() == Trade.TradeStatus.BLANK) {
+                blankTradesCount++;
+            }
+
+            if (trade != null && trade.getStatus() == Trade.TradeStatus.UNFUNDED) {
+                liquidated = true;
+            }
+
+        } while (blankTradesCount < MAX_BLANK_TRADE_MULTIPLIER * maxTrades
+                && account.getNumberOfTrades() < maxTrades
+                && !account.isLiquidated()
+                && !liquidated
+                && account.getBalance() > minimumBalance
+                && account.getBalance() < initialBalance * expectedBalanceX);
+
+        return blankTradesCount;
+    }
+
+    private int generateAndProcessDeterministicTrades(@NonNull Graph graph, CoreData coreData, @NonNull TradingAccount account) {
+
+        int blankTradesCount = 0;
+        int tradeOpenCandle = coreData.getTradingPatternLength(graph.getSymbol(), graph.getTimeframe());
+        int bound = graph.getFloatCandles().size() - coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe());
+        boolean liquidated = false;
+
+        while (!account.isLiquidated()
+                && account.getBalance() > minimumBalance
+                && account.getBalance() < initialBalance * expectedBalanceX
+                && tradeOpenCandle < bound
+                && !liquidated) {
+
+            Trade trade = tradeSimulator.generateAndProcessTrade(coreData, graph, account, tradeOpenCandle);
+
+            if (trade != null) {
+                if (trade.getStatus() == Trade.TradeStatus.BLANK) {
+                    blankTradesCount++;
+                    tradeOpenCandle++;
+                } else if (trade.getStatus() == Trade.TradeStatus.UNFUNDED) {
+                    liquidated = true;
+                } else {
+                    tradeOpenCandle = tradeOpenCandle + (round((trade.getCloseDateTime().toEpochSecond(ZoneOffset.UTC) - trade.getOpenDateTime().toEpochSecond(ZoneOffset.UTC))
+                            / (float) trade.getTimeframe().durationInSeconds) + 1);
+                }
+            }
+        }
+        return blankTradesCount;
+    }
+
+    @Contract("_, _, _, _, _, _, _, _, _, _, _, _, _, _ -> new")
+    private @NonNull DummyTradesSummaryEntry getNewTradesSummaryEntry(@NonNull CoreData coreData,
+                                                                      @NonNull TradingAccount account,
+                                                                      String fileName,
+                                                                      Symbol symbol,
+                                                                      Timeframe timeframe,
+                                                                      int maxScope,
+                                                                      int patternLength,
+                                                                      String result,
+                                                                      long longCount,
+                                                                      long shortCount,
+                                                                      long blankTradesCount,
+                                                                      float usefulToUselessTradesRatio,
+                                                                      double totalDuration,
+                                                                      double annualizedReturnPercentage) {
+        return new DummyTradesSummaryEntry(
+                Format.toFrenchDateTime(LocalDateTime.now()),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_DATE),
+                fileName,
+                dummyTradesSummaryTable.getFileName(),
+                symbol.toString(),
+                timeframe.toString(),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.MATCH_SCORE_SMOOTHING),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.MATCH_SCORE_THRESHOLD),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_AUTOCONFIG),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_TYPE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION),
+                Integer.toString(maxScope),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.FULL_SCOPE),
+                Integer.toString(patternLength),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY),
+                tradeSimulator.getTradingAnalyzer().matchScoreSmoothing(),
+                tradeSimulator.getTradingAnalyzer().matchScoreThreshold(),
+                tradeSimulator.getTradingProperties().priceVariationThreshold(),
+                tradeSimulator.getTradingAnalyzer().extrapolatePriceVariation(),
+                tradeSimulator.getTradingAnalyzer().extrapolateMatchScore(),
+                tradeSimulator.getTradingProperties().rewardToRiskRatio(),
+                tradeSimulator.getTradingProperties().riskPercentage(),
+                tradeSimulator.getTradingProperties().priceVariationMultiplier(),
+                tradeSimulator.getTradingProperties().slTpStrategy(),
+                maxTrades,
+                result,
+                initialBalance,
+                initialBalance * expectedBalanceX,
+                account.getBalance(),
+                minimumBalance,
+                account.getNumberOfTrades(),
+                longCount,
+                shortCount,
+                blankTradesCount,
+                usefulToUselessTradesRatio,
+                account.getTotalPnl(),
+                account.getLongPnl(),
+                account.getShortPnl(),
+                account.getTotalWinToLossRatio(),
+                account.getLongWinToLossRatio(),
+                account.getShortWinToLossRatio(),
+                account.getTotalAveragePnL(),
+                account.getLongAveragePnL(),
+                account.getShortAveragePnL(),
+                account.getTotalReturnPercentage(),
+                account.getLongReturnPercentage(),
+                account.getShortReturnPercentage(),
+                account.getProfitFactor(),
+                account.getProfitFactorQualification(),
+                totalDuration,
+                annualizedReturnPercentage
+
+        );
+    }
+
+    private @NonNull String generateTradesReport(@NonNull TradingAccount account,
+                                                 String result,
+                                                 long longCount,
+                                                 long shortCount,
+                                                 long blankTradesCount,
+                                                 float usefulToUselessTradesRatio,
+                                                 double totalDuration,
+                                                 double annualizedReturnPercentage) {
+
+        String cur = account.getCurrency();
+
+        return
+                "TRADING SETTINGS: " +
+                        tradeSimulator.getTradingProperties().toString() + NEW_LINE + NEW_LINE +
+                        "*** ADVANCED DUMMY TRADE RESULTS ***" + NEW_LINE +
+                        "Result: " + result + NEW_LINE +
+                        "Number of dummy trades performed: " + account.getNumberOfTrades() + NEW_LINE +
+                        "Number of longs: " + longCount + NEW_LINE +
+                        "Number of shorts: " + shortCount + NEW_LINE +
+                        "Number of useless trades: " + blankTradesCount + NEW_LINE +
+                        "Used to Useless trade ratio: " + usefulToUselessTradesRatio + NEW_LINE +
+                        "Initial balance: " + cur + " " + initialBalance + NEW_LINE +
+                        "Target balance amount: " + cur + " " + (initialBalance * expectedBalanceX) + NEW_LINE +
+                        "Final Account Balance: " + cur + " " + account.getBalance() + NEW_LINE +
+                        "Total duration (in days): " + totalDuration + NEW_LINE +
+                        "Annualized return %: " + annualizedReturnPercentage
+                        + NEW_LINE +
+                        account.generatePrintableTradesStats() + NEW_LINE;
+    }
+
+    private long getDummyTradesDurationInSeconds(@NonNull TradingAccount account, long blankTradeCount, @NonNull Timeframe timeframe) {
+        return (account.getTotalTradeDurationsInSeconds() + blankTradeCount * timeframe.durationInSeconds);
+    }
+
+    private String checkAccount(@NonNull TradingAccount account) {
+        String result = "NEUTRAL";
+
+        if (account.getBalance() > initialBalance * expectedBalanceX) {
+            result = "RICH";
+        } else if (account.getBalance() < minimumBalance || account.isLiquidated()) {
+            result = "REKT";
+        }
+        return result;
+    }
+
+
+    private void addDummyTradeEntry(DummyTradesSummaryEntry dummyTradesSummaryEntry) {
+        this.dummyTradesSummaryTable.getCSVData().add(dummyTradesSummaryEntry);
+    }
+
+}

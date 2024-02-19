@@ -1,6 +1,8 @@
 package co.syngleton.chartomancer.data;
 
-import co.syngleton.chartomancer.configuration.GlobalTestConfig;
+import co.syngleton.chartomancer.charting_types.Symbol;
+import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.configuration.MockConfig;
 import co.syngleton.chartomancer.configuration.MockData;
 import co.syngleton.chartomancer.configuration.MockDataConfig;
 import co.syngleton.chartomancer.core_entities.*;
@@ -21,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @Log4j2
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = {GlobalTestConfig.class, MockDataConfig.class})
+@ContextConfiguration(classes = {MockConfig.class, MockDataConfig.class})
 @ActiveProfiles("test")
 class CoreDataTests {
 
@@ -51,7 +53,7 @@ class CoreDataTests {
                 mockData.getMockGraphDay1().getTimeframe());
         patterns.add(new ComputablePattern(basicPattern, 5));
 
-        coreData.addPatterns(patterns, mockData.getMockGraphDay1().getSymbol(), mockData.getMockGraphDay1().getTimeframe());
+        coreData.addPatterns(patterns);
         getTestDataFolderPath = "src/test/resources/" + testDataFolderName;
     }
 
@@ -74,6 +76,28 @@ class CoreDataTests {
     void purgeNonTradingDataTest() {
         assertTrue(coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS));
         assertTrue(coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS));
+    }
+
+    @Test
+    @DisplayName("[UNIT] Tests")
+    void getTradingPatternLengthTest() {
+        CoreData coreData = DefaultCoreData.newInstance();
+
+        BasicPattern basicPattern = new BasicPattern(
+                mockData.getIntCandles(),
+                100,
+                Symbol.BTC_USD,
+                Timeframe.FOUR_HOUR
+        );
+
+        ComputablePattern computablePattern = new ComputablePattern(basicPattern, 12);
+
+        coreData.addPatterns(List.of(computablePattern, computablePattern, computablePattern));
+        coreData.pushTradingPatternData();
+
+        log.debug(coreData);
+
+        assertEquals(mockData.getIntCandles().size(), coreData.getTradingPatternLength(Symbol.BTC_USD, Timeframe.FOUR_HOUR));
     }
 }
 

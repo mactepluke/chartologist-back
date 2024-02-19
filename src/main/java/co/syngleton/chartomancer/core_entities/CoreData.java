@@ -12,9 +12,9 @@ public interface CoreData {
 
     boolean hasInvalidStructure();
 
-    void addPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe);
+    void addPatterns(List<Pattern> patterns);
 
-    void putPatterns(List<Pattern> patterns, Symbol symbol, Timeframe timeframe);
+    void putPatterns(List<Pattern> patterns);
 
     void copy(@NonNull CoreData coreData);
 

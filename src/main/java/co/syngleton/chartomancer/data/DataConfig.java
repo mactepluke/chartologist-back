@@ -39,6 +39,8 @@ class DataConfig {
         generateTradingData(coreData);
         saveCoreData(coreData);
 
+        log.debug(coreData);
+
         return coreData;
     }
 
@@ -82,7 +84,7 @@ class DataConfig {
     private void preLoadData(CoreData coreData) {
         log.info("Loaded core data: {}",
                 dataProperties.loadCoreDataAtStartup()
-                        && dataProcessor.loadCoreData(coreData, dataProperties.folderName() + DELIMITER + dataProperties.sourceName()));
+                        && dataProcessor.loadCoreData(coreData, dataProperties.sourceName()));
     }
 
     private void performAnalysis(CoreData coreData) {
@@ -176,7 +178,7 @@ class DataConfig {
     private void saveCoreData(CoreData coreData) {
         log.info("Saved core data overriden with newly generated core data: {}",
                 dataProperties.overrideSavedCoreData()
-                        && dataProcessor.saveCoreData(coreData, dataProperties.folderName() + DELIMITER + dataProperties.sourceName()));
+                        && dataProcessor.saveCoreData(coreData, dataProperties.sourceName()));
         log.info("Saved test core data overriden with newly generated core data: {}",
                 dataProperties.overrideSavedTestCoreData()
                         && dataProcessor.saveCoreData(coreData, TEST_CORE_DATA_FILE_PATH));
