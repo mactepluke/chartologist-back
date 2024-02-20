@@ -1,10 +1,10 @@
 package co.syngleton.chartomancer.api_controller;
 
+import co.syngleton.chartomancer.api_requesting.TradeQueryService;
+import co.syngleton.chartomancer.api_requesting.TradeSignalDTO;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.exception.InvalidParametersException;
-import co.syngleton.chartomancer.signaling.TradeSignalDTO;
-import co.syngleton.chartomancer.trade_requesting.TradeQueryService;
 import co.syngleton.chartomancer.trading.Trade;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -46,7 +46,7 @@ class TradeQueryController {
         if (trade == null) {
             status = NO_CONTENT;
         } else {
-            tradeSignalDTO = new TradeSignalDTO(trade);
+            tradeSignalDTO = TradeSignalDTO.from(trade);
             status = OK;
         }
         return new ResponseEntity<>(tradeSignalDTO, status);
@@ -73,7 +73,7 @@ class TradeQueryController {
         if (trade == null) {
             status = NO_CONTENT;
         } else {
-            tradeSignalDTO = new TradeSignalDTO(trade);
+            tradeSignalDTO = TradeSignalDTO.from(trade);
             status = OK;
         }
         return new ResponseEntity<>(tradeSignalDTO, status);

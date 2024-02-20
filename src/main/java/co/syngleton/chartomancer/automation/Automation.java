@@ -7,7 +7,6 @@ import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
 import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import co.syngleton.chartomancer.trading.*;
-import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import co.syngleton.chartomancer.util.csvwritertool.CSVWriter;
 import lombok.NonNull;
@@ -91,7 +90,7 @@ final class Automation {
         this.writeReports = writeDummyTradesReports;
 
         if (dummyTradesTimeframes == null || dummyTradesTimeframes.isEmpty()) {
-            dummyTradesTimeframes = new HashSet<>(List.of(
+            dummyTradesTimeframes = EnumSet.of(
                     Timeframe.SECOND,
                     Timeframe.MINUTE,
                     Timeframe.HALF_HOUR,
@@ -99,7 +98,7 @@ final class Automation {
                     Timeframe.FOUR_HOUR,
                     Timeframe.DAY,
                     Timeframe.WEEK
-            ));
+            );
         }
 
         this.dummyTradesTimeframes = dummyTradesTimeframes;
@@ -346,26 +345,18 @@ final class Automation {
 
             blankTradesCount = result.blankTradeCount();
 
-            String textResult = checkAccount(result.account());
-
-            long longCount = account.getNumberOfLongs();
-            long shortCount = account.getNumberOfShorts();
-            float usefulToUselessTradesRatio = blankTradesCount == 0 ? -1 : Format.roundTwoDigits((longCount + shortCount) / (float) blankTradesCount);
-            var totalDurationInSeconds = getDummyTradesDurationInSeconds(account, blankTradesCount, graph.getTimeframe());
-            double totalDuration = Format.roundTwoDigits(totalDurationInSeconds / (double) Timeframe.DAY.durationInSeconds);
-            double annualizedReturnPercentage = Format.roundTwoDigits(
-                    (356 * Timeframe.DAY.durationInSeconds * Calc.relativePercentage(account.getTotalPnl(), initialBalance)) / (double) totalDurationInSeconds);
+            String textResultSuffix = getAccountSolvabilityTag(result.account());
 
             reportLog = reportLog + generateTradesReport(account,
-                    textResult,
-                    longCount,
-                    shortCount,
-                    blankTradesCount,
-                    usefulToUselessTradesRatio,
-                    totalDuration,
-                    annualizedReturnPercentage);
+                    textResultSuffix,
+                    result.account().getNumberOfLongs(),
+                    account.getNumberOfShorts(),
+                    result.blankTradeCount(),
+                    result.usefulToUselessTradesRatio(),
+                    result.totalDurationInDays(),
+                    result.annualizedReturnPercentage());
 
-            String fileName = Format.toFileNameCompatibleDateTime(LocalDateTime.now()) + "_" + account.getName() + "_" + graph.getName() + "_" + "_" + textResult;
+            String fileName = Format.toFileNameCompatibleDateTime(LocalDateTime.now()) + "_" + account.getName() + "_" + graph.getName() + "_" + "_" + textResultSuffix;
 
             addDummyTradeEntry(getNewTradesSummaryEntry(
                     coreData,
@@ -375,13 +366,13 @@ final class Automation {
                     graph.getTimeframe(),
                     coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()),
                     coreData.getTradingPatternLength(graph.getSymbol(), graph.getTimeframe()),
-                    textResult,
-                    longCount,
-                    shortCount,
+                    textResultSuffix,
+                    result.account().getNumberOfLongs(),
+                    result.account().getNumberOfShorts(),
                     blankTradesCount,
-                    usefulToUselessTradesRatio,
-                    totalDuration,
-                    annualizedReturnPercentage
+                    (float) result.usefulToUselessTradesRatio(),
+                    result.totalDurationInDays(),
+                    result.annualizedReturnPercentage()
             ));
 
             if (writeReports && account.getNumberOfTrades() > 0) {
@@ -472,7 +463,7 @@ final class Automation {
                                                  long longCount,
                                                  long shortCount,
                                                  long blankTradesCount,
-                                                 float usefulToUselessTradesRatio,
+                                                 double usefulToUselessTradesRatio,
                                                  double totalDuration,
                                                  double annualizedReturnPercentage) {
 
@@ -497,11 +488,7 @@ final class Automation {
                         account.generatePrintableTradesStats() + NEW_LINE;
     }
 
-    private long getDummyTradesDurationInSeconds(@NonNull TradingAccount account, long blankTradeCount, @NonNull Timeframe timeframe) {
-        return (account.getTotalTradeDurationsInSeconds() + blankTradeCount * timeframe.durationInSeconds);
-    }
-
-    private String checkAccount(@NonNull TradingAccount account) {
+    private String getAccountSolvabilityTag(@NonNull TradingAccount account) {
         String result = "NEUTRAL";
 
         if (account.getBalance() > initialBalance * expectedBalanceX) {

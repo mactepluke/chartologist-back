@@ -100,6 +100,8 @@ class TradeSimulatorTests {
         assertNotEquals(0, result.account().getNumberOfTrades());
         assertEquals(7362.5, result.account().getTotalPnl());
         assertEquals(1.52, result.account().getProfitFactor());
+        assertEquals(156.83, result.totalDurationInDays());
+        assertEquals(167.97, result.annualizedReturnPercentage());
     }
 
 }

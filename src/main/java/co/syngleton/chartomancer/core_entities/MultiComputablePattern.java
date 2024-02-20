@@ -37,9 +37,7 @@ public final class MultiComputablePattern extends ComputablePattern {
 
         float[] ar = Arrays.copyOf(this.priceVariationPredictions, this.priceVariationPredictions.length);
         Arrays.sort(ar);
-        float min = ar[0];
-        float max = ar[ar.length - 1];
-        return abs(min) > abs(max) ? min : max;
+        return abs(ar[0]) > abs(ar[ar.length - 1]) ? ar[0] : ar[ar.length - 1];
     }
 
     @Override

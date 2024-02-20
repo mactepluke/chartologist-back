@@ -14,5 +14,5 @@ import org.springframework.test.context.ContextConfiguration;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = MockConfig.class)
 @ActiveProfiles("test")
-public class TradingControllerTests {
+public class TradeQueryControllerTests {
 }

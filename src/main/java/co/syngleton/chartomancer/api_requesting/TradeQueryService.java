@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.trade_requesting;
+package co.syngleton.chartomancer.api_requesting;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;

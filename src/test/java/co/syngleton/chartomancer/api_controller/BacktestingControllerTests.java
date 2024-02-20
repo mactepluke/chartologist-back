@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
-class DummyTradesControllerTests {
+class BacktestingControllerTests {
 
     @Autowired
     private MockMvc mockMvc;

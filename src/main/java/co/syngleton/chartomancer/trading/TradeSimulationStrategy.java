@@ -20,13 +20,17 @@ public abstract class TradeSimulationStrategy {
     private final int boundary;
     @Getter
     private final int patternLength;
+    private final double initialAccountBalance;
     private int blankTradesCount;
     @Getter
     private int tradeOpenCandle;
-    @Getter
     private Trade trade;
 
     protected TradeSimulationStrategy(Graph graph, CoreData coreData, TradingAccount account) {
+        Objects.requireNonNull(graph, "Graph cannot be null.");
+        Objects.requireNonNull(coreData, "Core data cannot be null.");
+        Objects.requireNonNull(account, "Trading account cannot be null.");
+
         this.graph = graph;
         this.coreData = coreData;
         this.account = account;
@@ -35,6 +39,7 @@ public abstract class TradeSimulationStrategy {
         this.blankTradesCount = 0;
         this.tradeOpenCandle = patternLength + 1;
         this.trade = Trade.blank();
+        this.initialAccountBalance = account.getBalance();
     }
 
     public static TradeSimulationStrategy randomize(Graph graph, CoreData coreData, TradingAccount account) {
@@ -80,12 +85,18 @@ public abstract class TradeSimulationStrategy {
         this.trade = trade;
     }
 
-    TradingSimulationResult exportResult() {
-        return new TradingSimulationResult(this.account, countBlankTrades());
-    }
-
     private void incrementBlankTradesCount() {
         blankTradesCount++;
     }
+
+    TradingSimulationResult exportResult() {
+        return TradingSimulationDefaultResult.generateFrom(
+                this.account,
+                this.initialAccountBalance,
+                graph.getSymbol(),
+                graph.getTimeframe(),
+                countBlankTrades());
+    }
+
 
 }

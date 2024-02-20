@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 @Log4j2
 @Service
@@ -155,13 +155,7 @@ class DataService implements DataProcessor {
         Timeframe lowestTimeframe = Timeframe.UNKNOWN;
         Graph lowestTimeframeGraph = null;
 
-        Set<Timeframe> missingTimeframes = new TreeSet<>(List.of(Timeframe.SECOND,
-                Timeframe.MINUTE,
-                Timeframe.HALF_HOUR,
-                Timeframe.HOUR,
-                Timeframe.FOUR_HOUR,
-                Timeframe.DAY,
-                Timeframe.WEEK));
+        Set<Timeframe> missingTimeframes = EnumSet.allOf(Timeframe.class);
 
         for (Graph graph : coreData.getReadOnlyGraphs()) {
             if (lowestTimeframe == Timeframe.UNKNOWN || graph.getTimeframe().durationInSeconds < lowestTimeframe.durationInSeconds) {

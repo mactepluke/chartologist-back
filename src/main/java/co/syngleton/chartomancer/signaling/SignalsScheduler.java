@@ -1,8 +1,9 @@
 package co.syngleton.chartomancer.signaling;
 
+import co.syngleton.chartomancer.api_requesting.TradeQueryService;
+import co.syngleton.chartomancer.api_requesting.TradeSignalDTO;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.trade_requesting.TradeQueryService;
 import co.syngleton.chartomancer.trading.Trade;
 import co.syngleton.chartomancer.trading.TradingAccount;
 import co.syngleton.chartomancer.util.csvwritertool.CSVWriter;
@@ -43,7 +44,7 @@ class SignalsScheduler {
 
         if (trade.isOpen()) {
             updateSignalsHistory(trade, timeframe);
-            signalingService.sendSignal(SUBJECT, BODY + new TradeSignalDTO(trade));
+            signalingService.sendSignal(SUBJECT, BODY + TradeSignalDTO.from(trade));
         }
     }
 

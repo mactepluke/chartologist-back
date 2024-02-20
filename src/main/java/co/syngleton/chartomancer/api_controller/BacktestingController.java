@@ -1,8 +1,8 @@
 package co.syngleton.chartomancer.api_controller;
 
+import co.syngleton.chartomancer.api_requesting.TradeSignalDTO;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.signaling.TradeSignalDTO;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Scope;
@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Log4j2
 @RestController
-@RequestMapping("/dummytrades")
+@RequestMapping("/backtesting")
 @Scope("request")
 @AllArgsConstructor
-public class DummyTradingController {
+public class BacktestingController {
 
-    //http://localhost:9240/dummytrades/getbasic?symbol=<symbol>&timeframe=<timeframe>&startDate=<startDate>&endDate=<endDate>&accountBalance=<accountBalance>
-    @GetMapping("/getbasic")
+    //http://localhost:9240/backtesing/get-basic-results?symbol=<symbol>&timeframe=<timeframe>&startDate=<startDate>&endDate=<endDate>&accountBalance=<accountBalance>
+    @GetMapping("/get-basic-results")
     ResponseEntity<TradeSignalDTO> getBestTrade(
             @RequestParam Symbol symbol,
             @RequestParam Timeframe timeframe,

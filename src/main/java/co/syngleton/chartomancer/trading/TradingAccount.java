@@ -7,6 +7,7 @@ import co.syngleton.chartomancer.util.csvwritertool.CSVData;
 import co.syngleton.chartomancer.util.csvwritertool.CSVRow;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.collections4.list.UnmodifiableList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,8 +47,16 @@ public class TradingAccount implements CSVData, Account {
         this.currency = DEFAULT_CURRENCY;
     }
 
+    public double getAverageFeePercentage() {
+        return Format.roundTwoDigits(trades.stream().mapToDouble(Trade::getFeePercentage).average().orElse(0));
+    }
+
     public void addTrade(Trade trade) {
         trades.add(trade);
+    }
+
+    public List<Trade> exportTrades() {
+        return new UnmodifiableList<>(trades);
     }
 
     public void credit(double value) {
