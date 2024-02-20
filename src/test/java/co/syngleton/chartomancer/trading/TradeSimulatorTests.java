@@ -7,8 +7,6 @@ import co.syngleton.chartomancer.core_entities.DefaultCoreData;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.PurgeOption;
 import co.syngleton.chartomancer.data.DataProcessor;
-import co.syngleton.chartomancer.dummy_trading.DummyTradesSummaryTable;
-import co.syngleton.chartomancer.dummy_trading.DummyTradingService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,20 +25,18 @@ import static org.junit.jupiter.api.Assertions.*;
 @ContextConfiguration(classes = {TradingConfig.class})
 @ActiveProfiles("test")
 class TradeSimulatorTests {
-
     public static final String TEST_CORE_DATA_FILE_PATH = "./core_data/TEST_coredata.ser";
     private static final String TEST_PATH = "./src/test/resources/";
     private static final double INITIAL_BALANCE = 10000;
     private static final double MINIMUM_BALANCE = 5000;
     private static final int MAX_TRADES = 100;
     private static final int EXPECTED_BALANCE_X = 2;
-    private static final boolean WRITE_REPORTS = true;
-
     @Autowired
     TradeSimulator tradeSimulator;
     CoreData coreData;
     @Autowired
     DataProcessor dataProcessor;
+    private TradingConditionsChecker checker;
     @Value("${data.folder_name}")
     private String testDataFolderName;
     @Value("#{'${automation.dummy_graphs_data_files_names}'.split(',')}")
@@ -55,6 +51,13 @@ class TradeSimulatorTests {
         coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
         dataProcessor.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);
         dataProcessor.createGraphsForMissingTimeframes(coreData);
+
+        this.checker = TradingConditionsChecker.builder()
+                .maxTrades(MAX_TRADES)
+                .maxBlankTrades(MAX_TRADES * 10)
+                .maximumAccountBalance(INITIAL_BALANCE * EXPECTED_BALANCE_X)
+                .minimumAccountBalance(MINIMUM_BALANCE)
+                .build();
     }
 
     @AfterAll
@@ -70,29 +73,33 @@ class TradeSimulatorTests {
     }
 
     @Test
-    @DisplayName("[UNIT] Tests if dummy trades results are correct")
-    void dummyTradesTest() {
-
-        DummyTradingService dtm = new DummyTradingService(
-                INITIAL_BALANCE,
-                MINIMUM_BALANCE,
-                EXPECTED_BALANCE_X,
-                MAX_TRADES,
-                tradeSimulator,
-                WRITE_REPORTS,
-                new DummyTradesSummaryTable("testTable"),
-                TEST_PATH);
+    @DisplayName("[UNIT] Tests if randomized dummy trades results are correct")
+    void randomizedDummyTradesTest() {
 
         Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.FOUR_HOUR);
 
-        String reportLog = "";
+        TradingAccount tradingAccount = new TradingAccount();
+        tradingAccount.credit(INITIAL_BALANCE);
 
-        reportLog = dtm.launchDummyTrades(graph, coreData, false, reportLog);
+        TradingSimulationResult result = tradeSimulator.simulateTrades(TradeSimulationStrategy.randomize(graph, coreData, tradingAccount), checker);
 
-        log.debug(reportLog);
-        assertNotNull(reportLog);
-        assertFalse(reportLog.contains("Number of dummy trades performed: 0"));
-        assertTrue(reportLog.contains("Annualized return %: 167.97"));
+        assertNotEquals(0, result.account().getNumberOfTrades());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Tests if deterministic dummy trades results are correct")
+    void deterministicDummyTradesTest() {
+
+        Graph graph = coreData.getGraph(Symbol.BTC_USD, Timeframe.FOUR_HOUR);
+
+        TradingAccount tradingAccount = new TradingAccount();
+        tradingAccount.credit(INITIAL_BALANCE);
+
+        TradingSimulationResult result = tradeSimulator.simulateTrades(TradeSimulationStrategy.iterate(graph, coreData, tradingAccount), checker);
+
+        assertNotEquals(0, result.account().getNumberOfTrades());
+        assertEquals(7362.5, result.account().getTotalPnl());
+        assertEquals(1.52, result.account().getProfitFactor());
     }
 
 }

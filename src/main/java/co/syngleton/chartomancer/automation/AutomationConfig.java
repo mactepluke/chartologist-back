@@ -47,27 +47,6 @@ class AutomationConfig {
 
             automation.launch();
 
-            /*Thread automation = new Thread(new Automation(
-                    coreData,
-                    dataProcessor,
-                    patternComputer,
-                    tradeSimulator,
-                    automationProperties.printCoreData(),
-                    automationProperties.printPricePredictionSummary(),
-                    automationProperties.runBasicDummyTrades(),
-                    automationProperties.runRandomizedDummyTrades(),
-                    automationProperties.runRandomizedDummyTradesOnDummyGraphs(),
-                    automationProperties.runDeterministicDummyTradesOnDummyGraphs(),
-                    automationProperties.dummyTradesInitialBalance(),
-                    automationProperties.dummyTradesMinimumBalance(),
-                    automationProperties.dummyTradesExpectedBalanceX(),
-                    automationProperties.dummyTradesMaxTrades(),
-                    automationProperties.dummyTradesTimeframes(),
-                    automationProperties.writeDummyTradesReports(),
-                    automationProperties.dummyGraphsDataFolderName(),
-                    automationProperties.dummyGraphsDataFilesNames(),
-                    automationProperties.printTasksHistory()));
-            automation.start();*/
         }
     }
 }

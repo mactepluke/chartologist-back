@@ -18,11 +18,11 @@ record AutomationProperties(
         @DefaultValue("false") boolean runDeterministicDummyTradesOnDummyGraphs,
         @DefaultValue("dummy_data") String dummyGraphsDataFolderName,
         @DefaultValue("[]") List<String> dummyGraphsDataFilesNames,
-        @DefaultValue("10000") double dummyTradesInitialBalance,
-        @DefaultValue("5000") double dummyTradesMinimumBalance,
-        @DefaultValue("2") int dummyTradesExpectedBalanceX,
-        @DefaultValue("100") int dummyTradesMaxTrades,
         @DefaultValue("[]") Set<Timeframe> dummyTradesTimeframes,
+        @DefaultValue("10000") int dummyTradesInitialBalance,
+        @DefaultValue("5000") int dummyTradesMinimumBalance,
+        @DefaultValue("100") int dummyTradesExpectedBalanceX,
+        @DefaultValue("5000") int dummyTradesMaxTrades,
         @DefaultValue("false") boolean writeDummyTradesReports,
         @DefaultValue("false") boolean printTasksHistory
 ) {

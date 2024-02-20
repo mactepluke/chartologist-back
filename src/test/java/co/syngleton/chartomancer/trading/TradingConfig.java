@@ -26,4 +26,5 @@ public class TradingConfig {
                 tradingProperties.riskPercentage(),
                 tradingProperties.slTpStrategy());
     }
+
 }

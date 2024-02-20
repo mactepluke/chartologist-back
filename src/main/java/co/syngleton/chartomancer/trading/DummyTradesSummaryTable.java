@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.dummy_trading;
+package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.util.csvwritertool.CSVData;
 import co.syngleton.chartomancer.util.csvwritertool.CSVRow;

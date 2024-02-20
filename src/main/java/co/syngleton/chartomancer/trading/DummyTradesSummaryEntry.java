@@ -1,8 +1,6 @@
-package co.syngleton.chartomancer.dummy_trading;
+package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Smoothing;
-import co.syngleton.chartomancer.trading.ProfitFactor;
-import co.syngleton.chartomancer.trading.SL_TP_Strategy;
 import co.syngleton.chartomancer.util.csvwritertool.CSVRow;
 import lombok.NonNull;
 import org.jetbrains.annotations.Contract;

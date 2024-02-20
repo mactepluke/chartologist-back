@@ -23,7 +23,6 @@ import static java.lang.Math.abs;
 @Service
 @AllArgsConstructor
 class TradingService implements TradeGenerator, TradeSimulator {
-
     @Getter
     private final Analyzer tradingAnalyzer;
     private final CandleRescaler candleRescaler;
@@ -180,21 +179,39 @@ class TradingService implements TradeGenerator, TradeSimulator {
     }
 
     @Override
-    public Trade generateAndProcessTrade(CoreData coreData, @NonNull Graph graph, TradingAccount account, int tradeOpenCandle) {
+    public TradingSimulationResult simulateTrades(@NonNull final TradeSimulationStrategy strat, final TradingConditionsChecker checker) {
+
+        while (checker.checkIfConditions()
+                .whenAppliedTo(strat.getAccount(), strat.countBlankTrades())
+                .withNextCandleAndLimit(strat.getTradeOpenCandle(), strat.getBoundary())
+                .andIf(!strat.hasUnfundedTrade())
+                .doAllowToContinue(TradingConditionsChecker.Option.LOG_DENIAL_REASON)) {
+
+            strat.setTrade(generateAndProcessTrade(strat));
+
+            strat.setNextOpenCandle();
+        }
+        return strat.exportResult();
+    }
+
+    private Trade generateAndProcessTrade(final TradeSimulationStrategy strat) {
 
         Trade trade = generateOptimalTakerTrade(
-                account,
-                graph,
-                coreData,
-                tradeOpenCandle
+                strat.getAccount(),
+                strat.getGraph(),
+                strat.getCoreData(),
+                strat.getTradeOpenCandle()
         );
 
         if (trade != null && trade.isOpen()) {
 
             processTradeOnCompletedCandles(
                     trade,
-                    account,
-                    graph.getFloatCandles().subList(tradeOpenCandle, tradeOpenCandle + coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()))
+                    strat.getAccount(),
+                    strat.getGraph()
+                            .getFloatCandles()
+                            .subList(strat.getTradeOpenCandle(), strat.getTradeOpenCandle()
+                                    + strat.getCoreData().getMaxTradingScope(strat.getGraph().getSymbol(), strat.getGraph().getTimeframe()))
             );
         }
         return trade;

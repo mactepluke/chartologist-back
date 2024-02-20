@@ -7,7 +7,8 @@ import co.syngleton.chartomancer.core_entities.Graph;
 import lombok.NonNull;
 
 public interface TradeSimulator extends TradeGenerator {
-    Trade generateAndProcessTrade(CoreData coreData, @NonNull Graph graph, TradingAccount account, int tradeOpenCandle);
+
+    TradingSimulationResult simulateTrades(@NonNull final TradeSimulationStrategy strat, final TradingConditionsChecker checker);
 
     @Override
     Trade generateOptimalTakerTrade(Account tradingAccount,
