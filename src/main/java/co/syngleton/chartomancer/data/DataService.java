@@ -64,13 +64,13 @@ class DataService implements DataProcessor {
     }
 
     private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY.name(), Integer.toString(patternSettings.getGranularity()));
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_LENGTH.name(), Integer.toString(patternSettings.getLength()));
-        coreData.setPatternSetting(CoreDataSettingNames.SCOPE.name(), Integer.toString(patternSettings.getScope()));
-        coreData.setPatternSetting(CoreDataSettingNames.FULL_SCOPE.name(), Boolean.toString(patternSettings.isFullScope()));
-        coreData.setPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION.name(), Boolean.toString(patternSettings.isAtomicPartition()));
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG.name(), patternSettings.getAutoconfig().toString());
-        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE.name(), patternSettings.getPatternType().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY, patternSettings.getGranularity());
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_LENGTH, patternSettings.getLength());
+        coreData.setPatternSetting(CoreDataSettingNames.SCOPE, patternSettings.getScope());
+        coreData.setPatternSetting(CoreDataSettingNames.FULL_SCOPE, patternSettings.isFullScope());
+        coreData.setPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION, patternSettings.isAtomicPartition());
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG, patternSettings.getAutoconfig());
+        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE, patternSettings.getPatternType());
     }
 
     @Override

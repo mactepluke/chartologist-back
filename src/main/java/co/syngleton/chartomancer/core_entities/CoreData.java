@@ -56,13 +56,13 @@ public interface CoreData {
 
     Set<Integer> getTradingPatternScopes(Symbol symbol, Timeframe timeframe);
 
-    void setPatternSetting(String key, String value);
+    <T> void setPatternSetting(CoreDataSettingNames key, T value);
 
     Set<Timeframe> getTradingTimeframes();
 
-    String getPatternSetting(String key);
+    String getPatternSetting(CoreDataSettingNames key);
 
-    String getTradingPatternSetting(String key);
+    String getTradingPatternSetting(CoreDataSettingNames key);
 
     int getMaxTradingScope(Symbol symbol, Timeframe timeframe);
 

@@ -4,7 +4,7 @@ import co.syngleton.chartomancer.trading.TradingSimulationResult;
 
 import java.util.List;
 
-public record BacktestingResultsBasicDTO(
+public record BacktestingResultsDTO(
         double accountBalance,
         double pnl,
         double returnPercentage,
@@ -19,8 +19,8 @@ public record BacktestingResultsBasicDTO(
         List<TradeDTO> trades
 ) {
 
-    public static BacktestingResultsBasicDTO from(TradingSimulationResult result) {
-        return new BacktestingResultsBasicDTO(
+    public static BacktestingResultsDTO from(TradingSimulationResult result) {
+        return new BacktestingResultsDTO(
                 result.account().getBalance(),
                 result.account().getTotalPnl(),
                 result.account().getTotalReturnPercentage(),

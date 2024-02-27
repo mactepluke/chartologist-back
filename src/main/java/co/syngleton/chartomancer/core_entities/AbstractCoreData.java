@@ -14,16 +14,16 @@ abstract class AbstractCoreData implements CoreData {
     static final String NEW_LINE = System.lineSeparator();
     Set<Graph> graphs;
     Set<PatternBox> patternBoxes;
-    Map<String, String> patternSettings;
+    Map<CoreDataSettingNames, String> patternSettings;
     Set<PatternBox> tradingPatternBoxes;
-    Map<String, String> tradingPatternSettings;
+    Map<CoreDataSettingNames, String> tradingPatternSettings;
 
     AbstractCoreData() {
         this.graphs = new HashSet<>();
         this.patternBoxes = new HashSet<>();
-        this.patternSettings = new HashMap<>();
+        this.patternSettings = new EnumMap<>(CoreDataSettingNames.class);
         this.tradingPatternBoxes = new HashSet<>();
-        this.tradingPatternSettings = new HashMap<>();
+        this.tradingPatternSettings = new EnumMap<>(CoreDataSettingNames.class);
     }
 
     AbstractCoreData(CoreDataSnapshot coreDataSnapshot) {
@@ -224,8 +224,8 @@ abstract class AbstractCoreData implements CoreData {
     }
 
     @Override
-    public void setPatternSetting(String key, String value) {
-        this.patternSettings.put(key, value);
+    public <T> void setPatternSetting(CoreDataSettingNames key, T value) {
+        this.patternSettings.put(key, String.valueOf(value));
     }
 
     @Override
@@ -288,12 +288,12 @@ abstract class AbstractCoreData implements CoreData {
     }
 
     @Override
-    public String getPatternSetting(String key) {
+    public String getPatternSetting(CoreDataSettingNames key) {
         return this.patternSettings.get(key);
     }
 
     @Override
-    public String getTradingPatternSetting(String key) {
+    public String getTradingPatternSetting(CoreDataSettingNames key) {
         return this.patternSettings.get(key);
     }
 
@@ -344,7 +344,7 @@ abstract class AbstractCoreData implements CoreData {
                 generateSettingsToPrint(this.tradingPatternSettings, "TRADING SETTINGS");
     }
 
-    private String generateSettingsToPrint(Map<String, String> patternSettings, String settingsType) {
+    private String generateSettingsToPrint(Map<CoreDataSettingNames, String> patternSettings, String settingsType) {
         StringBuilder settingsBuilder = new StringBuilder();
         settingsBuilder.append(NEW_LINE).append(settingsType).append(NEW_LINE);
 

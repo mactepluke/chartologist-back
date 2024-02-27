@@ -14,11 +14,11 @@ import java.util.Map;
 import static java.lang.Math.*;
 
 @Log4j2
-record AnalyzerImpl(Smoothing matchScoreSmoothing,
-                    int matchScoreThreshold,
-                    int priceVariationThreshold,
-                    boolean extrapolatePriceVariation,
-                    boolean extrapolateMatchScore) implements Analyzer {
+record DefaultAnalyzer(Smoothing matchScoreSmoothing,
+                       int matchScoreThreshold,
+                       int priceVariationThreshold,
+                       boolean extrapolatePriceVariation,
+                       boolean extrapolateMatchScore) implements Analyzer {
 
 
     @Override

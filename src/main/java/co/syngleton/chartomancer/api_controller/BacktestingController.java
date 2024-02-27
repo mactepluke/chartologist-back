@@ -1,51 +1,64 @@
 package co.syngleton.chartomancer.api_controller;
 
-import co.syngleton.chartomancer.api_requesting.TradeSignalDTO;
+import co.syngleton.chartomancer.api_requesting.BacktestingQueryService;
+import co.syngleton.chartomancer.api_requesting.BacktestingResultsDTO;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.trading.TradingAccount;
+import co.syngleton.chartomancer.trading.TradingSimulationDefaultResult;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.core.config.plugins.validation.constraints.NotBlank;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Scope;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+
 @Log4j2
 @RestController
 @RequestMapping("/backtesting")
+@Validated
 @Scope("request")
 @AllArgsConstructor
-public class BacktestingController {
+class BacktestingController {
 
-    //http://localhost:9240/backtesing/get-basic-results?symbol=<symbol>&timeframe=<timeframe>&startDate=<startDate>&endDate=<endDate>&accountBalance=<accountBalance>
-    @GetMapping("/get-basic-results")
-    ResponseEntity<TradeSignalDTO> getBestTrade(
-            @RequestParam Symbol symbol,
-            @RequestParam Timeframe timeframe,
-            @RequestParam String startDate,
-            @RequestParam String endDate,
-            @RequestParam float accountBalance
+    private final BacktestingQueryService queryService;
+
+    //http://localhost:9240/backtesting/get-results?symbol=<symbol>&timeframe=<timeframe>&startDate=<startDate>&endDate=<endDate>&accountBalance=<accountBalance>
+    @GetMapping("/get-results")
+    ResponseEntity<BacktestingResultsDTO> getBacktestingResults(
+            @RequestParam @NotNull Symbol symbol,
+            @RequestParam @NotNull Timeframe timeframe,
+            @RequestParam @NotBlank @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @NotBlank @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = true) @DecimalMin(value = "0.0", inclusive = false) @DecimalMax(value = "100000000") float accountBalance
     ) {
-        /*HttpStatus status;
-        TradeSignalDTO tradeSignalDTO = null;
-
-        if (symbol == null
-                || symbol == Symbol.UNDEFINED) {
-            throw new InvalidParametersException("Undefined timeframe or symbol.");
+        if (startDate.isAfter(endDate)) {
+            throw new NonComputableArgumentsException("Start date cannot be after end date.");
+        }
+        if (Symbol.UNDEFINED.equals(symbol)) {
+            throw new NonComputableArgumentsException("Symbol is undefined.");
+        }
+        if (Timeframe.UNKNOWN.equals(timeframe)) {
+            throw new NonComputableArgumentsException("Timeframe is unknown.");
         }
 
-        Trade trade = tradeQueryService.getCurrentBestTrade(symbol);
+        BacktestingResultsDTO results = queryService.getTradingSimulation(symbol, timeframe, startDate, endDate, accountBalance);
 
-        if (trade == null) {
-            status = NO_CONTENT;
-        } else {
-            tradeSignalDTO = new TradeSignalDTO(trade);
-            status = OK;
+        if (results == null) {
+            throw new UnexpectedRequestResultException("No results were returned by the provider.");
         }
-        return new ResponseEntity<>(tradeSignalDTO, status);*/
-        return null;
+        return new ResponseEntity<>(BacktestingResultsDTO.from(TradingSimulationDefaultResult.generateFrom(new TradingAccount(), 10000, Symbol.BTC_USD, Timeframe.DAY, 0)), HttpStatus.OK);
     }
 
 }

@@ -6,7 +6,7 @@ import co.syngleton.chartomancer.trading.Trade;
 
 import java.time.LocalDateTime;
 
-public record TradeDTO(
+record TradeDTO(
         LocalDateTime openDateTime,
         LocalDateTime lastUpdate,
         String platform,

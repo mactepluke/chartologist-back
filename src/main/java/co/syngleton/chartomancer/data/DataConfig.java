@@ -23,7 +23,6 @@ class DataConfig {
     public static final String CORE_DATA_ARCHIVES_FOLDER_PATH = "./archives/Core_Data_archive";
     public static final String TEST_CORE_DATA_FILE_PATH = "./core_data/TEST_coredata.ser";
     private static final String NEW_LINE = System.lineSeparator();
-    private static final String DELIMITER = "/";
     private final DataProcessor dataProcessor;
     private final PatternComputer patternComputer;
     private final DataProperties dataProperties;
@@ -101,7 +100,7 @@ class DataConfig {
                 result = dataProcessor.saveCoreData(coreData,
                         CORE_DATA_ARCHIVES_FOLDER_PATH +
                                 "_" +
-                                coreData.getPatternSetting(CoreDataSettingNames.COMPUTATION_DATE.name())
+                                coreData.getPatternSetting(CoreDataSettingNames.COMPUTATION_DATE)
                 );
             }
             log.info("Created time stamped archive with newly generated data: {}", result);

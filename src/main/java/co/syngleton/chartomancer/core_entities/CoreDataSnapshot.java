@@ -8,9 +8,9 @@ import java.util.Set;
 public record CoreDataSnapshot(
         Set<Graph> graphs,
         Set<PatternBoxSnapShot> patternBoxes,
-        Map<String, String> patternSettings,
+        Map<CoreDataSettingNames, String> patternSettings,
         Set<PatternBoxSnapShot> tradingPatternBoxes,
-        Map<String, String> tradingPatternSettings
+        Map<CoreDataSettingNames, String> tradingPatternSettings
 ) implements Serializable {
     public record PatternBoxSnapShot(
             Map<Integer, List<Pattern>> patterns

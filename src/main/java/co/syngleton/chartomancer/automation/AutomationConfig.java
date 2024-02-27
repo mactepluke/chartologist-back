@@ -3,6 +3,7 @@ package co.syngleton.chartomancer.automation;
 import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.data.DataProcessor;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
+import co.syngleton.chartomancer.trading.AutomationTradingService;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -13,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @AllArgsConstructor
 class AutomationConfig {
     private final CoreData coreData;
-    private final AutomationTradingProvider automationTradingProvider;
+    private final AutomationTradingService automationTradingService;
     private final DataProcessor dataProcessor;
     private final PatternComputer patternComputer;
     private final AutomationProperties automationProperties;
@@ -27,7 +28,7 @@ class AutomationConfig {
                     coreData,
                     dataProcessor,
                     patternComputer,
-                    automationTradingProvider,
+                    automationTradingService,
                     automationProperties.printCoreData(),
                     automationProperties.printPricePredictionSummary(),
                     automationProperties.runBasicDummyTrades(),

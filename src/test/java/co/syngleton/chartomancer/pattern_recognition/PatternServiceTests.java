@@ -1,5 +1,6 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
+import co.syngleton.chartomancer.analytics.PatternRecognitionAnalyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;

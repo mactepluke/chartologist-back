@@ -40,7 +40,7 @@ final class Automation {
     private final List<String> tasksHistory;
     private final CoreData coreData;
     private final DataProcessor dataProcessor;
-    private final AutomationTradingProvider automationTradingProvider;
+    private final AutomationTradingService automationTradingService;
     private final PatternComputer patternComputer;
     private final DummyTradesSummaryTable dummyTradesSummaryTable;
     private final double initialBalance;
@@ -53,7 +53,7 @@ final class Automation {
     public Automation(CoreData coreData,
                       DataProcessor dataProcessor,
                       PatternComputer patternComputer,
-                      AutomationTradingProvider automationTradingProvider,
+                      AutomationTradingService automationTradingService,
                       boolean printCoreData,
                       boolean printPricePredictionSummary,
                       boolean runBasicDummyTrades,
@@ -72,7 +72,7 @@ final class Automation {
         this.coreData = coreData;
         this.dataProcessor = dataProcessor;
         this.patternComputer = patternComputer;
-        this.automationTradingProvider = automationTradingProvider;
+        this.automationTradingService = automationTradingService;
         this.printCoreData = printCoreData;
         this.printPricePredictionSummary = printPricePredictionSummary;
         this.runBasicDummyTrades = runBasicDummyTrades;
@@ -339,8 +339,8 @@ final class Automation {
                     .maximumAccountBalance(initialBalance * expectedBalanceX)
                     .build();
 
-            TradingSimulationResult result = randomized ? automationTradingProvider.simulateTrades(TradeSimulationStrategy.randomize(graph, coreData, account), conditionsChecker)
-                    : automationTradingProvider.simulateTrades(TradeSimulationStrategy.iterate(graph, coreData, account), conditionsChecker);
+            TradingSimulationResult result = randomized ? automationTradingService.simulateTrades(TradeSimulationStrategy.randomize(graph, coreData, account), conditionsChecker)
+                    : automationTradingService.simulateTrades(TradeSimulationStrategy.iterate(graph, coreData, account), conditionsChecker);
 
             blankTradesCount = result.blankTradeCount();
 
@@ -397,38 +397,41 @@ final class Automation {
                                                                       double totalDuration,
                                                                       double annualizedReturnPercentage) {
 
-        Map<CoreDataSettingNames, String> settings = automationTradingProvider.getAnalyzerSettingsSnapshot();
+        Map<CoreDataSettingNames, String> settings = automationTradingService.getAnalyzerSettingsSnapshot();
+
+        Objects.requireNonNull(settings);
+
 
         return new DummyTradesSummaryEntry(
                 Format.toFrenchDateTime(LocalDateTime.now()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_DATE.name()),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_DATE),
                 fileName,
                 dummyTradesSummaryTable.getFileName(),
                 symbol.toString(),
                 timeframe.toString(),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.MATCH_SCORE_SMOOTHING.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.MATCH_SCORE_THRESHOLD.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_AUTOCONFIG.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_TYPE.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE.name()),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION.name()),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.MATCH_SCORE_SMOOTHING),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.MATCH_SCORE_THRESHOLD),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_AUTOCONFIG),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_TYPE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION),
                 Integer.toString(maxScope),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.FULL_SCOPE.name()),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.FULL_SCOPE),
                 Integer.toString(patternLength),
-                coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY.name()),
+                coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY),
                 settings.get(CoreDataSettingNames.MATCH_SCORE_SMOOTHING),
                 settings.get(CoreDataSettingNames.MATCH_SCORE_THRESHOLD),
                 settings.get(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD),
                 settings.get(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION),
                 settings.get(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE),
-                automationTradingProvider.getTradingProperties().rewardToRiskRatio(),
-                automationTradingProvider.getTradingProperties().riskPercentage(),
-                automationTradingProvider.getTradingProperties().priceVariationMultiplier(),
-                automationTradingProvider.getTradingProperties().slTpStrategy(),
+                automationTradingService.getTradingProperties().rewardToRiskRatio(),
+                automationTradingService.getTradingProperties().riskPercentage(),
+                automationTradingService.getTradingProperties().priceVariationMultiplier(),
+                automationTradingService.getTradingProperties().slTpStrategy(),
                 maxTrades,
                 result,
                 initialBalance,
@@ -473,7 +476,7 @@ final class Automation {
 
         return
                 "TRADING SETTINGS: " +
-                        automationTradingProvider.getTradingProperties().toString() + NEW_LINE + NEW_LINE +
+                        automationTradingService.getTradingProperties().toString() + NEW_LINE + NEW_LINE +
                         "*** ADVANCED DUMMY TRADE RESULTS ***" + NEW_LINE +
                         "Result: " + result + NEW_LINE +
                         "Number of dummy trades performed: " + account.getNumberOfTrades() + NEW_LINE +

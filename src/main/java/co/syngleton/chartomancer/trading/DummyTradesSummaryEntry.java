@@ -68,6 +68,7 @@ public record DummyTradesSummaryEntry(String dummyTradesDateTime,
     @Contract(" -> new")
     @Override
     public @NonNull List<Serializable> toRow() {
+
         return new ArrayList<>(List.of(
                 dummyTradesDateTime,
                 computationDateTime,

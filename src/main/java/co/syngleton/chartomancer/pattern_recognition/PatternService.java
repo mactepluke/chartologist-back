@@ -1,5 +1,6 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
+import co.syngleton.chartomancer.analytics.PatternRecognitionAnalyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.core_entities.*;
 import co.syngleton.chartomancer.util.Calc;
@@ -237,13 +238,13 @@ final class PatternService implements PatternGenerator, PatternComputer {
 
         final Map<CoreDataSettingNames, String> settingsSnapshot = analyzer.getSettingsSnapshot();
 
-        coreData.setPatternSetting(COMPUTATION_TYPE.name(), computationSettings.getComputationType().toString());
-        coreData.setPatternSetting(COMPUTATION_AUTOCONFIG.name(), computationSettings.getAutoconfig().toString());
-        coreData.setPatternSetting(EXTRAPOLATE_MATCH_SCORE.name(), settingsSnapshot.get(EXTRAPOLATE_MATCH_SCORE));
-        coreData.setPatternSetting(EXTRAPOLATE_PRICE_VARIATION.name(), settingsSnapshot.get(EXTRAPOLATE_PRICE_VARIATION));
-        coreData.setPatternSetting(MATCH_SCORE_THRESHOLD.name(), settingsSnapshot.get(MATCH_SCORE_THRESHOLD));
-        coreData.setPatternSetting(PRICE_VARIATION_THRESHOLD.name(), settingsSnapshot.get(PRICE_VARIATION_THRESHOLD));
-        coreData.setPatternSetting(MATCH_SCORE_SMOOTHING.name(), settingsSnapshot.get(MATCH_SCORE_SMOOTHING));
-        coreData.setPatternSetting(COMPUTATION_DATE.name(), Format.toFileNameCompatibleDateTime(LocalDateTime.now()));
+        coreData.setPatternSetting(COMPUTATION_TYPE, computationSettings.getComputationType());
+        coreData.setPatternSetting(COMPUTATION_AUTOCONFIG, computationSettings.getAutoconfig());
+        coreData.setPatternSetting(EXTRAPOLATE_MATCH_SCORE, settingsSnapshot.get(EXTRAPOLATE_MATCH_SCORE));
+        coreData.setPatternSetting(EXTRAPOLATE_PRICE_VARIATION, settingsSnapshot.get(EXTRAPOLATE_PRICE_VARIATION));
+        coreData.setPatternSetting(MATCH_SCORE_THRESHOLD, settingsSnapshot.get(MATCH_SCORE_THRESHOLD));
+        coreData.setPatternSetting(PRICE_VARIATION_THRESHOLD, settingsSnapshot.get(PRICE_VARIATION_THRESHOLD));
+        coreData.setPatternSetting(MATCH_SCORE_SMOOTHING, settingsSnapshot.get(MATCH_SCORE_SMOOTHING));
+        coreData.setPatternSetting(COMPUTATION_DATE, Format.toFileNameCompatibleDateTime(LocalDateTime.now()));
     }
 }

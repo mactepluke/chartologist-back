@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.trading;
+package co.syngleton.chartomancer.analytics;
 
 import co.syngleton.chartomancer.core_entities.CoreDataSettingNames;
 import co.syngleton.chartomancer.core_entities.IntCandle;

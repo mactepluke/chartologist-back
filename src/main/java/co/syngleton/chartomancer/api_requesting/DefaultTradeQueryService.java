@@ -3,9 +3,9 @@ package co.syngleton.chartomancer.api_requesting;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.core_entities.CoreData;
-import co.syngleton.chartomancer.core_entities.CoreDataSettingNames;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.external_api_requesting.DataRequestingService;
+import co.syngleton.chartomancer.trading.RequestingTradingService;
 import co.syngleton.chartomancer.trading.Trade;
 import co.syngleton.chartomancer.trading.TradingAccount;
 import lombok.AllArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 class DefaultTradeQueryService implements TradeQueryService {
     private static final double DEFAULT_ACCOUNT_BALANCE = 100;
     private final DataRequestingService dataRequestingService;
-    private final RequestingTradingProvider requestingTradingProvider;
+    private final RequestingTradingService requestingTradingService;
     private final CoreData coreData;
 
     public Trade getCurrentBestTrade(Symbol symbol) {
@@ -65,12 +65,12 @@ class DefaultTradeQueryService implements TradeQueryService {
         Graph graph = dataRequestingService.getLatestPriceHistoryGraphWithCurrentPriceCandle(
                 symbol,
                 timeframe,
-                Integer.parseInt(coreData.getTradingPatternSetting(CoreDataSettingNames.PATTERN_LENGTH.name())));
+                coreData.getTradingPatternLength(symbol, timeframe));
 
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.credit(accountBalance);
 
-        return requestingTradingProvider.generateOptimalTakerTrade(tradingAccount,
+        return requestingTradingService.generateOptimalTakerTrade(tradingAccount,
                 graph,
                 coreData,
                 graph.getFloatCandles().size() - 1);

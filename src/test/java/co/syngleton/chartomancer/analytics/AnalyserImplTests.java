@@ -31,7 +31,7 @@ class AnalyserImplTests {
     @Autowired
     MockData mockData;
 
-    private AnalyzerImpl defaultAnalyzer;
+    private DefaultAnalyzer defaultAnalyzer;
     private List<IntCandle> intCandles;
 
     @BeforeAll
@@ -40,7 +40,7 @@ class AnalyserImplTests {
         LocalDateTime candleDate = LocalDateTime.now();
         this.intCandles = mockData.getIntCandles();
 
-        this.defaultAnalyzer = new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+        this.defaultAnalyzer = new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, false);
 
     }
 
@@ -122,8 +122,8 @@ class AnalyserImplTests {
     @DisplayName("[UNIT] Calculates span between 2 single candles")
     void calculateMonoCandleSpanTest() {
 
-        AnalyzerImpl localAnalyzer =
-                new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+        DefaultAnalyzer localAnalyzer =
+                new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, false);
 
         List<IntCandle> intCandles1 = new ArrayList<>(List.of(intCandles.get(8)));
         List<IntCandle> intCandles2 = new ArrayList<>(List.of(intCandles.get(9)));
@@ -135,8 +135,8 @@ class AnalyserImplTests {
     @DisplayName("[UNIT] Calculates span between 2 list of multiple candles")
     void calculateMultiCandleSpanTest() {
 
-        AnalyzerImpl localAnalyzer =
-                new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+        DefaultAnalyzer localAnalyzer =
+                new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, false);
 
         List<IntCandle> intCandles1 = new ArrayList<>(List.of(intCandles.get(1), intCandles.get(2), intCandles.get(3)));
         List<IntCandle> intCandles2 = new ArrayList<>(List.of(intCandles.get(2), intCandles.get(3), intCandles.get(4)));
@@ -148,8 +148,8 @@ class AnalyserImplTests {
     @DisplayName("[UNIT] Calculates surface match between 2 lists of candles")
     void calculateSurfaceMatch() {
 
-        AnalyzerImpl localAnalyzer =
-                new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+        DefaultAnalyzer localAnalyzer =
+                new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, false);
 
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1), intCandles.get(2), intCandles.get(3)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2), intCandles.get(3), intCandles.get(4)));
@@ -162,8 +162,8 @@ class AnalyserImplTests {
     @DisplayName("[UNIT] Calculates match score between 2 single candles")
     void calculateMonoCandleMatchScoreTest() {
 
-        AnalyzerImpl localAnalyzer =
-                new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+        DefaultAnalyzer localAnalyzer =
+                new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, false);
 
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2)));
@@ -176,8 +176,8 @@ class AnalyserImplTests {
     @DisplayName("[UNIT] Calculates match score between 2 lists of multiple candles")
     void calculateMultiCandleMatchScoreTest() {
 
-        AnalyzerImpl localAnalyzer =
-                new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+        DefaultAnalyzer localAnalyzer =
+                new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, false);
 
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1), intCandles.get(2), intCandles.get(3)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2), intCandles.get(3), intCandles.get(4)));
@@ -193,8 +193,8 @@ class AnalyserImplTests {
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(1)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2)));
 
-        AnalyzerImpl localAnalyzer =
-                new AnalyzerImpl(Smoothing.NONE, 0, 0, false, true);
+        DefaultAnalyzer localAnalyzer =
+                new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, true);
 
         assertEquals(43, localAnalyzer.calculateMatchScore(intCandlesToMatch1, intCandlesToMatch2));
     }
@@ -203,8 +203,8 @@ class AnalyserImplTests {
     @DisplayName("[UNIT] Calculates match score with broken values")
     void calculateMatchScoreWithBrokenListsTest() {
 
-        AnalyzerImpl localAnalyzer =
-                new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+        DefaultAnalyzer localAnalyzer =
+                new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, false);
 
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(Collections.emptyList());
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2)));
@@ -225,10 +225,10 @@ class AnalyserImplTests {
     @DisplayName("[UNIT] Filters price variation")
     void filterPriceVariationTest() {
 
-        AnalyzerImpl localAnalyzer = new AnalyzerImpl(Smoothing.NONE, 0, 5, false, false);
+        DefaultAnalyzer localAnalyzer = new DefaultAnalyzer(Smoothing.NONE, 0, 5, false, false);
         assertEquals(0, localAnalyzer.filterPriceVariation(4));
 
-        localAnalyzer = new AnalyzerImpl(Smoothing.NONE, 0, 5, true, false);
+        localAnalyzer = new DefaultAnalyzer(Smoothing.NONE, 0, 5, true, false);
         assertEquals(-5.25f, localAnalyzer.filterPriceVariation(-5));
     }
 
@@ -240,20 +240,20 @@ class AnalyserImplTests {
         List<IntCandle> intCandlesToMatch1 = new ArrayList<>(List.of(intCandles.get(0), intCandles.get(1)));
         List<IntCandle> intCandlesToMatch2 = new ArrayList<>(List.of(intCandles.get(2), intCandles.get(3)));
 
-        AnalyzerImpl localAnalyzer =
-                new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+        DefaultAnalyzer localAnalyzer =
+                new DefaultAnalyzer(Smoothing.NONE, 0, 0, false, false);
         int noSmoothingMatchScore = localAnalyzer.calculateMatchScore(intCandlesToMatch1, intCandlesToMatch2);
 
         localAnalyzer =
-                new AnalyzerImpl(Smoothing.LOGARITHMIC, 0, 0, false, false);
+                new DefaultAnalyzer(Smoothing.LOGARITHMIC, 0, 0, false, false);
         int logarithmicMatchScore = localAnalyzer.calculateMatchScore(intCandlesToMatch1, intCandlesToMatch2);
 
         localAnalyzer =
-                new AnalyzerImpl(Smoothing.LINEAR, 0, 0, false, false);
+                new DefaultAnalyzer(Smoothing.LINEAR, 0, 0, false, false);
         int linearSmoothingMatchScore = localAnalyzer.calculateMatchScore(intCandlesToMatch1, intCandlesToMatch2);
 
         localAnalyzer =
-                new AnalyzerImpl(Smoothing.EXPONENTIAL, 0, 0, false, false);
+                new DefaultAnalyzer(Smoothing.EXPONENTIAL, 0, 0, false, false);
         int exponentialSmoothingMatchScore = localAnalyzer.calculateMatchScore(intCandlesToMatch1, intCandlesToMatch2);
 
         assertEquals(22, noSmoothingMatchScore);

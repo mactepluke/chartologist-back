@@ -26,7 +26,7 @@ import static org.springframework.http.HttpStatus.OK;
 @AllArgsConstructor
 class TradeQueryController {
 
-    private final TradeQueryService tradeQueryService;
+    private final TradeQueryService queryService;
 
     //http://localhost:9240/trading/getbesttrade?symbol=<symbol>
     @GetMapping("/getbesttrade")
@@ -41,7 +41,7 @@ class TradeQueryController {
             throw new InvalidParametersException("Undefined timeframe or symbol.");
         }
 
-        Trade trade = tradeQueryService.getCurrentBestTrade(symbol);
+        Trade trade = queryService.getCurrentBestTrade(symbol);
 
         if (trade == null) {
             status = NO_CONTENT;
@@ -68,7 +68,7 @@ class TradeQueryController {
             throw new InvalidParametersException("Undefined timeframe or symbol.");
         }
 
-        Trade trade = tradeQueryService.getCurrentBestTrade(symbol, timeframe);
+        Trade trade = queryService.getCurrentBestTrade(symbol, timeframe);
 
         if (trade == null) {
             status = NO_CONTENT;

@@ -1,18 +1,20 @@
 package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
-import co.syngleton.chartomancer.pattern_recognition.PatternRecognitionAnalyzer;
+import co.syngleton.chartomancer.analytics.TradingAnalyzer;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @AllArgsConstructor
+@Log4j2
 class TradingConfig {
     private final TradingProperties tradingProperties;
 
     @Bean
-    PatternRecognitionAnalyzer tradingAnalyzer() {
+    TradingAnalyzer tradingAnalyzer() {
         return Analyzer.getNewInstance(
                 tradingProperties.matchScoreSmoothing(),
                 tradingProperties.matchScoreThreshold(),
