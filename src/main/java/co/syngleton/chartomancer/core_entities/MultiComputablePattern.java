@@ -26,7 +26,7 @@ public final class MultiComputablePattern extends ComputablePattern {
 
     /**
      * This method returns  by returning the most relevant price prediction.
-     * It is overriden so this class is retro-compatible with the way the other components work
+     * It is overridden so this class is retro-compatible with the way the other components work
      * (as per the Liskov-substitution principle) when they need PredictivePattern to return
      * a single price prediction.
      *

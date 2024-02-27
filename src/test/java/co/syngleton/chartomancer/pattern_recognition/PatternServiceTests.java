@@ -1,6 +1,5 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
-import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
@@ -39,7 +38,7 @@ class PatternServiceTests {
     @Autowired
     MockData mockData;
     @MockBean(name = "analyzer")
-    Analyzer analyzer;
+    PatternRecognitionAnalyzer analyzer;
     @MockBean(name = "candleRescaler")
     CandleRescaler candleRescaler;
 

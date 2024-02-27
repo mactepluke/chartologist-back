@@ -1,6 +1,7 @@
 package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.analytics.Analyzer;
+import co.syngleton.chartomancer.pattern_recognition.PatternRecognitionAnalyzer;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +12,7 @@ class TradingConfig {
     private final TradingProperties tradingProperties;
 
     @Bean
-    Analyzer tradingAnalyzer() {
+    PatternRecognitionAnalyzer tradingAnalyzer() {
         return Analyzer.getNewInstance(
                 tradingProperties.matchScoreSmoothing(),
                 tradingProperties.matchScoreThreshold(),

@@ -41,6 +41,7 @@ class AnalyserImplTests {
         this.intCandles = mockData.getIntCandles();
 
         this.defaultAnalyzer = new AnalyzerImpl(Smoothing.NONE, 0, 0, false, false);
+
     }
 
     @AfterAll

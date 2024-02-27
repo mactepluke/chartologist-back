@@ -1,6 +1,5 @@
 package co.syngleton.chartomancer.trading;
 
-import co.syngleton.chartomancer.analytics.Smoothing;
 import co.syngleton.chartomancer.util.csvwritertool.CSVRow;
 import lombok.NonNull;
 import org.jetbrains.annotations.Contract;
@@ -29,11 +28,11 @@ public record DummyTradesSummaryEntry(String dummyTradesDateTime,
                                       String fullScope,
                                       String patternLength,
                                       String patternGranularity,
-                                      Smoothing tradingMatchScoreSmoothing,
-                                      int tradingMatchScoreThreshold,
-                                      float tradingPriceVariationThreshold,
-                                      boolean tradingExtrapolatePriceVariation,
-                                      boolean tradingExtrapolateMatchScore,
+                                      String tradingMatchScoreSmoothing,
+                                      String tradingMatchScoreThreshold,
+                                      String tradingPriceVariationThreshold,
+                                      String tradingExtrapolatePriceVariation,
+                                      String tradingExtrapolateMatchScore,
                                       double riskToRewardRatio,
                                       int riskPercentage,
                                       float priceVariationMultiplier,

@@ -1,11 +1,15 @@
 package co.syngleton.chartomancer.analytics;
 
+import co.syngleton.chartomancer.core_entities.CoreDataSettingNames;
 import co.syngleton.chartomancer.core_entities.FloatCandle;
 import co.syngleton.chartomancer.core_entities.IntCandle;
+import co.syngleton.chartomancer.pattern_recognition.PatternRecognitionAnalyzer;
+import co.syngleton.chartomancer.trading.TradingAnalyzer;
 
 import java.util.List;
+import java.util.Map;
 
-public interface Analyzer {
+public interface Analyzer extends PatternRecognitionAnalyzer, TradingAnalyzer {
 
     static Analyzer getNewInstance(Smoothing matchScoreSmoothing,
                                    int matchScoreThreshold,
@@ -15,19 +19,16 @@ public interface Analyzer {
         return new AnalyzerImpl(matchScoreSmoothing, matchScoreThreshold, priceVariationThreshold, extrapolatePriceVariation, extrapolateMatchScore);
     }
 
+    @Override
     float calculatePriceVariation(List<FloatCandle> floatFollowingCandles, int scope);
 
+    @Override
     float filterPriceVariation(float priceVariation);
 
+    @Override
     int calculateMatchScore(List<IntCandle> intCandles, List<IntCandle> intCandlesToMatch);
 
-    Smoothing matchScoreSmoothing();
+    @Override
+    Map<CoreDataSettingNames, String> getSettingsSnapshot();
 
-    int matchScoreThreshold();
-
-    int priceVariationThreshold();
-
-    boolean extrapolatePriceVariation();
-
-    boolean extrapolateMatchScore();
 }

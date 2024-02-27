@@ -1,12 +1,12 @@
 package co.syngleton.chartomancer.data;
 
 import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.CoreDataSettingNames;
 import co.syngleton.chartomancer.core_entities.DefaultCoreData;
 import co.syngleton.chartomancer.core_entities.PurgeOption;
 import co.syngleton.chartomancer.pattern_recognition.ComputationSettings;
 import co.syngleton.chartomancer.pattern_recognition.PatternComputer;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
-import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
@@ -101,7 +101,7 @@ class DataConfig {
                 result = dataProcessor.saveCoreData(coreData,
                         CORE_DATA_ARCHIVES_FOLDER_PATH +
                                 "_" +
-                                coreData.getPatternSetting(CoreDataSettingNames.COMPUTATION_DATE)
+                                coreData.getPatternSetting(CoreDataSettingNames.COMPUTATION_DATE.name())
                 );
             }
             log.info("Created time stamped archive with newly generated data: {}", result);

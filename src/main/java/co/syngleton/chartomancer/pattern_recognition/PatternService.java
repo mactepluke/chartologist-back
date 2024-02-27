@@ -1,9 +1,7 @@
 package co.syngleton.chartomancer.pattern_recognition;
 
-import co.syngleton.chartomancer.analytics.Analyzer;
 import co.syngleton.chartomancer.charting.CandleRescaler;
 import co.syngleton.chartomancer.core_entities.*;
-import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Check;
 import co.syngleton.chartomancer.util.Format;
@@ -17,9 +15,12 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
+import static co.syngleton.chartomancer.core_entities.CoreDataSettingNames.*;
 
 @Log4j2
 @Service
@@ -27,7 +28,7 @@ import java.util.concurrent.ExecutionException;
 final class PatternService implements PatternGenerator, PatternComputer {
     private final PatternFactory patternFactory;
     private final CandleRescaler candleRescaler;
-    private final Analyzer analyzer;
+    private final PatternRecognitionAnalyzer analyzer;
 
     @Override
     public List<Pattern> createPatterns(PatternSettings.Builder settingsInput) {
@@ -233,13 +234,16 @@ final class PatternService implements PatternGenerator, PatternComputer {
     }
 
     private void updateCoreDataComputationSettings(@NonNull CoreData coreData, @NonNull ComputationSettings computationSettings) {
-        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_TYPE, computationSettings.getComputationType().toString());
-        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_AUTOCONFIG, computationSettings.getAutoconfig().toString());
-        coreData.setPatternSetting(CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE, Boolean.toString(analyzer.extrapolateMatchScore()));
-        coreData.setPatternSetting(CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION, Boolean.toString(analyzer.extrapolatePriceVariation()));
-        coreData.setPatternSetting(CoreDataSettingNames.MATCH_SCORE_THRESHOLD, Double.toString(analyzer.matchScoreThreshold()));
-        coreData.setPatternSetting(CoreDataSettingNames.PRICE_VARIATION_THRESHOLD, Double.toString(analyzer.priceVariationThreshold()));
-        coreData.setPatternSetting(CoreDataSettingNames.MATCH_SCORE_SMOOTHING, analyzer.matchScoreSmoothing().toString());
-        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_DATE, Format.toFileNameCompatibleDateTime(LocalDateTime.now()));
+
+        final Map<CoreDataSettingNames, String> settingsSnapshot = analyzer.getSettingsSnapshot();
+
+        coreData.setPatternSetting(COMPUTATION_TYPE.name(), computationSettings.getComputationType().toString());
+        coreData.setPatternSetting(COMPUTATION_AUTOCONFIG.name(), computationSettings.getAutoconfig().toString());
+        coreData.setPatternSetting(EXTRAPOLATE_MATCH_SCORE.name(), settingsSnapshot.get(EXTRAPOLATE_MATCH_SCORE));
+        coreData.setPatternSetting(EXTRAPOLATE_PRICE_VARIATION.name(), settingsSnapshot.get(EXTRAPOLATE_PRICE_VARIATION));
+        coreData.setPatternSetting(MATCH_SCORE_THRESHOLD.name(), settingsSnapshot.get(MATCH_SCORE_THRESHOLD));
+        coreData.setPatternSetting(PRICE_VARIATION_THRESHOLD.name(), settingsSnapshot.get(PRICE_VARIATION_THRESHOLD));
+        coreData.setPatternSetting(MATCH_SCORE_SMOOTHING.name(), settingsSnapshot.get(MATCH_SCORE_SMOOTHING));
+        coreData.setPatternSetting(COMPUTATION_DATE.name(), Format.toFileNameCompatibleDateTime(LocalDateTime.now()));
     }
 }

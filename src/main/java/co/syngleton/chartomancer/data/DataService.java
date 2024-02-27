@@ -3,11 +3,11 @@ package co.syngleton.chartomancer.data;
 import co.syngleton.chartomancer.charting.GraphGenerator;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.core_entities.CoreDataSettingNames;
 import co.syngleton.chartomancer.core_entities.Graph;
 import co.syngleton.chartomancer.core_entities.Pattern;
 import co.syngleton.chartomancer.pattern_recognition.PatternGenerator;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
-import co.syngleton.chartomancer.shared_constants.CoreDataSettingNames;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -64,13 +64,13 @@ class DataService implements DataProcessor {
     }
 
     private void updateCoreDataPatternSettings(@NonNull CoreData coreData, @NonNull PatternSettings patternSettings) {
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY, Integer.toString(patternSettings.getGranularity()));
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_LENGTH, Integer.toString(patternSettings.getLength()));
-        coreData.setPatternSetting(CoreDataSettingNames.SCOPE, Integer.toString(patternSettings.getScope()));
-        coreData.setPatternSetting(CoreDataSettingNames.FULL_SCOPE, Boolean.toString(patternSettings.isFullScope()));
-        coreData.setPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION, Boolean.toString(patternSettings.isAtomicPartition()));
-        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG, patternSettings.getAutoconfig().toString());
-        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE, patternSettings.getPatternType().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_GRANULARITY.name(), Integer.toString(patternSettings.getGranularity()));
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_LENGTH.name(), Integer.toString(patternSettings.getLength()));
+        coreData.setPatternSetting(CoreDataSettingNames.SCOPE.name(), Integer.toString(patternSettings.getScope()));
+        coreData.setPatternSetting(CoreDataSettingNames.FULL_SCOPE.name(), Boolean.toString(patternSettings.isFullScope()));
+        coreData.setPatternSetting(CoreDataSettingNames.ATOMIC_PARTITION.name(), Boolean.toString(patternSettings.isAtomicPartition()));
+        coreData.setPatternSetting(CoreDataSettingNames.PATTERN_AUTOCONFIG.name(), patternSettings.getAutoconfig().toString());
+        coreData.setPatternSetting(CoreDataSettingNames.COMPUTATION_PATTERN_TYPE.name(), patternSettings.getPatternType().toString());
     }
 
     @Override

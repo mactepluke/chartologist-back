@@ -1,5 +1,6 @@
 package co.syngleton.chartomancer.trading;
 
+import co.syngleton.chartomancer.automation.AutomationTradingProvider;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
 import co.syngleton.chartomancer.core_entities.CoreData;
@@ -24,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = {TradingConfig.class})
 @ActiveProfiles("test")
-class TradeSimulatorTests {
+class AutomationTradingProviderTests {
     public static final String TEST_CORE_DATA_FILE_PATH = "./core_data/TEST_coredata.ser";
     private static final String TEST_PATH = "./src/test/resources/";
     private static final double INITIAL_BALANCE = 10000;
@@ -32,7 +33,7 @@ class TradeSimulatorTests {
     private static final int MAX_TRADES = 100;
     private static final int EXPECTED_BALANCE_X = 2;
     @Autowired
-    TradeSimulator tradeSimulator;
+    AutomationTradingProvider automationTradingProvider;
     CoreData coreData;
     @Autowired
     DataProcessor dataProcessor;
@@ -81,7 +82,7 @@ class TradeSimulatorTests {
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.credit(INITIAL_BALANCE);
 
-        TradingSimulationResult result = tradeSimulator.simulateTrades(TradeSimulationStrategy.randomize(graph, coreData, tradingAccount), checker);
+        TradingSimulationResult result = automationTradingProvider.simulateTrades(TradeSimulationStrategy.randomize(graph, coreData, tradingAccount), checker);
 
         assertNotEquals(0, result.account().getNumberOfTrades());
     }
@@ -95,7 +96,7 @@ class TradeSimulatorTests {
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.credit(INITIAL_BALANCE);
 
-        TradingSimulationResult result = tradeSimulator.simulateTrades(TradeSimulationStrategy.iterate(graph, coreData, tradingAccount), checker);
+        TradingSimulationResult result = automationTradingProvider.simulateTrades(TradeSimulationStrategy.iterate(graph, coreData, tradingAccount), checker);
 
         assertNotEquals(0, result.account().getNumberOfTrades());
         assertEquals(7362.5, result.account().getTotalPnl());

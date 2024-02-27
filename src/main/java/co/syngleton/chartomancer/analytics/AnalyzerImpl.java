@@ -1,5 +1,6 @@
 package co.syngleton.chartomancer.analytics;
 
+import co.syngleton.chartomancer.core_entities.CoreDataSettingNames;
 import co.syngleton.chartomancer.core_entities.FloatCandle;
 import co.syngleton.chartomancer.core_entities.IntCandle;
 import co.syngleton.chartomancer.util.Calc;
@@ -8,6 +9,7 @@ import lombok.extern.log4j.Log4j2;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Math.*;
 
@@ -17,6 +19,7 @@ record AnalyzerImpl(Smoothing matchScoreSmoothing,
                     int priceVariationThreshold,
                     boolean extrapolatePriceVariation,
                     boolean extrapolateMatchScore) implements Analyzer {
+
 
     @Override
     public float calculatePriceVariation(List<FloatCandle> floatFollowingCandles, int scope) {
@@ -61,6 +64,17 @@ record AnalyzerImpl(Smoothing matchScoreSmoothing,
         int candlesSpan = calculateSurfaceSpan(intCandles, intCandlesToMatch);
 
         return filterMatchScore(Calc.positivePercentage(surfaceMatch, candlesSpan));
+    }
+
+    @Override
+    public Map<CoreDataSettingNames, String> getSettingsSnapshot() {
+        return Map.of(
+                CoreDataSettingNames.MATCH_SCORE_SMOOTHING, matchScoreSmoothing.toString(),
+                CoreDataSettingNames.MATCH_SCORE_THRESHOLD, String.valueOf(matchScoreThreshold),
+                CoreDataSettingNames.PRICE_VARIATION_THRESHOLD, String.valueOf(priceVariationThreshold),
+                CoreDataSettingNames.EXTRAPOLATE_PRICE_VARIATION, String.valueOf(extrapolatePriceVariation),
+                CoreDataSettingNames.EXTRAPOLATE_MATCH_SCORE, String.valueOf(extrapolateMatchScore)
+        );
     }
 
     private boolean areNotSameSize(List<IntCandle> intCandles1, List<IntCandle> intCandles2) {
