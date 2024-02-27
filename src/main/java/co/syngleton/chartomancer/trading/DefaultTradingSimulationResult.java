@@ -6,7 +6,7 @@ import co.syngleton.chartomancer.util.Calc;
 import co.syngleton.chartomancer.util.Format;
 import lombok.NonNull;
 
-public record TradingSimulationDefaultResult(
+public record DefaultTradingSimulationResult(
         TradingAccount account,
         double initialAccountBalance,
         Symbol symbol,
@@ -19,7 +19,7 @@ public record TradingSimulationDefaultResult(
 
     private static final int DAYS_IN_A_YEAR = 356;
 
-    public static @NonNull TradingSimulationDefaultResult generateFrom(@NonNull TradingAccount account,
+    public static @NonNull DefaultTradingSimulationResult generateFrom(@NonNull TradingAccount account,
                                                                        double initialAccountBalance,
                                                                        Symbol symbol,
                                                                        @NonNull Timeframe timeframe,
@@ -37,7 +37,7 @@ public record TradingSimulationDefaultResult(
         final double usefulToUselessTradesRatio = blankTradeCount == 0 ? -1 :
                 Format.roundTwoDigits((account.getNumberOfLongs() + account.getNumberOfShorts()) / (float) blankTradeCount);
 
-        return new TradingSimulationDefaultResult(account,
+        return new DefaultTradingSimulationResult(account,
                 initialAccountBalance,
                 symbol,
                 timeframe,

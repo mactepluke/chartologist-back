@@ -90,7 +90,7 @@ public abstract class TradeSimulationStrategy {
     }
 
     TradingSimulationResult exportResult() {
-        return TradingSimulationDefaultResult.generateFrom(
+        return DefaultTradingSimulationResult.generateFrom(
                 this.account,
                 this.initialAccountBalance,
                 graph.getSymbol(),

@@ -4,8 +4,8 @@ import co.syngleton.chartomancer.api_requesting.BacktestingQueryService;
 import co.syngleton.chartomancer.api_requesting.BacktestingResultsDTO;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.trading.DefaultTradingSimulationResult;
 import co.syngleton.chartomancer.trading.TradingAccount;
-import co.syngleton.chartomancer.trading.TradingSimulationDefaultResult;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import lombok.AllArgsConstructor;
@@ -58,7 +58,7 @@ class BacktestingController {
         if (results == null) {
             throw new UnexpectedRequestResultException("No results were returned by the provider.");
         }
-        return new ResponseEntity<>(BacktestingResultsDTO.from(TradingSimulationDefaultResult.generateFrom(new TradingAccount(), 10000, Symbol.BTC_USD, Timeframe.DAY, 0)), HttpStatus.OK);
+        return new ResponseEntity<>(BacktestingResultsDTO.from(DefaultTradingSimulationResult.generateFrom(new TradingAccount(), 10000, Symbol.BTC_USD, Timeframe.DAY, 0)), HttpStatus.OK);
     }
 
 }

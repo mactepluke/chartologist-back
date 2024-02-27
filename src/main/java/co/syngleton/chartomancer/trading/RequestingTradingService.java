@@ -3,6 +3,7 @@ package co.syngleton.chartomancer.trading;
 import co.syngleton.chartomancer.core_entities.Account;
 import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.core_entities.Graph;
+import lombok.NonNull;
 
 public interface RequestingTradingService {
 
@@ -22,4 +23,6 @@ public interface RequestingTradingService {
                                     Graph graph,
                                     CoreData coreData,
                                     int tradeOpenCandle);
+
+    TradingSimulationResult simulateTrades(@NonNull final TradeSimulationStrategy strat, final TradingConditionsChecker checker);
 }

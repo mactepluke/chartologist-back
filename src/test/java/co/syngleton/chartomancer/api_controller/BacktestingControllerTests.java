@@ -4,8 +4,8 @@ import co.syngleton.chartomancer.api_requesting.BacktestingQueryService;
 import co.syngleton.chartomancer.api_requesting.BacktestingResultsDTO;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.trading.DefaultTradingSimulationResult;
 import co.syngleton.chartomancer.trading.TradingAccount;
-import co.syngleton.chartomancer.trading.TradingSimulationDefaultResult;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +33,17 @@ class BacktestingControllerTests {
     @MockBean
     private BacktestingQueryService queryService;
 
-    private BacktestingResultsDTO results;
-
     @BeforeAll
     void setUp() {
         log.info("*** STARTING BACKTESTING ENDPOINTS TESTS ***");
 
-        results = BacktestingResultsDTO.from(TradingSimulationDefaultResult.generateFrom(new TradingAccount(), 10000, Symbol.BTC_USD, Timeframe.DAY, 100));
+        BacktestingResultsDTO results = BacktestingResultsDTO.from(DefaultTradingSimulationResult.generateFrom(
+                new TradingAccount(),
+                10000,
+                Symbol.BTC_USD,
+                Timeframe.DAY,
+                100)
+        );
 
         when(queryService.getTradingSimulation(any(), any(), any(), any(), anyFloat())).thenReturn(results);
     }
