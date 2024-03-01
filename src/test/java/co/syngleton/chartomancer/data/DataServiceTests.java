@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +57,7 @@ class DataServiceTests {
 
         coreData.addPatterns(patterns);
 
-        getTestDataFolderPath = "src/test/resources/" + testDataFolderName;
+        getTestDataFolderPath = "./" + testDataFolderName;
     }
 
     @AfterAll

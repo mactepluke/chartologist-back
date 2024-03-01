@@ -117,6 +117,12 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
             <version>4.0.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>24.0.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>

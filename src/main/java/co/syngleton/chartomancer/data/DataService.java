@@ -23,7 +23,6 @@ import java.util.Set;
 @Service
 @AllArgsConstructor
 class DataService implements DataProcessor {
-    private static final String NEW_LINE = System.lineSeparator();
     private static final String PATH_DELIMITER = "/";
     private static final String PATH_ROOT = ".";
 

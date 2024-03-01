@@ -7,5 +7,5 @@ import java.time.LocalDate;
 
 public interface BacktestingQueryService {
 
-    BacktestingResultsDTO getTradingSimulation(Symbol symbol, Timeframe timeframe, LocalDate startDate, LocalDate endDate, float accountBalance);
+    BacktestingResultsDTO getTradingSimulation(Symbol symbol, Timeframe timeframe, LocalDate startDate, LocalDate endDate, double accountBalance);
 }

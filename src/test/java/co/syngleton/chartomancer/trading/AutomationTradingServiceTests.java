@@ -2,6 +2,7 @@ package co.syngleton.chartomancer.trading;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
+import co.syngleton.chartomancer.configuration.MockCoreData;
 import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.core_entities.DefaultCoreData;
 import co.syngleton.chartomancer.core_entities.Graph;
@@ -22,35 +23,22 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Log4j2
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration(classes = {TradingConfig.class})
+@ContextConfiguration(classes = {TradingConfig.class, MockCoreData.class})
 @ActiveProfiles("test")
 class AutomationTradingServiceTests {
-    public static final String TEST_CORE_DATA_FILE_PATH = "./core_data/TEST_coredata.ser";
-    private static final String TEST_PATH = "./src/test/resources/";
     private static final double INITIAL_BALANCE = 10000;
     private static final double MINIMUM_BALANCE = 5000;
     private static final int MAX_TRADES = 100;
     private static final int EXPECTED_BALANCE_X = 2;
     @Autowired
-    AutomationTradingService automationTradingService;
-    CoreData coreData;
+    private AutomationTradingService automationTradingService;
     @Autowired
-    DataProcessor dataProcessor;
+    private CoreData coreData;
     private TradingConditionsChecker checker;
-    @Value("${data.folder_name}")
-    private String testDataFolderName;
-    @Value("#{'${automation.dummy_graphs_data_files_names}'.split(',')}")
-    private List<String> testDummyGraphsDataFilesNames;
 
     @BeforeAll
     void setUp() {
         log.info("*** STARTING TRADING SERVICE TESTS ***");
-        coreData = DefaultCoreData.newInstance();
-        dataProcessor.loadCoreData(coreData, TEST_CORE_DATA_FILE_PATH);
-        coreData.pushTradingPatternData();
-        coreData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
-        dataProcessor.loadGraphs(coreData, TEST_PATH + testDataFolderName + "/", testDummyGraphsDataFilesNames);
-        dataProcessor.createGraphsForMissingTimeframes(coreData);
 
         this.checker = TradingConditionsChecker.builder()
                 .maxTrades(MAX_TRADES)

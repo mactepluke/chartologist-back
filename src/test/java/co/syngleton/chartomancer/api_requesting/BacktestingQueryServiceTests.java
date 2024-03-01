@@ -1,78 +1,64 @@
 package co.syngleton.chartomancer.api_requesting;
 
 
+import co.syngleton.chartomancer.charting.GraphSlicer;
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.trading.DefaultTradingSimulationResult;
-import co.syngleton.chartomancer.trading.RequestingTradingService;
-import co.syngleton.chartomancer.trading.TradingAccount;
-import co.syngleton.chartomancer.trading.TradingSimulationResult;
+import co.syngleton.chartomancer.configuration.MockCoreData;
+import co.syngleton.chartomancer.core_entities.CoreData;
+import co.syngleton.chartomancer.trading.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Log4j2
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
+@ContextConfiguration(classes = {MockCoreData.class})
 class BacktestingQueryServiceTests {
+
+    private static final double INITIAL_BALANCE = 10000;
 
     @Autowired
     private BacktestingQueryService queryService;
-    @Mock
-    private RequestingTradingService requestingTradingService;
 
     @BeforeAll
     void setUp() {
         log.info("*** STARTING BACKTESTING QUERY SERVICE TESTS ***");
-
-        /*final TradingConditionsChecker checker = TradingConditionsChecker.builder()
-                .maxTrades(100)
-                .maxBlankTrades(1000)
-                .maximumAccountBalance(10000)
-                .minimumAccountBalance(5000)
-                .build();*/
-
-        //final TradeSimulationStrategy strategy = TradeSimulationStrategy.iterate(new Graph(any(), any(), any(), any()), coreData, any());
-
     }
 
     @AfterAll
     void tearDown() {
-        log.info("*** MICROSERVICE ACKTESTING QUERY SERVICE TESTS FINISHED ***");
+        log.info("*** MICROSERVICE BACKTESTING QUERY SERVICE TESTS FINISHED ***");
     }
 
 
     @Test
-    @DisplayName("[UNIT] BacktestingQueryService is implemented")
-    void backtestingQueryServiceBasicImplementationTest() {
+    @DisplayName("[IT] BacktestingQueryService is implemented")
+    void backtestingQueryServiceDefaultImplementationTest() {
 
-        final TradingAccount tradingAccount = new TradingAccount();
-        tradingAccount.credit(10000);
-
-        final TradingSimulationResult tradingSimulationResult = DefaultTradingSimulationResult.generateFrom(
-                tradingAccount,
-                5000,
+        final BacktestingResultsDTO result = queryService.getTradingSimulation(
                 Symbol.BTC_USD,
-                Timeframe.DAY,
-                10);
+                Timeframe.FOUR_HOUR,
+                LocalDate.of(2023, 8, 28),
+                LocalDate.of(2024, 2, 15),
+                INITIAL_BALANCE);
 
-        when(requestingTradingService.simulateTrades(any(), any()))
-                .thenReturn(tradingSimulationResult);
-
-        final BacktestingResultsDTO results = queryService.getTradingSimulation(any(), any(), any(), any(), 1000);
-
-        assertEquals(10000, results.accountBalance());
-        assertEquals(0, results.tradeNumber());
-        assertEquals(0, results.trades().size());
-        assertEquals(0, results.actualTradingDurationPercentage());
+        assertNotEquals(0, result.tradeNumber());
+        assertEquals(7362.5, result.pnl());
+        assertEquals(1.52, result.profitFactor());
+        assertEquals(156.83, result.totalDurationInDays());
+        assertEquals(167.97, result.annualizedReturnPercentage());
     }
 
 }

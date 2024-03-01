@@ -11,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ import static java.lang.Math.*;
 @Log4j2
 @Service
 @AllArgsConstructor
-final class ChartingService implements GraphGenerator, CandleRescaler {
+final class ChartingService implements GraphGenerator, CandleRescaler, GraphSlicer {
     private final HistoricalDataDAO historicalDataDAO;
     private final ChartingProperties chartingProperties;
 
@@ -211,10 +213,57 @@ final class ChartingService implements GraphGenerator, CandleRescaler {
         return new IntCandle(LocalDateTime.now(), open, high, low, close, volume);
     }
 
-    private int rescaleValue(float value, int granularity, float lowest, float highest) {
+    private int rescaleValue(final float value, final int granularity, final float lowest, final float highest) {
 
         float divider = highest == lowest ? 1 : (highest - lowest) / granularity;
         return streamline(round((value - lowest) / divider), 0, granularity);
+    }
+
+    @Override
+    public Graph getSlice(final Graph graph, final LocalDateTime startDate, final LocalDateTime endDate) {
+
+        if (graphIsInvalid(graph) || startDate == null || endDate == null || startDate.isAfter(endDate)) {
+            throw new InvalidParametersException("Graph is invalid: " + graph);
+        }
+
+        final long startCandle;
+        final long endCandle;
+
+        if (graph.getFloatCandles().get(graph.getFloatCandles().size() - 1).dateTime().isBefore(startDate) ||
+                graph.getFloatCandles().get(0).dateTime().isAfter(endDate)) {
+            return new Graph(
+                    "EmptySlice-" + graph.getName(),
+                    graph.getSymbol(),
+                    graph.getTimeframe(),
+                    new ArrayList<>()
+            );
+        }
+
+        if (graph.getFloatCandles().get(0).dateTime().isAfter(startDate)) {
+            startCandle = 0;
+        } else {
+            startCandle = getNumberOfCandlesBetweenDates(graph, graph.getFloatCandles().get(0).dateTime(), startDate);
+        }
+        if (graph.getFloatCandles().get(graph.getFloatCandles().size() - 1).dateTime().isBefore(endDate)) {
+            endCandle = graph.getFloatCandles().size();
+        } else {
+            endCandle = getNumberOfCandlesBetweenDates(graph, graph.getFloatCandles().get(0).dateTime(), endDate);
+        }
+        return new Graph(
+                "Slice-" + graph.getName(),
+                graph.getSymbol(),
+                graph.getTimeframe(),
+                graph.getFloatCandles().subList((int) startCandle, (int) endCandle)
+        );
+    }
+
+    private long getNumberOfCandlesBetweenDates(Graph graph, LocalDateTime startDate, LocalDateTime endDate) {
+        return abs(Duration.between(startDate, endDate).toSeconds() / graph.getTimeframe().durationInSeconds);
+    }
+
+    @Override
+    public Graph getSlice(Graph graph, LocalDate startDate, LocalDate endDate) {
+        return getSlice(graph, startDate.atStartOfDay(), endDate.atStartOfDay());
     }
 
 

@@ -8,6 +8,7 @@ import co.syngleton.chartomancer.trading.DefaultTradingSimulationResult;
 import co.syngleton.chartomancer.trading.TradingAccount;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +16,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyFloat;
@@ -36,16 +39,6 @@ class BacktestingControllerTests {
     @BeforeAll
     void setUp() {
         log.info("*** STARTING BACKTESTING ENDPOINTS TESTS ***");
-
-        BacktestingResultsDTO results = BacktestingResultsDTO.from(DefaultTradingSimulationResult.generateFrom(
-                new TradingAccount(),
-                10000,
-                Symbol.BTC_USD,
-                Timeframe.DAY,
-                100)
-        );
-
-        when(queryService.getTradingSimulation(any(), any(), any(), any(), anyFloat())).thenReturn(results);
     }
 
     @AfterAll
@@ -57,6 +50,22 @@ class BacktestingControllerTests {
     @Test
     @DisplayName("[UNIT] Endpoint 'get-results' is accessible")
     void getBacktestingResultsTest() throws Exception {
+
+        BacktestingResultsDTO results = BacktestingResultsDTO.from(DefaultTradingSimulationResult.generateFrom(
+                new TradingAccount(),
+                10000,
+                Symbol.BTC_USD,
+                Timeframe.DAY,
+                100)
+        );
+
+        when(queryService.getTradingSimulation(Symbol.BTC_USD,
+                Timeframe.DAY,
+                LocalDate.of(2021, 11, 20),
+                LocalDate.of(2023, 11, 20),
+                10000)
+        ).thenReturn(results);
+
 
         mockMvc.perform(MockMvcRequestBuilders.get("/backtesting/get-results")
                         .param("symbol", "BTC_USD")

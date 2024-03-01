@@ -54,11 +54,11 @@ class BacktestingController {
         }
 
         BacktestingResultsDTO results = queryService.getTradingSimulation(symbol, timeframe, startDate, endDate, accountBalance);
-
+        log.debug(results);
         if (results == null) {
             throw new UnexpectedRequestResultException("No results were returned by the provider.");
         }
-        return new ResponseEntity<>(BacktestingResultsDTO.from(DefaultTradingSimulationResult.generateFrom(new TradingAccount(), 10000, Symbol.BTC_USD, Timeframe.DAY, 0)), HttpStatus.OK);
+        return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
 }

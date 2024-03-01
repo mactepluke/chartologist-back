@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ class ChartingServiceTests {
     @Autowired
     ChartingService chartingService;
     private List<FloatCandle> floatCandles;
+    private List<FloatCandle> floatCandlesForSliceGraphTest;
 
     @BeforeAll
     void setUp() {
@@ -61,12 +63,23 @@ class ChartingServiceTests {
                         floatCandle8,
                         floatCandle9)
         );
+
+        floatCandlesForSliceGraphTest = new ArrayList<>();
+        final LocalDateTime candleDate2 = LocalDateTime.of(2024, 1, 1, 0, 0, 0);
+
+        for(var i = 0; i < 100; i++) {
+            floatCandlesForSliceGraphTest.add(new FloatCandle(candleDate2.plusHours(4 * i), 20, 100, 0, 80, 20));
+        }
     }
 
     @AfterAll
     void tearDown() {
         log.info("*** ENDING CHARTING SERVICE TESTS ***");
 
+    }
+
+    private LocalDateTime incrementBy(LocalDateTime dateTime, int hours) {
+        return dateTime.plusHours(hours);
     }
 
 
@@ -302,6 +315,112 @@ class ChartingServiceTests {
         assertEquals(floatCandle2.open(), repairedGraph.getFloatCandles().get(2).low());
         assertEquals(floatCandle2.close(), repairedGraph.getFloatCandles().get(2).high());
         assertEquals(45, repairedGraph.getFloatCandles().get(2).volume());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Slices a graph from a start date to an end date")
+    void sliceGraphTest()   {
+
+        final Graph graph = new Graph("testSlicedGraph", Symbol.UNDEFINED, Timeframe.FOUR_HOUR, this.floatCandlesForSliceGraphTest);
+
+        final Graph slicedGraph = chartingService.getSlice(
+                graph, LocalDate.of(2024, 1, 4),
+                LocalDate.of(2024, 1, 9)
+        );
+        assertEquals(30, slicedGraph.getFloatCandles().size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Slices a graph from a start date to an end date with limit values")
+    void sliceGraphLimitTest()   {
+
+        final Graph graph = new Graph("testSlicedGraph", Symbol.UNDEFINED, Timeframe.FOUR_HOUR, this.floatCandlesForSliceGraphTest);
+
+        final Graph slicedGraph = chartingService.getSlice(
+                graph, LocalDate.of(2024, 1, 4),
+                LocalDate.of(2024, 1, 4)
+        );
+        assertEquals(0, slicedGraph.getFloatCandles().size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Slices a graph from a start date to an end date with out of bound start date value")
+    void sliceGraphOutOfBoundStartDateTest()   {
+
+        final Graph graph = new Graph("testSlicedGraph", Symbol.UNDEFINED, Timeframe.FOUR_HOUR, this.floatCandlesForSliceGraphTest);
+
+        final Graph slicedGraph = chartingService.getSlice(
+                graph, LocalDate.of(2023, 12, 10),
+                LocalDate.of(2024, 1, 9)
+        );
+        assertEquals(48, slicedGraph.getFloatCandles().size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Slices a graph from a start date to an end date with out of bound end date value")
+    void sliceGraphOutOfBoundEndDateTest()   {
+
+        final Graph graph = new Graph("testSlicedGraph", Symbol.UNDEFINED, Timeframe.FOUR_HOUR, this.floatCandlesForSliceGraphTest);
+
+        final Graph slicedGraph = chartingService.getSlice(
+                graph, LocalDate.of(2024, 1, 4),
+                LocalDate.of(2025, 1, 9)
+        );
+        assertEquals(82, slicedGraph.getFloatCandles().size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Slices a graph from a start date to an end date with out of bound start and and end date values")
+    void sliceGraphOutOfBoundStartAndEndDateTest()   {
+
+        final Graph graph = new Graph("testSlicedGraph", Symbol.UNDEFINED, Timeframe.FOUR_HOUR, this.floatCandlesForSliceGraphTest);
+
+        final Graph slicedGraph = chartingService.getSlice(
+                graph, LocalDate.of(2020, 1, 4),
+                LocalDate.of(2025, 1, 9)
+        );
+        assertEquals(100, slicedGraph.getFloatCandles().size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Slices a graph from a start date to an end date with non-overlapping date intervals (first)")
+    void sliceGraphNonOverlappingIntervalsFirstTest()   {
+
+        final Graph graph = new Graph("testSlicedGraph", Symbol.UNDEFINED, Timeframe.FOUR_HOUR, this.floatCandlesForSliceGraphTest);
+
+        final Graph slicedGraph = chartingService.getSlice(
+                graph, LocalDate.of(2025, 1, 4),
+                LocalDate.of(2028, 1, 9)
+        );
+        assertEquals(0, slicedGraph.getFloatCandles().size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Slices a graph from a start date to an end date with non-overlapping date intervals (second)")
+    void sliceGraphNonOverlappingIntervalSecondTest()   {
+
+        final Graph graph = new Graph("testSlicedGraph", Symbol.UNDEFINED, Timeframe.FOUR_HOUR, this.floatCandlesForSliceGraphTest);
+
+        final Graph slicedGraph = chartingService.getSlice(
+                graph, LocalDate.of(2010, 1, 4),
+                LocalDate.of(2015, 1, 9)
+        );
+        assertEquals(0, slicedGraph.getFloatCandles().size());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Attempts to slice a graph with invalid start and end dates")
+    void sliceGraphWithInvalidDatesTest()   {
+
+        final Graph graph = new Graph("testSlicedGraph", Symbol.UNDEFINED, Timeframe.FOUR_HOUR, this.floatCandlesForSliceGraphTest);
+
+        final LocalDate startDate = LocalDate.of(2024, 1, 5);
+        final LocalDate endDate = LocalDate.of(2024, 1, 4);
+
+        assertThrows(InvalidParametersException.class, () -> chartingService.getSlice(
+                graph, startDate,
+                endDate
+        ));
     }
 
 }

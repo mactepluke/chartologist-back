@@ -54,7 +54,7 @@ class CoreDataTests {
         patterns.add(new ComputablePattern(basicPattern, 5));
 
         coreData.addPatterns(patterns);
-        getTestDataFolderPath = "src/test/resources/" + testDataFolderName;
+        getTestDataFolderPath = "./" + testDataFolderName;
     }
 
     @AfterAll

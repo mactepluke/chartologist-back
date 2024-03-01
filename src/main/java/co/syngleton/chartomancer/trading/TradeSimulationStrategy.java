@@ -4,11 +4,13 @@ import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.core_entities.Graph;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.Objects;
 
 
 @ToString
+@Log4j2
 public abstract class TradeSimulationStrategy {
     @Getter
     private final Graph graph;
@@ -34,6 +36,11 @@ public abstract class TradeSimulationStrategy {
         this.graph = graph;
         this.coreData = coreData;
         this.account = account;
+
+        log.debug(graph.getFloatCandles().size());
+        log.debug(coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()));
+
+
         this.boundary = graph.getFloatCandles().size() - coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe());
         this.patternLength = coreData.getTradingPatternLength(graph.getSymbol(), graph.getTimeframe());
         this.blankTradesCount = 0;
