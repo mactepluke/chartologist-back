@@ -2,10 +2,7 @@ package co.syngleton.chartomancer.data;
 
 import co.syngleton.chartomancer.charting.GraphGenerator;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import co.syngleton.chartomancer.core_entities.CoreData;
-import co.syngleton.chartomancer.core_entities.CoreDataSettingNames;
-import co.syngleton.chartomancer.core_entities.Graph;
-import co.syngleton.chartomancer.core_entities.Pattern;
+import co.syngleton.chartomancer.core_entities.*;
 import co.syngleton.chartomancer.pattern_recognition.PatternGenerator;
 import co.syngleton.chartomancer.pattern_recognition.PatternSettings;
 import lombok.AllArgsConstructor;
@@ -109,10 +106,10 @@ class DataService implements DataProcessor {
 
         log.info("Loading core data from: {}, of name: {}", dataProperties.source(), dataSourceName);
 
-        CoreData readData = coreDataDAO.loadCoreDataFrom(dataSourceName);
+        CoreDataSnapshot readData = coreDataDAO.loadCoreDataFrom(dataSourceName);
 
         if (readData != null) {
-            coreData.copy(readData);
+            coreData.mirror(DefaultCoreData.valueOf(readData));
             log.info("Loaded core data successfully.");
             return true;
         }

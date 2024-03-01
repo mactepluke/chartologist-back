@@ -34,6 +34,10 @@ abstract class AbstractCoreData implements CoreData {
         this.tradingPatternSettings = coreDataSnapshot.tradingPatternSettings();
     }
 
+    AbstractCoreData(CoreData coreData) {
+        this(coreData.getSnapshot());
+    }
+
     @Override
     public final CoreDataSnapshot getSnapshot() {
         return new CoreDataSnapshot(graphs,

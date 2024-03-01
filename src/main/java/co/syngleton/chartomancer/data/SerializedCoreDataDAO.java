@@ -11,7 +11,7 @@ import java.io.*;
 final class SerializedCoreDataDAO implements CoreDataDAO {
 
     @Override
-    public CoreData loadCoreDataFrom(String dataFilePath) {
+    public CoreDataSnapshot loadCoreDataFrom(String dataFilePath) {
 
         CoreDataSnapshot readData;
 
@@ -21,7 +21,7 @@ final class SerializedCoreDataDAO implements CoreDataDAO {
             e.printStackTrace();
             return null;
         }
-        return DefaultCoreData.valueOf(readData);
+        return readData;
     }
 
     @Override

@@ -2,7 +2,6 @@ package co.syngleton.chartomancer.core_entities;
 
 import co.syngleton.chartomancer.charting_types.Symbol;
 import co.syngleton.chartomancer.charting_types.Timeframe;
-import lombok.NonNull;
 
 import java.util.List;
 import java.util.Set;
@@ -15,8 +14,6 @@ public interface CoreData {
     void addPatterns(List<Pattern> patterns);
 
     void putPatterns(List<Pattern> patterns);
-
-    void copy(@NonNull CoreData coreData);
 
     int getTradingPatternLength(Symbol symbol, Timeframe timeframe);
 
@@ -66,4 +63,5 @@ public interface CoreData {
 
     int getMaxTradingScope(Symbol symbol, Timeframe timeframe);
 
+    void mirror(CoreData coreData);
 }

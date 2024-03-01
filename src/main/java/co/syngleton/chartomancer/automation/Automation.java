@@ -303,9 +303,8 @@ final class Automation {
     }
 
     private @NonNull CoreData cloneCoreDataWithDummyGraphs() {
-        CoreData dummyGraphsData = DefaultCoreData.newInstance();
+        CoreData dummyGraphsData = DefaultCoreData.copyOf(coreData);
 
-        dummyGraphsData.copy(coreData);
         dummyGraphsData.purgeUselessData(PurgeOption.GRAPHS_AND_PATTERNS);
         dataProcessor.loadGraphs(dummyGraphsData, dummyGraphsDataFolderName, dummyGraphsDataFilesNames);
         dataProcessor.createGraphsForMissingTimeframes(dummyGraphsData);

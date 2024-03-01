@@ -16,6 +16,10 @@ public class DefaultCoreData extends AbstractCoreData {
         super(coreDataSnapshot);
     }
 
+    private DefaultCoreData(CoreData coreData) {
+        super(coreData);
+    }
+
     /**
      * This factory method is used instead of a constructor so the class cannot be extended outside its package,
      * while still being extensible within it.
@@ -30,8 +34,12 @@ public class DefaultCoreData extends AbstractCoreData {
         return new DefaultCoreData(coreDataSnapshot);
     }
 
+    public static DefaultCoreData copyOf(CoreData coreData) {
+        return new DefaultCoreData(coreData);
+    }
+
     @Override
-    public synchronized void copy(@NonNull CoreData coreData) {
+    public synchronized void mirror(@NonNull CoreData coreData) {
         DefaultCoreData defaultCoreData = (DefaultCoreData) coreData;
         this.graphs = defaultCoreData.graphs;
         this.patternBoxes = defaultCoreData.patternBoxes;
@@ -39,5 +47,4 @@ public class DefaultCoreData extends AbstractCoreData {
         this.patternSettings.putAll(defaultCoreData.patternSettings);
         this.tradingPatternSettings.putAll(defaultCoreData.tradingPatternSettings);
     }
-
 }

@@ -22,11 +22,11 @@ class DefaultTradeQueryService implements TradeQueryService {
     private static final double DEFAULT_ACCOUNT_BALANCE = 100;
     private final DataRequestingService dataRequestingService;
     private final RequestingTradingService requestingTradingService;
-    private final CoreData coreData;
+    private final CoreData backtestingCoreData;
 
     public Trade getCurrentBestTrade(Symbol symbol) {
 
-        Set<Timeframe> timeframes = coreData.getTradingTimeframes();
+        Set<Timeframe> timeframes = backtestingCoreData.getTradingTimeframes();
 
         Set<Trade> trades = getCurrentBestTrades(DEFAULT_ACCOUNT_BALANCE, symbol, timeframes);
 
@@ -65,14 +65,14 @@ class DefaultTradeQueryService implements TradeQueryService {
         Graph graph = dataRequestingService.getLatestPriceHistoryGraphWithCurrentPriceCandle(
                 symbol,
                 timeframe,
-                coreData.getTradingPatternLength(symbol, timeframe));
+                backtestingCoreData.getTradingPatternLength(symbol, timeframe));
 
         TradingAccount tradingAccount = new TradingAccount();
         tradingAccount.credit(accountBalance);
 
         return requestingTradingService.generateOptimalTakerTrade(tradingAccount,
                 graph,
-                coreData,
+                backtestingCoreData,
                 graph.getFloatCandles().size() - 1);
     }
 
