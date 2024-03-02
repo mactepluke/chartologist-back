@@ -43,6 +43,13 @@ class BacktestingController {
             @RequestParam @NotBlank @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = true) @DecimalMin(value = "0.0", inclusive = false) @DecimalMax(value = "100000000") float accountBalance
     ) {
+
+        log.info("Received request for backtesting results for symbol: " + symbol +
+                ", timeframe: " + timeframe +
+                ", start date: " + startDate +
+                ", end date: " + endDate +
+                ", account balance: " + accountBalance);
+
         if (startDate.isAfter(endDate)) {
             throw new NonComputableArgumentsException("Start date cannot be after end date.");
         }
@@ -54,7 +61,7 @@ class BacktestingController {
         }
 
         BacktestingResultsDTO results = queryService.getTradingSimulation(symbol, timeframe, startDate, endDate, accountBalance);
-        log.debug(results);
+
         if (results == null) {
             throw new UnexpectedRequestResultException("No results were returned by the provider.");
         }

@@ -37,10 +37,6 @@ public abstract class TradeSimulationStrategy {
         this.coreData = coreData;
         this.account = account;
 
-        log.debug(graph.getFloatCandles().size());
-        log.debug(coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe()));
-
-
         this.boundary = graph.getFloatCandles().size() - coreData.getMaxTradingScope(graph.getSymbol(), graph.getTimeframe());
         this.patternLength = coreData.getTradingPatternLength(graph.getSymbol(), graph.getTimeframe());
         this.blankTradesCount = 0;
