@@ -42,14 +42,14 @@ public class SecurityConfig {
     @Value("#{'${web.cors.allowed-headers}'.split(',')}")
     private List<String> allowedHeaders;
 
-
+//TODO change .permitAll() to .authenticated() as soon as the security is configured on front end
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(withDefaults())
                 .authorizeHttpRequests(authz -> authz
                         .anyRequest()
-                        .authenticated()
+                        .permitAll()
                 )
                 .httpBasic(withDefaults());
         return http.build();

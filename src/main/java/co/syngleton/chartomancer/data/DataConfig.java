@@ -169,7 +169,7 @@ class DataConfig {
 
             log.info("Purged non-trading data: {}",
                     coreData.purgeUselessData(dataProperties.purgeAfterTradingDataGeneration()));
-        } else if (dataProperties.purgeAfterTradingDataGeneration() != PurgeOption.NO) {
+        } else if (dataProperties.purgeAfterTradingDataGeneration() != PurgeOption.NO_PURGE) {
             log.warn("Non-trading data will not be purged as no trading data has been generated.");
         }
     }
