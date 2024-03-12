@@ -25,7 +25,7 @@ class DataService implements DataProcessor {
 
     private final GraphGenerator graphGenerator;
     private final PatternGenerator patternGenerator;
-    private final CoreDataDAO coreDataDAO;
+    private final CoreDataRepository coreDataRepository;
     private final DataProperties dataProperties;
 
     @Override
@@ -106,7 +106,7 @@ class DataService implements DataProcessor {
 
         log.info("Loading core data from: {}, of name: {}", dataProperties.source(), dataSourceName);
 
-        CoreDataSnapshot readData = coreDataDAO.loadCoreDataFrom(dataSourceName);
+        CoreDataSnapshot readData = coreDataRepository.loadCoreDataFrom(dataSourceName);
 
         if (readData != null) {
             coreData.mirror(DefaultCoreData.valueOf(readData));
@@ -126,7 +126,7 @@ class DataService implements DataProcessor {
         }
 
         log.info("Saving core data to: {}", dataSourceName);
-        return coreDataDAO.saveCoreDataTo(coreData, dataSourceName);
+        return coreDataRepository.saveCoreDataTo(coreData, dataSourceName);
     }
 
     @Override

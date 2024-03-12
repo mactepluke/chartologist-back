@@ -2,13 +2,12 @@ package co.syngleton.chartomancer.data;
 
 import co.syngleton.chartomancer.core_entities.CoreData;
 import co.syngleton.chartomancer.core_entities.CoreDataSnapshot;
-import co.syngleton.chartomancer.core_entities.DefaultCoreData;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 
 @Component("serialized")
-final class SerializedCoreDataDAO implements CoreDataDAO {
+final class SerializedCoreDataRepository implements CoreDataRepository {
 
     @Override
     public CoreDataSnapshot loadCoreDataFrom(String dataFilePath) {

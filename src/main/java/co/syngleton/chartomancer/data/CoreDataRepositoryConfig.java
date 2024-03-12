@@ -8,11 +8,11 @@ import javax.naming.ConfigurationException;
 
 @Configuration
 @AllArgsConstructor
-class CoreDataDAOConfig {
+class CoreDataRepositoryConfig {
     private final DataProperties dataProperties;
 
     @Bean
-    CoreDataDAO coreDataDAO() throws ConfigurationException {
+    CoreDataRepository coreDataDAO() throws ConfigurationException {
 
         return switch (dataProperties.source()) {
             case SERIALIZED -> getSerializedCoreDataDAO();
@@ -20,8 +20,8 @@ class CoreDataDAOConfig {
         };
     }
 
-    private CoreDataDAO getSerializedCoreDataDAO() {
-        return new SerializedCoreDataDAO();
+    private CoreDataRepository getSerializedCoreDataDAO() {
+        return new SerializedCoreDataRepository();
     }
 
 }
