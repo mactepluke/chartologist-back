@@ -177,7 +177,7 @@ class TradingService implements RequestingTradingService, AutomationTradingServi
                 .whenAppliedTo(strat.getAccount(), strat.countBlankTrades())
                 .withNextCandleAndLimit(strat.getTradeOpenCandle(), strat.getBoundary())
                 .andIf(!strat.hasUnfundedTrade())
-                .doAllowToContinue(TradingConditionsChecker.Option.LOG_DENIAL_REASON)) {
+                .doAllowToContinue()) {
 
             strat.setTrade(generateAndProcessTrade(strat));
 
