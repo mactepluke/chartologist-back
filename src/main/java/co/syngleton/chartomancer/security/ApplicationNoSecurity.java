@@ -9,8 +9,8 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@Profile({"test", "development", "production"})
-public class ApplicationNoSecurity implements WebMvcConfigurer {
+@Profile({"test"})
+class ApplicationNoSecurity implements WebMvcConfigurer {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
