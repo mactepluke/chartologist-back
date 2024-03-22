@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class UserRepositoryTests {
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @BeforeAll
     void setUp() {

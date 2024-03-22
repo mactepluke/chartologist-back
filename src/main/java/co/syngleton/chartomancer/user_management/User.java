@@ -1,5 +1,8 @@
 package co.syngleton.chartomancer.user_management;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -17,15 +20,20 @@ public class User implements UserDetails {
     @Id
     private String id;
     @Indexed()
+    @NotBlank
+    @Size(min = 3, max = 50)
     private String username;
+    @NotBlank
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&]).{8,30}$",
+            message = "password must be 8-30 chars, at least 1 lower case, 1 upper case and 1 special char")
+    @Size(min = 8, max = 30)
     private String password;
-    private String email;
     private UserSettings settings;
 
-
-    User(String username, String password) {
+    protected User(String username, String password) {
         this.username = username;
         this.password = password;
+        this.settings = UserSettings.builder().build();
     }
 
     @Override

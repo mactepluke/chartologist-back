@@ -1,8 +1,14 @@
 package co.syngleton.chartomancer.user_management;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
-public class UserSettings {
+import java.io.Serializable;
+
+@Getter
+@Builder
+@ToString
+@EqualsAndHashCode
+public class UserSettings implements Serializable {
     private boolean enableLightMode;
+    private String email;
 }

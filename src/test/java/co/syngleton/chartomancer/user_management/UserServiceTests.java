@@ -23,10 +23,10 @@ import static org.mockito.Mockito.when;
 class UserServiceTests {
 
     @Autowired
-    UserService userService;
-    UserRepository inMemoryUserRepository = new InMemoryUserRepository();
+    private UserService userService;
+    private UserRepository inMemoryUserRepository = new InMemoryUserRepository();
     @MockBean(name = "userRepository")
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @BeforeAll
     void setUp() {
