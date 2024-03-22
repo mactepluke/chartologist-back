@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.api_controller;
+package co.syngleton.chartomancer.user_controller;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;

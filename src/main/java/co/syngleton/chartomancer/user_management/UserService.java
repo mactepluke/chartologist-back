@@ -6,7 +6,7 @@ public interface UserService {
 
     User find(String username);
 
-    User update(User user);
+    User update(String username, User updatedUser);
 
     void delete(String username);
 

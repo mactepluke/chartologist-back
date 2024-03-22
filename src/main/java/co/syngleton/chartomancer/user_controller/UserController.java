@@ -1,4 +1,4 @@
-package co.syngleton.chartomancer.api_controller;
+package co.syngleton.chartomancer.user_controller;
 
 import co.syngleton.chartomancer.security.AuthResponse;
 import co.syngleton.chartomancer.user_management.User;

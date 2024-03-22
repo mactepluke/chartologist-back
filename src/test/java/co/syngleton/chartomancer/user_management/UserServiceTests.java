@@ -71,7 +71,7 @@ class UserServiceTests {
 
         user.setPassword("newPassword");
 
-        assertEquals(user, userService.update(user));
+        assertEquals(user, userService.update(user.getUsername(), user));
         assertEquals(user, userService.find("testUser"));
 
         userService.delete(user.getUsername());

@@ -25,7 +25,7 @@ class DefaultUserService implements UserService {
         Objects.requireNonNull(username, INVALID_USERNAME);
         Objects.requireNonNull(password, INVALID_PASSWORD);
 
-        if (userRepository.read(username) != null)   {
+        if (userRepository.read(username) != null) {
             log.error("User exists already: {}. Could not create.", username);
             return null;
         }
@@ -45,15 +45,26 @@ class DefaultUserService implements UserService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
-    public User update(User user) {
+    public User update(String username, User updatedUser) {
 
-        Objects.requireNonNull(user, INVALID_USER);
+        Objects.requireNonNull(username, INVALID_USERNAME);
+        Objects.requireNonNull(updatedUser, INVALID_USER);
 
-        if (userRepository.read(user.getUsername()) == null)   {
-            log.error("User not found: {}. Could not update.", user.getUsername());
+        User user = userRepository.read(username);
+
+        if (user == null) {
+            log.error("User not found: {}. Could not update.", username);
             return null;
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        if (userIsInvalid(updatedUser)) {
+            log.error("Invalid user: {}. Could not update.", updatedUser);
+            return null;
+        }
+
+        updatedUser.setId(user.getId());
+
+        updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
 
         return userRepository.update(user);
     }
@@ -61,7 +72,14 @@ class DefaultUserService implements UserService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void delete(String username) {
-            Objects.requireNonNull(username, INVALID_USERNAME);
-            userRepository.delete(username);
+        Objects.requireNonNull(username, INVALID_USERNAME);
+        userRepository.delete(username);
+    }
+
+    private boolean userIsInvalid(User user) {
+        return user.getUsername() == null ||
+                user.getPassword() == null ||
+                user.getUsername().isBlank() ||
+                user.getPassword().isBlank();
     }
 }

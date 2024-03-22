@@ -3,11 +3,8 @@ package co.syngleton.chartomancer.user_management;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 final class InMemoryUserRepository implements UserRepository {
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final Map<String, User> users = new HashMap<>();
 
     @Override
@@ -15,9 +12,9 @@ final class InMemoryUserRepository implements UserRepository {
 
         checkIsValid(user);
 
-        user.setId(passwordEncoder.encode(user.getUsername()));
+        user.setId(user.getUsername());
 
-        users.put(user.getUsername(), user);
+        users.put(user.getId(), user);
 
         return user;
     }
@@ -33,11 +30,11 @@ final class InMemoryUserRepository implements UserRepository {
 
         checkIsValid(user);
 
-        if (read(user.getUsername()) == null) {
+        if (read(user.getId()) == null) {
             return null;
         }
 
-        users.put(user.getUsername(), user);
+        users.put(user.getId(), user);
 
         return user;
     }
