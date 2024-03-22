@@ -3,6 +3,7 @@ package co.syngleton.chartomancer.user_management;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.naming.ConfigurationException;
 import java.util.Objects;
@@ -12,6 +13,7 @@ import java.util.Objects;
 class UserManagementConfig {
     private final UserManagementProperties userManagementProperties;
     private final MongoDBUserRepositoryAdapter mongoDBUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     UserRepository userRepository() throws ConfigurationException {
@@ -33,7 +35,7 @@ class UserManagementConfig {
 
     @Bean
     UserService userService() throws ConfigurationException {
-        return new DefaultUserService(userRepository());
+        return new DefaultUserService(userRepository(), passwordEncoder);
     }
 
 

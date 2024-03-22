@@ -12,6 +12,7 @@ import java.util.List;
 
 @Data
 @Document(collection = "users")
+@EqualsAndHashCode(of = "username")
 public class User implements UserDetails {
     @Id
     private String id;
@@ -19,6 +20,7 @@ public class User implements UserDetails {
     private String username;
     private String password;
     private String email;
+    private UserSettings settings;
 
 
     User(String username, String password) {
