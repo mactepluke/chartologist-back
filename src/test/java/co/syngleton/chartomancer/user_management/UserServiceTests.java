@@ -1,12 +1,11 @@
 package co.syngleton.chartomancer.user_management;
 
+import co.syngleton.chartomancer.user_controller.TestUser;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +23,7 @@ class UserServiceTests {
 
     @Autowired
     private UserService userService;
-    private UserRepository inMemoryUserRepository = new InMemoryUserRepository();
+    private final UserRepository inMemoryUserRepository = new InMemoryUserRepository();
     @MockBean(name = "userRepository")
     private UserRepository userRepository;
 
@@ -63,20 +62,20 @@ class UserServiceTests {
     @DisplayName("[UNIT] Successfully performs basic CRUD operations on user repository")
     void basicCRUDTest() {
 
-        User user = new User("testUser", "testPassword");
+        User user = new TestUser();
 
-        assertNull(userService.find("testUser"));
+        assertNull(userService.find(user.getUsername()));
         assertEquals(user, userService.create(user.getUsername(), user.getPassword()));
-        assertEquals(user, userService.find("testUser"));
+        assertEquals(user, userService.find(user.getUsername()));
 
         user.setPassword("newPassword");
 
         assertEquals(user, userService.update(user.getUsername(), user));
-        assertEquals(user, userService.find("testUser"));
+        assertEquals(user, userService.find(user.getUsername()));
 
         userService.delete(user.getUsername());
 
-        assertNull(userService.find("testUser"));
+        assertNull(userService.find(user.getUsername()));
     }
 
 

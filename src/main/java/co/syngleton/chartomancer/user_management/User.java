@@ -2,7 +2,6 @@ package co.syngleton.chartomancer.user_management;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -13,6 +12,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+import static co.syngleton.chartomancer.user_management.UserValidationConstants.*;
+import static co.syngleton.chartomancer.user_management.UserValidationConstants.USERNAME_MESSAGE;
+
 @Data
 @Document(collection = "users")
 @EqualsAndHashCode(of = "username")
@@ -20,20 +22,23 @@ public class User implements UserDetails {
     @Id
     private String id;
     @Indexed()
-    @NotBlank
-    @Size(min = 3, max = 50)
+    @Pattern(regexp = USERNAME_PATTERN, message = USERNAME_MESSAGE)
     private String username;
     @NotBlank
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&]).{8,30}$",
-            message = "password must be 8-30 chars, at least 1 lower case, 1 upper case and 1 special char")
-    @Size(min = 8, max = 30)
+    @Pattern(regexp = PASSWORD_PATTERN, message = PASSWORD_MESSAGE)
     private String password;
+    private String hiddenPassword;
     private UserSettings settings;
 
-    protected User(String username, String password) {
+    protected User(String username, String password, String hiddenPassword) {
         this.username = username;
         this.password = password;
+        this.hiddenPassword = hiddenPassword;
         this.settings = UserSettings.builder().build();
+    }
+
+    public static User getNew(String username, String password) {
+        return new User(username, password, "*".repeat(password.length()));
     }
 
     @Override

@@ -14,7 +14,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -81,7 +80,7 @@ class UserControllerTests {
     }
 
     @Test
-    @DisplayName("[UNIT] Endpoint '/user/create' is accessible")
+    @DisplayName("[UNIT] Handles user creation attempt with wrong password at '/user/create'")
     void createUserWithInvalidPasswordTest() throws Exception {
 
         AuthRequest authRequest = new AuthRequest(this.mockUser.getUsername(), this.mockUser.getPassword());
@@ -97,7 +96,7 @@ class UserControllerTests {
     }
 
     @Test
-    @DisplayName("[UNIT] Endpoint '/user/create' is accessible")
+    @DisplayName("[UNIT] Handles user creation attempt with invalid name at '/user/create'")
     void createUserWithInvalidNameTest() throws Exception {
 
         AuthRequest authRequest = new AuthRequest("   ", VALID_PASSWORD);
@@ -111,6 +110,8 @@ class UserControllerTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
+
+
 
 
 

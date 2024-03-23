@@ -29,7 +29,7 @@ class DefaultUserService implements UserService {
             log.error("User exists already: {}. Could not create.", username);
             return null;
         }
-        User user = new User(username, passwordEncoder.encode(password));
+        User user = User.getNew(username, passwordEncoder.encode(password));
 
         return userRepository.create(user);
     }
@@ -45,10 +45,10 @@ class DefaultUserService implements UserService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
-    public User update(String username, User updatedUser) {
+    public User update(String username, User userToUpdate) {
 
         Objects.requireNonNull(username, INVALID_USERNAME);
-        Objects.requireNonNull(updatedUser, INVALID_USER);
+        Objects.requireNonNull(userToUpdate, INVALID_USER);
 
         User user = userRepository.read(username);
 
@@ -57,14 +57,14 @@ class DefaultUserService implements UserService {
             return null;
         }
 
-        if (userIsInvalid(updatedUser)) {
-            log.error("Invalid user: {}. Could not update.", updatedUser);
+        if (userIsInvalid(userToUpdate)) {
+            log.error("Invalid user: {}. Could not update.", userToUpdate);
             return null;
         }
 
-        updatedUser.setId(user.getId());
+        userToUpdate.setId(user.getId());
 
-        updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        userToUpdate.setPassword(passwordEncoder.encode(userToUpdate.getPassword()));
 
         return userRepository.update(user);
     }

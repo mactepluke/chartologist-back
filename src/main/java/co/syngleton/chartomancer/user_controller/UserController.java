@@ -30,7 +30,7 @@ class UserController {
         User user = userService.find(username);
         if (user == null) throw new CannotFindUserException("Cannot find user with username: " + username);
 
-        return new ResponseEntity<>(UserDTO.from(user, user.getSettings()), HttpStatus.OK);
+        return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.OK);
     }
 
     @PostMapping("/create")
@@ -39,16 +39,31 @@ class UserController {
         User user = userService.create(authRequest.getUsername(), authRequest.getPassword());
         if (user == null) throw new CannotHandleUserException("Cannot create user with username: " + authRequest.getUsername());
 
-        return new ResponseEntity<>(UserDTO.from(user, user.getSettings()), HttpStatus.CREATED);
+        return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
     ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest authRequest) {
+
+
+
         return null;
     }
 
-    @PutMapping("/update")
-    ResponseEntity<UserDTO> update(@RequestParam String username, @RequestBody @Valid UserDTO editedUser) {
+    @PutMapping("/update-user")
+    ResponseEntity<UserDTO> updateUser(@RequestParam String username, @RequestBody @Valid UserDTO editedUser) {
+
+        User user = userService.find(username);
+        if (user == null) throw new CannotFindUserException("Cannot find user with username: " + username);
+
+        //User updatedUser = userService.update(username)
+
+        return null;
+    }
+
+    @PutMapping("/update-user-and-pwd")
+    ResponseEntity<UserDTO> updateUserAndPassword(@RequestParam String username, @RequestBody @Valid UserDTO editedUser) {
+
         return null;
     }
 

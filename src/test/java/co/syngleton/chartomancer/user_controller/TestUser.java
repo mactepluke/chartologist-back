@@ -4,7 +4,7 @@ import co.syngleton.chartomancer.user_management.User;
 
 public class TestUser extends User {
 
-    TestUser() {
-        super("testUsername", "testPassword");
+    public TestUser() {
+        super("testUsername", "testPassword", "************");
     }
 }
