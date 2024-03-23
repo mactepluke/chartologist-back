@@ -24,14 +24,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 class SecurityConfig {
 
-    @Value("${username}")
-    private String username;
-    @Value("${password}")
-    private String password;
-    @Value("${role}")
-    private String role;
-    @Value("${root_password}")
-    private String rootPassword;
     @Value("#{'${web.cors.allowed-origins}'.split(',')}")
     private List<String> allowedOrigins;
     @Value("#{'${web.cors.allowed-methods}'.split(',')}")
@@ -48,6 +40,8 @@ class SecurityConfig {
                 .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/user/login").permitAll()
+                        .requestMatchers("/user/create").permitAll()
+                        .requestMatchers("/backtesting/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults())
