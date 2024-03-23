@@ -39,6 +39,7 @@ class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/config/**").permitAll()
                         .requestMatchers("/user/login").permitAll()
                         .requestMatchers("/user/create").permitAll()
                         .requestMatchers("/backtesting/**").permitAll()
