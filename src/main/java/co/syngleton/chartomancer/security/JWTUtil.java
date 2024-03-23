@@ -41,7 +41,7 @@ public class JWTUtil {
         return getAllClaimsFromToken(token).getExpiration();
     }
 
-    private Boolean isTokenExpired(String token) {
+    private boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
@@ -53,7 +53,7 @@ public class JWTUtil {
     }
 
     private String doGenerateToken(Map<String, Object> claims, String username) {
-        Long expirationTimeLong = Long.parseLong(expirationTime); //in second
+        long expirationTimeLong = Long.parseLong(expirationTime); //in second
         final Date createdDate = new Date();
         final Date expirationDate = new Date(createdDate.getTime() + expirationTimeLong * 1000);
 
@@ -66,7 +66,7 @@ public class JWTUtil {
                 .compact();
     }
 
-    public Boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         return !isTokenExpired(token);
     }
 }

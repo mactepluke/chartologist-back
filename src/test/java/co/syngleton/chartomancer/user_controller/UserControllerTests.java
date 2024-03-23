@@ -5,15 +5,18 @@ import co.syngleton.chartomancer.user_management.User;
 import co.syngleton.chartomancer.user_management.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -27,6 +30,8 @@ class UserControllerTests {
     private MockMvc mockMvc;
     @MockBean
     private UserService userService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
     private User mockUser;
     private static final String VALID_PASSWORD = "123AZEaze#";
 
@@ -139,6 +144,25 @@ class UserControllerTests {
         mockMvc.perform(MockMvcRequestBuilders.delete("/user/delete")
                         .param("username", testUser.getUsername()))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Endpoint '/user/login' is accessible")
+    void loginUserTest() throws Exception {
+
+        User testUser = new TestUser();
+        testUser.setPassword(VALID_PASSWORD);
+        AuthRequest authRequest = new AuthRequest(testUser.getUsername(), testUser.getPassword());
+
+        when(userService.find(testUser.getUsername())).thenReturn(testUser);
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":" + "\"" + authRequest.getUsername() +
+                                "\"" + ",\"password\":" + "\"" + authRequest.getPassword() + "\"}")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
     }
 
 }
