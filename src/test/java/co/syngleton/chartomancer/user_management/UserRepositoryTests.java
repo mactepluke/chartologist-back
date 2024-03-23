@@ -28,6 +28,7 @@ class UserRepositoryTests {
     @AfterAll
     void tearDown() {
         log.info("*** ENDING USER REPOSITORY TESTS ***");
+        userRepository.delete((new TestUser()).getUsername());
     }
 
     @Test

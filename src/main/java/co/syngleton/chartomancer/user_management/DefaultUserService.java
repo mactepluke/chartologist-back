@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+import static co.syngleton.chartomancer.user_management.UserValidationConstants.PASSWORD_PATTERN;
+
 @AllArgsConstructor
 @Log4j2
 class DefaultUserService implements UserService {
@@ -20,7 +22,7 @@ class DefaultUserService implements UserService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
-    public User create(String username, String password) {
+    public User create(final String username, final String password) {
 
         Objects.requireNonNull(username, INVALID_USERNAME);
         Objects.requireNonNull(password, INVALID_PASSWORD);
@@ -29,14 +31,14 @@ class DefaultUserService implements UserService {
             log.error("User exists already: {}. Could not create.", username);
             return null;
         }
-        User user = User.getNew(username, passwordEncoder.encode(password));
+        final User user = User.getNew(username, passwordEncoder.encode(password));
 
         return userRepository.create(user);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public User find(String username) {
+    public User find(final String username) {
 
         Objects.requireNonNull(username, INVALID_USERNAME);
 
@@ -45,12 +47,12 @@ class DefaultUserService implements UserService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
-    public User update(String username, User userToUpdate) {
+    public User update(final String username, final User userToUpdate) {
 
         Objects.requireNonNull(username, INVALID_USERNAME);
         Objects.requireNonNull(userToUpdate, INVALID_USER);
 
-        User user = userRepository.read(username);
+        final User user = userRepository.read(username);
 
         if (user == null) {
             log.error("User not found: {}. Could not update.", username);
@@ -64,19 +66,37 @@ class DefaultUserService implements UserService {
 
         userToUpdate.setId(user.getId());
 
-        userToUpdate.setPassword(passwordEncoder.encode(userToUpdate.getPassword()));
+        if (passwordIsUnchanged(user, userToUpdate)) {
+            userToUpdate.setPassword(user.getPassword());
+        } else {
+            if (passwordIsInvalid(userToUpdate))  {
+                log.error("Invalid new password: {}. Could not update.", userToUpdate);
+                return null;
+            }
+            userToUpdate.setPassword(passwordEncoder.encode(userToUpdate.getPassword()));
+        }
+        return userRepository.update(userToUpdate);
+    }
 
-        return userRepository.update(user);
+
+
+    private boolean passwordIsUnchanged(final User user, final User userToUpdate) {
+        return userToUpdate.getPassword().equals(user.getHiddenPassword()) ||
+                userToUpdate.getPassword().equals(user.getPassword())||
+                userToUpdate.getPassword().isBlank();
+    }
+    private boolean passwordIsInvalid(User user) {
+        return !user.getPassword().matches(PASSWORD_PATTERN);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
-    public void delete(String username) {
+    public void delete(final String username) {
         Objects.requireNonNull(username, INVALID_USERNAME);
         userRepository.delete(username);
     }
 
-    private boolean userIsInvalid(User user) {
+    private boolean userIsInvalid(final User user) {
         return user.getUsername() == null ||
                 user.getPassword() == null ||
                 user.getUsername().isBlank() ||

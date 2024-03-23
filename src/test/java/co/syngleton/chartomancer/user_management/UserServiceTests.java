@@ -26,6 +26,7 @@ class UserServiceTests {
     private final UserRepository inMemoryUserRepository = new InMemoryUserRepository();
     @MockBean(name = "userRepository")
     private UserRepository userRepository;
+    private static final String VALID_PASSWORD = "123AZEaze#";
 
     @BeforeAll
     void setUp() {
@@ -56,6 +57,7 @@ class UserServiceTests {
     @AfterAll
     void tearDown() {
         log.info("*** ENDING USER SERVICE TESTS ***");
+        userService.delete((new TestUser()).getUsername());
     }
 
     @Test
@@ -68,7 +70,7 @@ class UserServiceTests {
         assertEquals(user, userService.create(user.getUsername(), user.getPassword()));
         assertEquals(user, userService.find(user.getUsername()));
 
-        user.setPassword("newPassword");
+        user.setPassword(VALID_PASSWORD);
 
         assertEquals(user, userService.update(user.getUsername(), user));
         assertEquals(user, userService.find(user.getUsername()));

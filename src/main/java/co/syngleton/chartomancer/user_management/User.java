@@ -1,7 +1,6 @@
 package co.syngleton.chartomancer.user_management;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -12,9 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-import static co.syngleton.chartomancer.user_management.UserValidationConstants.*;
-import static co.syngleton.chartomancer.user_management.UserValidationConstants.USERNAME_MESSAGE;
-
 @Data
 @Document(collection = "users")
 @EqualsAndHashCode(of = "username")
@@ -22,10 +18,9 @@ public class User implements UserDetails {
     @Id
     private String id;
     @Indexed()
-    @Pattern(regexp = USERNAME_PATTERN, message = USERNAME_MESSAGE)
+    @NotBlank
     private String username;
     @NotBlank
-    @Pattern(regexp = PASSWORD_PATTERN, message = PASSWORD_MESSAGE)
     private String password;
     private String hiddenPassword;
     private UserSettings settings;

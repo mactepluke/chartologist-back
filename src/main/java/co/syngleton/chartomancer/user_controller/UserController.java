@@ -23,20 +23,20 @@ class UserController {
     private final UserService userService;
 
     @GetMapping("/get")
-    ResponseEntity<UserDTO> get(@RequestParam String username) {
+    ResponseEntity<UserDTO> get(@RequestParam final String username) {
 
         if (username == null || username.isEmpty()) throw new CannotFindUserException("Username cannot be empty.");
 
-        User user = userService.find(username);
+        final User user = userService.find(username);
         if (user == null) throw new CannotFindUserException("Cannot find user with username: " + username);
 
         return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.OK);
     }
 
     @PostMapping("/create")
-    ResponseEntity<UserDTO> create(@RequestBody @Valid AuthRequest authRequest) {
+    ResponseEntity<UserDTO> create(@RequestBody @Valid final AuthRequest authRequest) {
 
-        User user = userService.create(authRequest.getUsername(), authRequest.getPassword());
+        final User user = userService.create(authRequest.getUsername(), authRequest.getPassword());
         if (user == null) throw new CannotHandleUserException("Cannot create user with username: " + authRequest.getUsername());
 
         return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.CREATED);
@@ -45,31 +45,26 @@ class UserController {
     @PostMapping("/login")
     ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest authRequest) {
 
-
-
         return null;
     }
 
-    @PutMapping("/update-user")
-    ResponseEntity<UserDTO> updateUser(@RequestParam String username, @RequestBody @Valid UserDTO editedUser) {
+    @PutMapping("/update")
+    ResponseEntity<UserDTO> update(@RequestParam final String username, @RequestBody @Valid final UserDTO editedUser) {
 
-        User user = userService.find(username);
-        if (user == null) throw new CannotFindUserException("Cannot find user with username: " + username);
+        User userToUpdate = UserDTO.toEntity(editedUser);
+        userToUpdate = userService.update(username, userToUpdate);
 
-        //User updatedUser = userService.update(username)
+        if (userToUpdate == null) throw new CannotHandleUserException("Cannot update user with username: " + username);
 
-        return null;
-    }
-
-    @PutMapping("/update-user-and-pwd")
-    ResponseEntity<UserDTO> updateUserAndPassword(@RequestParam String username, @RequestBody @Valid UserDTO editedUser) {
-
-        return null;
+        return new ResponseEntity<>(UserDTO.fromEntity(userToUpdate), HttpStatus.OK);
     }
 
     @DeleteMapping("/delete")
-    ResponseEntity<Void> delete(@RequestParam String username) {
-        return null;
+    ResponseEntity<Void> delete(@RequestParam final String username) {
+
+        userService.delete(username);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }

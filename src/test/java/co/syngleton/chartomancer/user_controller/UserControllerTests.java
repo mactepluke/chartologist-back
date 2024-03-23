@@ -111,8 +111,34 @@ class UserControllerTests {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("[UNIT] Endpoint '/user/update' is accessible")
+    void updateUserTest() throws Exception {
 
+        User testUser = new TestUser();
 
+        when(userService.update(testUser.getUsername(), testUser)).thenReturn(testUser);
 
+        mockMvc.perform(MockMvcRequestBuilders.put("/user/update")
+                        .param("username", testUser.getUsername())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":" + "\"" + testUser.getUsername() +
+                                "\"" + ",\"password\":" + "\"" + testUser.getPassword() + "\"}")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("[UNIT] Endpoint '/user/delete' is accessible")
+    void deleteUserTest() throws Exception {
+
+        User testUser = new TestUser();
+
+        when(userService.update(testUser.getUsername(), testUser)).thenReturn(testUser);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/user/delete")
+                        .param("username", testUser.getUsername()))
+                .andExpect(status().isNoContent());
+    }
 
 }
