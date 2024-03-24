@@ -2,7 +2,7 @@ package co.syngleton.chartomancer.user_controller;
 
 import co.syngleton.chartomancer.security.AuthRequest;
 import co.syngleton.chartomancer.security.AuthResponse;
-import co.syngleton.chartomancer.security.JWTUtil;
+import co.syngleton.chartomancer.security.JWTHandler;
 import co.syngleton.chartomancer.user_management.User;
 import co.syngleton.chartomancer.user_management.UserService;
 import jakarta.validation.Valid;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final JWTUtil jwtUtil;
+    private final JWTHandler jwtHandler;
 
     @GetMapping("/get")
     ResponseEntity<UserDTO> get(@RequestParam final String username) {
@@ -52,7 +52,7 @@ class UserController {
         final User user = userService.find(authRequest.getUsername());
 
         if (passwordEncoder.matches(authRequest.getPassword(), user.getPassword()))   {
-            return new ResponseEntity<>(new AuthResponse(jwtUtil.generateToken(user)), HttpStatus.OK);
+            return new ResponseEntity<>(new AuthResponse(jwtHandler.generateToken(user)), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }

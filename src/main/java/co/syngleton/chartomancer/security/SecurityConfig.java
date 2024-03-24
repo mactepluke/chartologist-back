@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.security;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,24 +14,16 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
+import io.jsonwebtoken.security.Keys;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Log4j2
+@AllArgsConstructor
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
-
-    @Value("#{'${web.cors.allowed-origins}'.split(',')}")
-    private List<String> allowedOrigins;
-    @Value("#{'${web.cors.allowed-methods}'.split(',')}")
-    private List<String> allowedMethods;
-    @Value("#{'${web.cors.allowed-headers}'.split(',')}")
-    private List<String> allowedHeaders;
-    @Value("${backend-api-key}")
-    private String backendApiKey;
+    private final WebProperties wp;
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -46,7 +38,7 @@ class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults())
-                .addFilterBefore(new ApiKeyAuthenticationFilter(backendApiKey), BasicAuthenticationFilter.class);
+                .addFilterBefore(new ApiKeyAuthenticationFilter(wp.backendApiKey()), BasicAuthenticationFilter.class);
         return http.build();
     }
 
@@ -54,9 +46,9 @@ class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(allowedMethods);
-        configuration.setAllowedHeaders(allowedHeaders);
+        configuration.setAllowedOrigins(wp.corsAllowedOrigins());
+        configuration.setAllowedMethods(wp.corsAllowedMethods());
+        configuration.setAllowedHeaders(wp.corsAllowedHeaders());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -67,5 +59,10 @@ class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public JWTHandler jwtHandler() {
+        return new DefaultJWTHandler(Keys.hmacShaKeyFor(wp.jjwtSecret().getBytes()), wp.jjwtExpiration());
     }
 }

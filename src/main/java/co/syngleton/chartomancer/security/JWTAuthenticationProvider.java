@@ -13,20 +13,20 @@ import java.util.List;
 
 @Component
 @AllArgsConstructor
-public class ChartomancerAuthenticationProvider implements AuthenticationProvider {
-    private final JWTUtil jwtUtil;
+public class JWTAuthenticationProvider implements AuthenticationProvider {
+    private final JWTHandler jwtHandler;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
         String authToken = authentication.getCredentials().toString();
-        String username = jwtUtil.getUsernameFromToken(authToken);
+        String username = jwtHandler.getUsernameFromToken(authToken);
 
-        if (Boolean.FALSE.equals(jwtUtil.validateToken(authToken))) {
+        if (Boolean.FALSE.equals(jwtHandler.validateToken(authToken))) {
             throw new AuthenticationException("Invalid token") {
             };
         }
-        Claims claims = jwtUtil.getAllClaimsFromToken(authToken);
+        Claims claims = jwtHandler.getAllClaimsFromToken(authToken);
         List<GrantedAuthority> roles = claims.get("role", List.class);
 
         return new UsernamePasswordAuthenticationToken(username, null, roles);
