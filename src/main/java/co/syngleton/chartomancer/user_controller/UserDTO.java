@@ -25,7 +25,7 @@ record UserDTO(
     }
 
     static User toEntity(UserDTO userDTO) {
-        User user = User.getNew(userDTO.username(), userDTO.password());
+        User user = User.getNew(userDTO.username(), userDTO.password(), "*".repeat(userDTO.password().length()));
 
         user.setSettings(UserSettings.builder()
                 .email(userDTO.email())

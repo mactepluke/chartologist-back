@@ -32,8 +32,8 @@ public class User implements UserDetails {
         this.settings = UserSettings.builder().build();
     }
 
-    public static User getNew(String username, String password) {
-        return new User(username, password, "*".repeat(password.length()));
+    public static User getNew(String username, String password, String hiddenPassword) {
+        return new User(username, password, hiddenPassword);
     }
 
     @Override

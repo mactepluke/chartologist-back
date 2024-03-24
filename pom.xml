@@ -16,26 +16,6 @@
     <properties>
         <java.version>19</java.version>
     </properties>
-    <profiles>
-        <profile>
-            <id>test</id>
-            <properties>
-                <spring.profiles.active>test</spring.profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <id>development</id>
-            <properties>
-                <spring.profiles.active>development</spring.profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <id>production</id>
-            <properties>
-                <spring.profiles.active>production</spring.profiles.active>
-            </properties>
-        </profile>
-    </profiles>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

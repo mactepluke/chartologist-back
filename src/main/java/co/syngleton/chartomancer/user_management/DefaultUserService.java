@@ -31,7 +31,7 @@ class DefaultUserService implements UserService {
             log.error("User exists already: {}. Could not create.", username);
             return null;
         }
-        final User user = User.getNew(username, passwordEncoder.encode(password));
+        final User user = User.getNew(username, passwordEncoder.encode(password), "*".repeat(password.length()));
 
         return userRepository.create(user);
     }
