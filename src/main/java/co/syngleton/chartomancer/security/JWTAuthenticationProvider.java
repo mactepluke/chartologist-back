@@ -1,5 +1,8 @@
 package co.syngleton.chartomancer.security;
 
+import co.syngleton.chartomancer.user_controller.CannotFindUserException;
+import co.syngleton.chartomancer.user_management.User;
+import co.syngleton.chartomancer.user_management.UserService;
 import io.jsonwebtoken.Claims;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -15,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 public class JWTAuthenticationProvider implements AuthenticationProvider {
     private final JWTHandler jwtHandler;
+    private final UserService userService;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -23,9 +27,14 @@ public class JWTAuthenticationProvider implements AuthenticationProvider {
         String username = jwtHandler.getUsernameFromToken(authToken);
 
         if (Boolean.FALSE.equals(jwtHandler.validateToken(authToken))) {
-            throw new AuthenticationException("Invalid token") {
+            throw new AuthenticationException("Invalid JWT.") {
             };
         }
+        if (userService.find(username) == null) {
+            throw new AuthenticationException("User does not exist.") {
+            };
+        }
+
         Claims claims = jwtHandler.getAllClaimsFromToken(authToken);
         List<GrantedAuthority> roles = claims.get("role", List.class);
 
@@ -34,6 +43,6 @@ public class JWTAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return false;
+        return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 }

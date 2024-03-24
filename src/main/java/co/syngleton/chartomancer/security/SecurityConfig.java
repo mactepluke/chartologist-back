@@ -26,6 +26,11 @@ class SecurityConfig {
     private final WebProperties wp;
 
     @Bean
+    public JWTHandler jwtHandler() {
+        return new DefaultJWTHandler(Keys.hmacShaKeyFor(wp.jjwtSecret().getBytes()), wp.jjwtExpiration());
+    }
+
+    @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -39,6 +44,8 @@ class SecurityConfig {
                 )
                 .httpBasic(withDefaults())
                 .addFilterBefore(new ApiKeyAuthenticationFilter(wp.backendApiKey()), BasicAuthenticationFilter.class);
+                //.addFilterAt(new JWTGeneratorFilter(jwtHandler()), BasicAuthenticationFilter.class);
+
         return http.build();
     }
 
@@ -61,8 +68,4 @@ class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public JWTHandler jwtHandler() {
-        return new DefaultJWTHandler(Keys.hmacShaKeyFor(wp.jjwtSecret().getBytes()), wp.jjwtExpiration());
-    }
 }

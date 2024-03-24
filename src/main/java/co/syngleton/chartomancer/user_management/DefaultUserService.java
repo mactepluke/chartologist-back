@@ -85,6 +85,7 @@ class DefaultUserService implements UserService {
                 userToUpdate.getPassword().equals(user.getPassword())||
                 userToUpdate.getPassword().isBlank();
     }
+
     private boolean passwordIsInvalid(User user) {
         return !user.getPassword().matches(PASSWORD_PATTERN);
     }
