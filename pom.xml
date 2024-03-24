@@ -18,6 +18,12 @@
     </properties>
     <profiles>
         <profile>
+            <id>test</id>
+            <properties>
+                <spring.profiles.active>test</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
             <id>development</id>
             <properties>
                 <spring.profiles.active>development</spring.profiles.active>
@@ -140,7 +146,6 @@
         </dependencies>
     </dependencyManagement>
     <build>
-        <finalName>sycm-back-server</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -155,6 +160,13 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <finalName>sycm-back-server</finalName>
     </build>
 
 </project>

@@ -12,7 +12,7 @@ public record WebProperties(
         @DefaultValue("GET,POST,PATCH,PUT,DELETE,OPTIONS,HEAD") List<String> corsAllowedMethods,
         @DefaultValue("Authorization,Content-Type,X-API-Key") List<String> corsAllowedHeaders,
         @DefaultValue("SYCM_API_KEY") String backendApiKey,
-        @NotBlank String jjwtSecret,
-        @DefaultValue("172800") String jjwtExpiration
+        @DefaultValue("CaLkeqVTmwxgXkxuqnQmUsvkLVMldsqPaifRwhJDxkPossNQdUjBFtnYPXGsYjhpA") String jjwtSecret,
+        @NotBlank String jjwtExpiration
         ) {
 }
