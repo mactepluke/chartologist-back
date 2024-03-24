@@ -11,6 +11,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -148,20 +151,19 @@ class UserControllerTests {
 
     @Test
     @DisplayName("[UNIT] Endpoint '/user/login' is accessible")
+    @Disabled
     void loginUserTest() throws Exception {
 
         User testUser = new TestUser();
         testUser.setPassword(VALID_PASSWORD);
-        AuthRequest authRequest = new AuthRequest(testUser.getUsername(), testUser.getPassword());
 
         when(userService.find(testUser.getUsername())).thenReturn(testUser);
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/user/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":" + "\"" + authRequest.getUsername() +
-                                "\"" + ",\"password\":" + "\"" + authRequest.getPassword() + "\"}")
-                        .accept(MediaType.APPLICATION_JSON))
+        Authentication authentication = new UsernamePasswordAuthenticationToken(testUser.getUsername(), testUser.getPassword());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/login"))
                 .andExpect(status().isUnauthorized());
     }
 

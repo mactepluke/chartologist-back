@@ -8,38 +8,22 @@ import io.jsonwebtoken.Jwts;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.security.Key;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @AllArgsConstructor
-public class DefaultJWTHandler implements JWTHandler {
+class DefaultJWTHandler implements JWTHandler {
     private Key key;
     private String expiration;
 
     @Override
-    public Claims getAllClaimsFromToken(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-    }
-
-    @Override
-    public String getUsernameFromToken(String token) {
-        return getAllClaimsFromToken(token).getSubject();
-    }
-
-    @Override
-    public LocalDateTime getExpirationDateFromToken(String token) {
-        return toLocalDateTime(getAllClaimsFromToken(token).getExpiration());
-    }
-
-    @Override
-    public String generateToken(User user) {
+    public String generateToken(String username) {
         Map<String, List<GrantedAuthority>> claims = new HashMap<>();
         claims.put("role", List.of(Role.ROLE_USER));
-        return doGenerateToken(claims, user.getUsername());
+
+        return doGenerateToken(claims, username);
     }
 
     private String doGenerateToken(Map<String, List<GrantedAuthority>> claims, String username) {
@@ -48,6 +32,8 @@ public class DefaultJWTHandler implements JWTHandler {
         final LocalDateTime expirationDateTime = createdDateTime.plusSeconds(expirationTimeInSeconds);
 
         return Jwts.builder()
+                .setIssuer("Chartologist")
+                .setSubject("JWT Token")
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(toDate(createdDateTime))
@@ -73,4 +59,47 @@ public class DefaultJWTHandler implements JWTHandler {
         final LocalDateTime tokenExpiration = getExpirationDateFromToken(token);
         return tokenExpiration.isBefore(LocalDateTime.now());
     }
+
+    private LocalDateTime getExpirationDateFromToken(String token) {
+
+        Claims claims = getAllClaimsFromToken(token);
+
+        if (claims == null) {
+            return LocalDateTime.ofInstant(Instant.ofEpochSecond(0), ZoneId.systemDefault());
+        }
+
+        return toLocalDateTime(getAllClaimsFromToken(token).getExpiration());
+    }
+
+    @Override
+    public String getUsernameFromToken(String token) {
+
+        Claims claims = getAllClaimsFromToken(token);
+
+        if (claims == null) {
+            return "";
+        }
+
+        return claims.getSubject();
+    }
+
+    private Claims getAllClaimsFromToken(String token) {
+        try {
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public List<GrantedAuthority> getAuthoritiesFromToken(String token) {
+
+        Claims claims = getAllClaimsFromToken(token);
+
+        if (claims == null) {
+            return Collections.emptyList();
+        }
+        return (List<GrantedAuthority>) getAllClaimsFromToken(token).get("role");
+    }
+
 }

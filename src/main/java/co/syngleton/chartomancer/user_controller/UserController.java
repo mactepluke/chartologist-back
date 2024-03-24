@@ -1,8 +1,6 @@
 package co.syngleton.chartomancer.user_controller;
 
 import co.syngleton.chartomancer.security.AuthRequest;
-import co.syngleton.chartomancer.security.AuthResponse;
-import co.syngleton.chartomancer.security.JWTHandler;
 import co.syngleton.chartomancer.user_management.User;
 import co.syngleton.chartomancer.user_management.UserService;
 import jakarta.validation.Valid;
@@ -11,7 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +21,6 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 class UserController {
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
-    private final JWTHandler jwtHandler;
 
     @GetMapping("/get")
     ResponseEntity<UserDTO> get(@RequestParam final String username) {
@@ -46,15 +42,24 @@ class UserController {
         return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.CREATED);
     }
 
-    @PostMapping("/login")
-    ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest authRequest) {
+    @GetMapping("/login")
+    UserDTO login(Authentication authentication) {
 
-        final User user = userService.find(authRequest.getUsername());
+        final User user = userService.find(authentication.getName());
+
+        if (user == null) {
+            return null;
+        }
+
+        return UserDTO.fromEntity(user);
+
+
+/*        final User user = userService.find(authRequest.getUsername());
 
         if (passwordEncoder.matches(authRequest.getPassword(), user.getPassword()))   {
             return new ResponseEntity<>(new AuthResponse(jwtHandler.generateToken(user)), HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);*/
     }
 
     @PutMapping("/update")
