@@ -1,7 +1,6 @@
 package co.syngleton.chartomancer.security;
 
 import co.syngleton.chartomancer.user_management.Role;
-import co.syngleton.chartomancer.user_management.User;
 import lombok.AllArgsConstructor;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -14,7 +13,7 @@ import java.time.ZoneId;
 import java.util.*;
 
 @AllArgsConstructor
-class DefaultJWTHandler implements JWTHandler {
+class DefaultJWTHelper implements JWTHelper {
     private Key key;
     private String expiration;
 
@@ -68,7 +67,7 @@ class DefaultJWTHandler implements JWTHandler {
             return LocalDateTime.ofInstant(Instant.ofEpochSecond(0), ZoneId.systemDefault());
         }
 
-        return toLocalDateTime(getAllClaimsFromToken(token).getExpiration());
+        return toLocalDateTime(claims.getExpiration());
     }
 
     @Override
@@ -99,7 +98,7 @@ class DefaultJWTHandler implements JWTHandler {
         if (claims == null) {
             return Collections.emptyList();
         }
-        return (List<GrantedAuthority>) getAllClaimsFromToken(token).get("role");
+        return (List<GrantedAuthority>) claims.get("role");
     }
 
 }

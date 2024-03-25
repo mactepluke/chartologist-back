@@ -5,10 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Log4j2
-@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-class CannotHandleUserException extends RuntimeException {
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class InvalidPasswordException extends RuntimeException {
 
-    CannotHandleUserException(String message) {
+    InvalidPasswordException(String message)    {
         super(message);
         log.error(message);
     }

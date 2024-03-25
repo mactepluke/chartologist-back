@@ -12,7 +12,6 @@ import java.io.IOException;
 
 @Log4j2
 class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
-    private static final String API_KEY_HEADER = "X-API-Key";
     private final String backendApiKey;
 
     ApiKeyAuthenticationFilter(String backendApiKey) {
@@ -22,7 +21,7 @@ class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        String apiKey = request.getHeader(API_KEY_HEADER);
+        String apiKey = request.getHeader("X-API-Key");
 
         if (backendApiKey.equals(apiKey)) {
             filterChain.doFilter(request, response);

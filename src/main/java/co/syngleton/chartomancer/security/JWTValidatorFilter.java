@@ -5,48 +5,47 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpHeaders;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 class JWTValidatorFilter extends OncePerRequestFilter {
-    private final JWTHandler jwtHandler;
+    private final JWTHelper jwtHelper;
 
-    JWTValidatorFilter(JWTHandler jwtHandler) {
+    JWTValidatorFilter(JWTHelper jwtHelper) {
         super();
-        this.jwtHandler = jwtHandler;
+        this.jwtHelper = jwtHelper;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
 
-        String jwt = request.getHeader("Authorization");
+        /*We check for the Token in any requests not part of the login process, but don't throw an exception if it's not there
+        even if the token is invalid because some endpoints can still be accessible. We only want to give the AuthenticationProvider
+        the information it needs to know when the .authenticated() endpoints are accessed.
+         */
+        String jwt = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (jwt != null) {
+        if (jwt != null && jwtHelper.validateToken(jwt)) {
 
-            if (!jwtHandler.validateToken(jwt)) {
-                throw new BadCredentialsException("Invalid JWT.");
-            }
+            jwtHelper.validateToken(jwt);
 
-            jwtHandler.validateToken(jwt);
-
-            Authentication auth = new UsernamePasswordAuthenticationToken(jwtHandler.getUsernameFromToken(jwt), null,
-                    jwtHandler.getAuthoritiesFromToken(jwt));
+            Authentication auth = new UsernamePasswordAuthenticationToken(jwtHelper.getUsernameFromToken(jwt), null,
+                    jwtHelper.getAuthoritiesFromToken(jwt));
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
-
         filterChain.doFilter(request, response);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getServletPath().equals("/specific");
+        return request.getServletPath().equals("/user/login");
     }
 
 

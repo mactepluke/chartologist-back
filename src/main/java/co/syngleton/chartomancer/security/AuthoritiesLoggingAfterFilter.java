@@ -14,9 +14,11 @@ class AuthoritiesLoggingAfterFilter implements Filter  {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (null != authentication) {
+        if (authentication != null) {
             log.info("User " + authentication.getName() + " is successfully authenticated and "
                     + "has the authorities " + authentication.getAuthorities().toString());
+        } else {
+            log.info("User has not been authenticated.");
         }
         chain.doFilter(request, response);
     }

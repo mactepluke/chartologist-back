@@ -1,6 +1,5 @@
 package co.syngleton.chartomancer.user_controller;
 
-import co.syngleton.chartomancer.security.AuthRequest;
 import co.syngleton.chartomancer.user_management.User;
 import co.syngleton.chartomancer.user_management.UserService;
 import jakarta.validation.Valid;
@@ -12,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import static co.syngleton.chartomancer.user_management.UserValidationConstants.PASSWORD_MESSAGE;
+import static co.syngleton.chartomancer.user_management.UserValidationConstants.PASSWORD_PATTERN;
 
 @Log4j2
 @RestController
@@ -34,32 +36,27 @@ class UserController {
     }
 
     @PostMapping("/create")
-    ResponseEntity<UserDTO> create(@RequestBody @Valid final AuthRequest authRequest) {
+    ResponseEntity<UserDTO> create(@RequestBody @Valid final UserDTO userDTO) {
 
-        final User user = userService.create(authRequest.getUsername(), authRequest.getPassword());
-        if (user == null) throw new CannotHandleUserException("Cannot create user with username: " + authRequest.getUsername());
+        if (!userDTO.password().matches(PASSWORD_PATTERN))  {
+            throw new InvalidPasswordException(PASSWORD_MESSAGE);
+        }
+
+        final User user = userService.create(userDTO.username(), userDTO.password());
+        if (user == null) throw new CannotHandleUserException("Cannot create user with username: " + userDTO.username());
 
         return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.CREATED);
     }
 
     @GetMapping("/login")
     UserDTO login(Authentication authentication) {
-
+        // The authentication object is populated after the end of the authentication process, output from the AuthenticationProvider.
         final User user = userService.find(authentication.getName());
 
         if (user == null) {
             return null;
         }
-
         return UserDTO.fromEntity(user);
-
-
-/*        final User user = userService.find(authRequest.getUsername());
-
-        if (passwordEncoder.matches(authRequest.getPassword(), user.getPassword()))   {
-            return new ResponseEntity<>(new AuthResponse(jwtHandler.generateToken(user)), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);*/
     }
 
     @PutMapping("/update")
