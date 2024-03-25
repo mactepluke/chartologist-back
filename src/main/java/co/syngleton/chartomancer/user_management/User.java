@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+import static co.syngleton.chartomancer.user_management.UserValidationConstants.EMAIL_PATTERN;
+
 @Data
 @Document(collection = "users")
 @EqualsAndHashCode(of = "username")
@@ -68,5 +70,19 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public String getEmail()   {
+        if (this.settings != null && this.settings.getEmail() != null) {
+            return this.settings.getEmail();
+        }
+        if (this.username != null && this.username.matches(EMAIL_PATTERN)) {
+            return this.username;
+        }
+        return "";
+    }
+
+    public boolean hasEnableLightMode() {
+        return this.settings.isEnableLightMode();
     }
 }

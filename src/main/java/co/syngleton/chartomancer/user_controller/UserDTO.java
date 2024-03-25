@@ -19,8 +19,8 @@ record UserDTO(
         return new UserDTO(
                 user.getUsername(),
                 user.getHiddenPassword(),
-                user.getSettings().getEmail(),
-                user.getSettings().isEnableLightMode()
+                user.getEmail(),
+                user.hasEnableLightMode()
         );
     }
 

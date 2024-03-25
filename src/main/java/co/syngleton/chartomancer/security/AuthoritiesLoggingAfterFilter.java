@@ -18,7 +18,7 @@ class AuthoritiesLoggingAfterFilter implements Filter  {
             log.info("User " + authentication.getName() + " is successfully authenticated and "
                     + "has the authorities " + authentication.getAuthorities().toString());
         } else {
-            log.info("User has not been authenticated.");
+            log.info("No authentication has occurred.");
         }
         chain.doFilter(request, response);
     }
