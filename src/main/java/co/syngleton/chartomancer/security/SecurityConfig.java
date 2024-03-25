@@ -55,10 +55,10 @@ class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
-                .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
                 .addFilterBefore(new ApiKeyAuthenticationFilter(wp.backendApiKey()), BasicAuthenticationFilter.class)
                 .addFilterAfter(new JWTGeneratorFilter(jwtHandler()), BasicAuthenticationFilter.class)
-                .addFilterBefore(new JWTValidatorFilter(jwtHandler()), BasicAuthenticationFilter.class)
+                .addFilterAfter(new JWTValidatorFilter(jwtHandler()), BasicAuthenticationFilter.class)
+                .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
                 .httpBasic(withDefaults());
 
         return http.build();

@@ -34,11 +34,12 @@ class JWTValidatorFilter extends OncePerRequestFilter {
 
         if (jwt != null && jwtHelper.validateToken(jwt)) {
 
-            jwtHelper.validateToken(jwt);
-
             Authentication auth = new UsernamePasswordAuthenticationToken(jwtHelper.getUsernameFromToken(jwt), null,
                     jwtHelper.getAuthoritiesFromToken(jwt));
             SecurityContextHolder.getContext().setAuthentication(auth);
+        } else {
+            //We want to prevent access to the endpoints that require authentication if the token is invalid even if a Basic auth is provided
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
         filterChain.doFilter(request, response);
     }
