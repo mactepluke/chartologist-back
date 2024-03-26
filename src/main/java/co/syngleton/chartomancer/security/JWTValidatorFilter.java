@@ -30,7 +30,7 @@ class JWTValidatorFilter extends OncePerRequestFilter {
         even if the token is invalid because some endpoints can still be accessible. We only want to give the AuthenticationProvider
         the information it needs to know when the .authenticated() endpoints are accessed.
          */
-        String jwt = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String jwt = extractToken(request);
 
         if (jwt != null && jwtHelper.validateToken(jwt)) {
 
@@ -42,6 +42,19 @@ class JWTValidatorFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
         filterChain.doFilter(request, response);
+    }
+
+    /*This is useful in situations where the token is received with the "Bearer " prefix*/
+    private String extractToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (bearerToken == null || bearerToken.isBlank()) {
+            return null;
+        }
+        if (bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return bearerToken;
     }
 
     @Override

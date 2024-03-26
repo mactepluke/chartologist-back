@@ -16,7 +16,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import io.jsonwebtoken.security.Keys;
 
 import java.util.List;
 
@@ -31,7 +30,7 @@ class SecurityConfig {
 
     @Bean
     public JWTHelper jwtHandler() {
-        return new DefaultJWTHelper(Keys.hmacShaKeyFor(wp.jjwtSecret().getBytes()), wp.jjwtExpiration());
+        return new DefaultJWTHelper(wp.jjwtSecret(), wp.jjwtExpiration());
     }
 
     @Bean

@@ -1,7 +1,7 @@
 package co.syngleton.chartomancer.security;
 
 import co.syngleton.chartomancer.user_management.Role;
-import lombok.AllArgsConstructor;
+import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,10 +12,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
-@AllArgsConstructor
 class DefaultJWTHelper implements JWTHelper {
-    private Key key;
-    private String expiration;
+    private final Key key;
+    private final String expiration;
+
+    DefaultJWTHelper(String secret, String expiration) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.expiration = expiration;
+    }
 
     @Override
     public String generateToken(String username) {
@@ -84,7 +88,11 @@ class DefaultJWTHelper implements JWTHelper {
 
     private Claims getAllClaimsFromToken(String token) {
         try {
-            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
         } catch (Exception e) {
             return null;
         }
@@ -98,7 +106,15 @@ class DefaultJWTHelper implements JWTHelper {
         if (claims == null) {
             return Collections.emptyList();
         }
-        return (List<GrantedAuthority>) claims.get("role");
+
+        List roleslist = claims.get("role", List.class);
+
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+
+        for (Object role : roleslist) {
+            grantedAuthorities.add(Role.fromString((String) role));
+        }
+        return grantedAuthorities;
     }
 
 }

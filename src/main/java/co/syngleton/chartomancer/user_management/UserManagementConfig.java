@@ -35,7 +35,7 @@ class UserManagementConfig {
 
     @Bean
     UserService userService() throws ConfigurationException {
-        return new DefaultUserService(userRepository(), passwordEncoder);
+        return new UserNameToLowerCaseUserService(new DefaultUserService(userRepository(), passwordEncoder));
     }
 
 
