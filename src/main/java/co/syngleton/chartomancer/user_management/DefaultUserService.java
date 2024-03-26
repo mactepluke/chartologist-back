@@ -64,26 +64,20 @@ class DefaultUserService implements UserService {
             return null;
         }
 
+        if (userRepository.read(userToUpdate.getUsername()) != null && !userToUpdate.getUsername().equals(user.getUsername())) {
+            log.error("User with the new username exists already: {}. Could not update.", userToUpdate.getUsername());
+            return null;
+        }
+
         userToUpdate.setId(user.getId());
 
-        if (passwordIsUnchanged(user, userToUpdate)) {
-            userToUpdate.setPassword(user.getPassword());
-        } else {
-            if (passwordIsInvalid(userToUpdate))  {
-                log.error("Invalid new password: {}. Could not update.", userToUpdate);
-                return null;
-            }
-            userToUpdate.setPassword(passwordEncoder.encode(userToUpdate.getPassword()));
+        if (passwordIsInvalid(userToUpdate)) {
+            log.error("Invalid new password: {}. Could not update.", userToUpdate);
+            return null;
         }
+        userToUpdate.setPassword(passwordEncoder.encode(userToUpdate.getPassword()));
+
         return userRepository.update(userToUpdate);
-    }
-
-
-
-    private boolean passwordIsUnchanged(final User user, final User userToUpdate) {
-        return userToUpdate.getPassword().equals(user.getHiddenPassword()) ||
-                userToUpdate.getPassword().equals(user.getPassword())||
-                userToUpdate.getPassword().isBlank();
     }
 
     private boolean passwordIsInvalid(User user) {
