@@ -18,6 +18,7 @@ class UserServiceTests {
 
     private  UserService userService;
     private  UserFactory userFactory;
+    InMemoryUserRepository userRepository = new InMemoryUserRepository();
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -27,7 +28,6 @@ class UserServiceTests {
     void setUp() {
         log.info("*** STARTING USER SERVICE TESTS ***");
 
-        UserRepository userRepository = new InMemoryUserRepository();
         userFactory = new InMemoryUserFactory();
         userService = new DefaultUserService(userRepository, passwordEncoder, userFactory);
     }
@@ -38,6 +38,7 @@ class UserServiceTests {
         User testUser = userFactory.create("testUsername", "testPassword", "************");
         userService.delete(testUser.getUsername());
     }
+
 
     @Test
     @DisplayName("[UNIT] Successfully performs basic CRUD operations on user repository")

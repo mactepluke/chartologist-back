@@ -28,14 +28,15 @@ class UserControllerTests {
     @MockBean
     private UserService userService;
     @Autowired
-    private UserFactory userFactory;
+    private UserFactory localUserFactory;
     private User mockUser;
+    private static final String VALID_USERNAME = "username@gmail.com";
     private static final String VALID_PASSWORD = "123AZEaze#";
 
     @BeforeAll
     void setUp() {
         log.info("*** STARTING BACKTESTING ENDPOINTS TESTS ***");
-        this.mockUser = userFactory.create("testUsername", "testPassword", "************");
+        this.mockUser = localUserFactory.create(VALID_USERNAME, VALID_PASSWORD, "************");
     }
 
     @AfterAll
@@ -88,7 +89,7 @@ class UserControllerTests {
         mockMvc.perform(MockMvcRequestBuilders.post("/user/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":" + "\"" + this.mockUser.getUsername() +
-                                "\"" + ",\"password\":" + "\"" + this.mockUser.getPassword() + "\"}")
+                                "\"" + ",\"password\":" + "\"" + "****" + "\"}")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -111,7 +112,7 @@ class UserControllerTests {
     @DisplayName("[UNIT] Endpoint '/user/update' is accessible")
     void updateUserTest() throws Exception {
 
-        User testUser = userFactory.create("testUsername", "testPassword", "************");
+        final User testUser = this.mockUser;
 
         when(userService.update(testUser.getUsername(), testUser)).thenReturn(testUser);
 
@@ -128,8 +129,7 @@ class UserControllerTests {
     @DisplayName("[UNIT] Endpoint '/user/delete' is accessible")
     void deleteUserTest() throws Exception {
 
-        User testUser = userFactory.create("testUsername", "testPassword", "************");
-
+        final User testUser = this.mockUser;
 
         when(userService.update(testUser.getUsername(), testUser)).thenReturn(testUser);
 

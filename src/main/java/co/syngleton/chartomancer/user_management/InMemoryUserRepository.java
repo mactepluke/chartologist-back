@@ -1,11 +1,14 @@
 package co.syngleton.chartomancer.user_management;
 
+import lombok.extern.log4j.Log4j2;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-final class InMemoryUserRepository implements UserRepository {
-    private final Map<String, User> users = new HashMap<>();
+@Log4j2
+class InMemoryUserRepository implements UserRepository {
+    protected final Map<String, User> users = new HashMap<>();
 
     @Override
     public User create(User user) {
@@ -20,6 +23,7 @@ final class InMemoryUserRepository implements UserRepository {
     @Override
     public User read(String username) {
         Objects.requireNonNull(username);
+
         return users.get(username);
     }
 

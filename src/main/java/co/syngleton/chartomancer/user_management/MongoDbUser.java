@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
@@ -12,7 +13,7 @@ import java.util.List;
 import static co.syngleton.chartomancer.user_management.UserValidationConstants.EMAIL_PATTERN;
 
 @Data
-//@Document(collection = "users")
+@Document(collection = "users")
 @EqualsAndHashCode(of = "username")
 class MongoDbUser implements User {
     @Id

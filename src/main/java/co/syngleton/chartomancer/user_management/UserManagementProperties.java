@@ -11,6 +11,7 @@ record UserManagementProperties(
     enum RepositoryType {
         UNKNOWN,
         IN_MEMORY,
+        IN_MEMORY_WITH_DEBUG_LOGGING,
         MONGO_DB
     }
 }
