@@ -11,9 +11,7 @@ final class InMemoryUserRepository implements UserRepository {
     public User create(User user) {
 
         checkIsValid(user);
-
         user.setId(user.getUsername());
-
         users.put(user.getId(), user);
 
         return user;
@@ -29,11 +27,9 @@ final class InMemoryUserRepository implements UserRepository {
     public User update(User user) {
 
         checkIsValid(user);
-
         if (read(user.getId()) == null) {
             return null;
         }
-
         users.put(user.getId(), user);
 
         return user;

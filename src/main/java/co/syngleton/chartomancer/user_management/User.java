@@ -1,88 +1,23 @@
 package co.syngleton.chartomancer.user_management;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
+public interface User extends UserDetails {
+    String getEmail();
 
-import static co.syngleton.chartomancer.user_management.UserValidationConstants.EMAIL_PATTERN;
+    boolean hasEnableLightMode();
 
-@Data
-@Document(collection = "users")
-@EqualsAndHashCode(of = "username")
-public class User implements UserDetails {
-    @Id
-    private String id;
-    @Indexed()
-    @NotBlank
-    private String username;
-    @NotBlank
-    private String password;
-    private String hiddenPassword;
-    private UserSettings settings;
+    String getId();
 
-    protected User(String username, String password, String hiddenPassword) {
-        this.username = username;
-        this.password = password;
-        this.hiddenPassword = hiddenPassword;
-        this.settings = UserSettings.builder().build();
-    }
+    String getHiddenPassword();
 
-    public static User getNew(String username, String password, String hiddenPassword) {
-        return new User(username, password, hiddenPassword);
-    }
+    UserSettings getSettings();
 
-    @Override
-    public Collection<Role> getAuthorities() {
-        return List.of(Role.ROLE_USER);
-    }
+    void setId(String id);
 
-    @Override
-    public String getPassword() {
-        return password;
-    }
+    void setUsername(String username);
 
-    @Override
-    public String getUsername() {
-        return username;
-    }
+    void setPassword(String password);
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-    public String getEmail()   {
-        if (this.settings != null && this.settings.getEmail() != null) {
-            return this.settings.getEmail();
-        }
-        if (this.username != null && this.username.matches(EMAIL_PATTERN)) {
-            return this.username;
-        }
-        return "";
-    }
-
-    public boolean hasEnableLightMode() {
-        return this.settings.isEnableLightMode();
-    }
+    void setSettings(UserSettings settings);
 }

@@ -1,6 +1,7 @@
 package co.syngleton.chartomancer.user_controller;
 
 import co.syngleton.chartomancer.user_management.User;
+import co.syngleton.chartomancer.user_management.UserFactory;
 import co.syngleton.chartomancer.user_management.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
@@ -26,13 +27,15 @@ class UserControllerTests {
     private MockMvc mockMvc;
     @MockBean
     private UserService userService;
+    @Autowired
+    private UserFactory userFactory;
     private User mockUser;
     private static final String VALID_PASSWORD = "123AZEaze#";
 
     @BeforeAll
     void setUp() {
         log.info("*** STARTING BACKTESTING ENDPOINTS TESTS ***");
-        this.mockUser = new TestUser();
+        this.mockUser = userFactory.create("testUsername", "testPassword", "************");
     }
 
     @AfterAll
@@ -108,7 +111,7 @@ class UserControllerTests {
     @DisplayName("[UNIT] Endpoint '/user/update' is accessible")
     void updateUserTest() throws Exception {
 
-        User testUser = new TestUser();
+        User testUser = userFactory.create("testUsername", "testPassword", "************");
 
         when(userService.update(testUser.getUsername(), testUser)).thenReturn(testUser);
 
@@ -125,7 +128,8 @@ class UserControllerTests {
     @DisplayName("[UNIT] Endpoint '/user/delete' is accessible")
     void deleteUserTest() throws Exception {
 
-        User testUser = new TestUser();
+        User testUser = userFactory.create("testUsername", "testPassword", "************");
+
 
         when(userService.update(testUser.getUsername(), testUser)).thenReturn(testUser);
 

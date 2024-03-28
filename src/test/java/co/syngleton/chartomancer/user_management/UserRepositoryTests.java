@@ -1,6 +1,5 @@
 package co.syngleton.chartomancer.user_management;
 
-import co.syngleton.chartomancer.user_controller.TestUser;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ class UserRepositoryTests {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired UserFactory userFactory;
 
     @BeforeAll
     void setUp() {
@@ -28,14 +28,15 @@ class UserRepositoryTests {
     @AfterAll
     void tearDown() {
         log.info("*** ENDING USER REPOSITORY TESTS ***");
-        userRepository.delete((new TestUser()).getUsername());
+        userRepository.delete(userFactory.create("testUsername", "testPassword", "************").getUsername());
     }
 
     @Test
     @DisplayName("[UNIT] Successfully performs basic CRUD operations on user repository")
     void basicCRUDTest() {
 
-        User user = new TestUser();
+        User user = userFactory.create("testUsername", "testPassword", "************");
+
 
         assertNull(userRepository.read(user.getUsername()));
         assertEquals(user, userRepository.create(user));

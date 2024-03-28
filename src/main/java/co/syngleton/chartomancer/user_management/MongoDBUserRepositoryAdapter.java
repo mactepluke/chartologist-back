@@ -1,9 +1,6 @@
 package co.syngleton.chartomancer.user_management;
 
-import org.springframework.stereotype.Component;
-
-@Component
-class MongoDBUserRepositoryAdapter implements UserRepository {
+final class MongoDBUserRepositoryAdapter implements UserRepository {
     private final MongoDBUserRepository repository;
 
     MongoDBUserRepositoryAdapter(MongoDBUserRepository repository) {

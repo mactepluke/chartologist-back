@@ -1,6 +1,8 @@
 package co.syngleton.chartomancer.user_controller;
 
 import co.syngleton.chartomancer.user_management.User;
+import co.syngleton.chartomancer.user_management.UserDTO;
+import co.syngleton.chartomancer.user_management.UserFactory;
 import co.syngleton.chartomancer.user_management.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -23,6 +25,7 @@ import static co.syngleton.chartomancer.user_management.UserValidationConstants.
 @AllArgsConstructor
 class UserController {
     private final UserService userService;
+    private final UserFactory userFactory;
 
     @GetMapping("/get")
     ResponseEntity<UserDTO> get(@RequestParam final String username) {
@@ -32,7 +35,7 @@ class UserController {
         final User user = userService.find(username);
         if (user == null) throw new CannotFindUserException("Cannot find user with username: " + username);
 
-        return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.OK);
+        return new ResponseEntity<>(userFactory.from(user), HttpStatus.OK);
     }
 
     @PostMapping("/create")
@@ -45,7 +48,7 @@ class UserController {
         final User user = userService.create(userDTO.username(), userDTO.password());
         if (user == null) throw new CannotHandleUserException("Cannot create user with username: " + userDTO.username());
 
-        return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.CREATED);
+        return new ResponseEntity<>(userFactory.from(user), HttpStatus.CREATED);
     }
 
     @GetMapping("/login")
@@ -56,18 +59,18 @@ class UserController {
         if (user == null) {
             return null;
         }
-        return UserDTO.fromEntity(user);
+        return userFactory.from(user);
     }
 
     @PutMapping("/update")
     ResponseEntity<UserDTO> update(@RequestParam final String username, @RequestBody @Valid final UserDTO editedUser) {
 
-        User userToUpdate = UserDTO.toEntity(editedUser);
+        User userToUpdate = userFactory.from(editedUser);
         userToUpdate = userService.update(username, userToUpdate);
 
         if (userToUpdate == null) throw new CannotHandleUserException("Cannot update user with username: " + username);
 
-        return new ResponseEntity<>(UserDTO.fromEntity(userToUpdate), HttpStatus.OK);
+        return new ResponseEntity<>(userFactory.from(userToUpdate), HttpStatus.OK);
     }
 
     @DeleteMapping("/delete")

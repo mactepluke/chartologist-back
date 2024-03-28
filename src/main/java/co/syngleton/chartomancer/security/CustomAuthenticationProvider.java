@@ -1,6 +1,5 @@
 package co.syngleton.chartomancer.security;
 
-import co.syngleton.chartomancer.user_management.Role;
 import co.syngleton.chartomancer.user_management.User;
 import co.syngleton.chartomancer.user_management.UserService;
 import lombok.AllArgsConstructor;
@@ -10,15 +9,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -51,15 +44,7 @@ class CustomAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Invalid password.");
         }
 
-        return new UsernamePasswordAuthenticationToken(username, null, getGrantedAuthorities(user.getAuthorities()));
-    }
-
-    private List<GrantedAuthority> getGrantedAuthorities(Collection<Role> roles) {
-        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-        for (Role role : roles) {
-            grantedAuthorities.add(new SimpleGrantedAuthority(role.getAuthority()));
-        }
-        return grantedAuthorities;
+        return new UsernamePasswordAuthenticationToken(username, null, user.getAuthorities());
     }
 
     @Override

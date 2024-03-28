@@ -15,6 +15,7 @@ import static co.syngleton.chartomancer.user_management.UserValidationConstants.
 class DefaultUserService implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserFactory userFactory;
 
     private static final String INVALID_USER = "User cannot be null";
     private static final String INVALID_USERNAME = "Username cannot be null";
@@ -31,7 +32,7 @@ class DefaultUserService implements UserService {
             log.error("User exists already: {}. Could not create.", username);
             return null;
         }
-        final User user = User.getNew(username, passwordEncoder.encode(password), "*".repeat(password.length()));
+        final User user = userFactory.create(username, passwordEncoder.encode(password), "*".repeat(password.length()));
 
         return userRepository.create(user);
     }
