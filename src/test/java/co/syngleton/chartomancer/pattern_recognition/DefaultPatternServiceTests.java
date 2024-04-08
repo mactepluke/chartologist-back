@@ -32,10 +32,10 @@ import static org.mockito.Mockito.when;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(classes = {MockConfig.class, MockDataConfig.class})
 @ActiveProfiles("test")
-class PatternServiceTests {
+class DefaultPatternServiceTests {
 
     @Autowired
-    PatternService patternService;
+    DefaultPatternService patternService;
     @Autowired
     MockData mockData;
     @MockBean(name = "analyzer")

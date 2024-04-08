@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class PatternRecognitionITests {
 
     @Autowired
-    PatternService patternService;
+    DefaultPatternService patternService;
     @Autowired
     MockData mockData;
     @Autowired

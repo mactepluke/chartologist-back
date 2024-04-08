@@ -35,3 +35,12 @@ build/
 /data/Bitfinex_BTCUSD_d.csv
 /archives/
 
+### Properties ###
+.properties
+/src/main/resources/application-development.properties
+/src/main/resources/application-production.properties
+/src/main/resources/application-test.properties
+/src/main/resources/log4j2.properties
+
+### Core Pattern Recognition Service (hidden to the public) ###
+/src/main/java/co/syngleton/chartomancer/pattern_recognition/DefaultPatternService.java
