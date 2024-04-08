@@ -44,3 +44,5 @@ build/
 
 ### Core Pattern Recognition Service (hidden to the public) ###
 /src/main/java/co/syngleton/chartomancer/pattern_recognition/DefaultPatternService.java
+/src/test/java/co/syngleton/chartomancer/pattern_recognition/DefaultPatternServiceTests.java
+/src/test/java/co/syngleton/chartomancer/pattern_recognition/PatternRecognitionITests.java
