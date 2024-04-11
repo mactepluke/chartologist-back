@@ -8,11 +8,14 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeUnit;
 
 import static co.syngleton.chartomancer.user_management.UserValidationConstants.PASSWORD_MESSAGE;
 import static co.syngleton.chartomancer.user_management.UserValidationConstants.PASSWORD_PATTERN;
@@ -35,7 +38,9 @@ class UserController {
         final User user = userService.find(username);
         if (user == null) throw new CannotFindUserException("Cannot find user with username: " + username);
 
-        return new ResponseEntity<>(userFactory.from(user), HttpStatus.OK);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(30, TimeUnit.SECONDS))
+                .body(userFactory.from(user));
     }
 
     @PostMapping("/create")
